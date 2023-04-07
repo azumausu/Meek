@@ -1,12 +1,12 @@
 {
   "name": "jp.amatech.meek.navigationstack.child",
   "displayName": "Meek.NavigationStack.Child",
-  "version": "0.1.0",
+  "version": "0.0.1",
   "unity": "2021.3",
   "license": "MIT",
   "dependencies": {
-    "jp.amatech.meek": "https://github.com/azumausu/Meek.git?path=Assets/Meek/Meek",
-    "jp.amatech.meek.naviagtionstack": "https://github.com/azumausu/Meek.git?path=Assets/Meek/Meek.NavigationStack"
+    "jp.amatech.meek": "0.1.0",
+    "jp.amatech.meek.naviagtionstack": "0.1.0"
   },
   "author": {
     "name": "Hikaru Amano",
