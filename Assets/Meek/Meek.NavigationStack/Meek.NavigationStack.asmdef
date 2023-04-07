@@ -1,0 +1,16 @@
+{
+    "name": "Meek.NavigationStack",
+    "rootNamespace": "",
+    "references": [
+        "GUID:604a20abbe3ac48a891e244f8282b1d7"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
