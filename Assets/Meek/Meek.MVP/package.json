@@ -5,10 +5,10 @@
   "unity": "2021.3",
   "license": "MIT",
   "dependencies": {
-    "jp.amatech.meek": "0.1.0",
-    "jp.amatech.meek.navigationstack": "0.1.0",
-    "jp.amatech.meek.navigationstack.child": "0.1.0",
-    "jp.amatech.meek.ugui": "0.1.0"
+    "https://github.com/azumausu/Meek.git?path=Assets/Meek/Meek": "0.1.0",
+    "https://github.com/azumausu/Meek.git?path=Assets/Meek/Meek.NavigationStack": "0.1.0",
+    "https://github.com/azumausu/Meek.git?path=Assets/Meek/Meek.NavigationStack.Child": "0.1.0",
+    "https://github.com/azumausu/Meek.git?path=Assets/Meek/Meek.NavigationStack.UGUI": "0.1.0"
   },
   "author": {
     "name": "Hikaru Amano",
