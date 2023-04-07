@@ -1,0 +1,17 @@
+{
+  "name": "jp.amatech.meek.navigationstack.child",
+  "displayName": "Meek.NavigationStack.Child",
+  "version": "0.1.0",
+  "unity": "2021.3",
+  "license": "MIT",
+  "dependencies": {
+    "jp.amatech.meek": "0.1.0",
+    "jp.amatech.meek.navigationstack": "0.1.0",
+  },
+  "author": {
+    "name": "Hikaru Amano",
+    "url": "https://github.com/azumausu"
+  },
+  "type": "tool",
+  "description": "DI-based screen management library for Unity. This library is for using child screen transitions on Meek."
+}

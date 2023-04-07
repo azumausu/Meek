@@ -1,0 +1,15 @@
+{
+  "name": "jp.amatech.meek",
+  "displayName": "Meek",
+  "version": "0.1.0",
+  "unity": "2021.3",
+  "license": "MIT",
+  "dependencies": {
+  },
+  "author": {
+    "name": "Hikaru Amano",
+    "url": "https://github.com/azumausu"
+  },
+  "type": "tool",
+  "description": "DI-based screen management library for Unity. This is the core package of Meek."
+}
