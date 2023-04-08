@@ -7,13 +7,11 @@
   "dependencies": {
     "jp.amatech.meek": "0.1.0",
     "jp.amatech.meek.navigationstack": "0.1.0",
-    "jp.amatech.meek.navigationstack.child": "0.0.1",
     "jp.amatech.meek.ugui": "0.1.0"
   },
   "author": {
     "name": "Hikaru Amano",
     "url": "https://github.com/azumausu"
   },
-  "type": "tool",
   "description": "DI-based screen management library for Unity. This library is for building MVP(Model-View-Presenter) applications on Meek."
 }

@@ -1,8 +1,0 @@
-{
-  "dependencies": {
-    "jp.amatech.meek": "https://github.com/azumausu/Meek.git?path=Assets/Meek/Meek",
-    "jp.amatech.meek.naviagtionstack": "https://github.com/azumausu/Meek.git?path=Assets/Meek/Meek.NavigationStack",
-    "jp.amatech.meek.navigationstack.child": "https://github.com/azumausu/Meek.git?path=Assets/Meek/Meek.NavigationStack.Child",
-    "jp.amatech.meek.ugui": "https://github.com/azumausu/Meek.git?path=Assets/Meek/Meek.NavigationStack.UGUI"
-  }
-}

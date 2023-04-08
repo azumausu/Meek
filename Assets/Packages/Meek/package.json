@@ -10,6 +10,5 @@
     "name": "Hikaru Amano",
     "url": "https://github.com/azumausu"
   },
-  "type": "tool",
   "description": "DI-based screen management library for Unity. This is the core package of Meek."
 }

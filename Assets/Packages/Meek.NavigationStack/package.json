@@ -11,6 +11,5 @@
     "name": "Hikaru Amano",
     "url": "https://github.com/azumausu"
   },
-  "type": "tool",
   "description": "DI-based screen management library for Unity. This library is for using stack-based screen transitions on Meek."
 }
