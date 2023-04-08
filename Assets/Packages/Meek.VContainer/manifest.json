@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "jp.amatech.meek": "https://github.com/azumausu/Meek.git?path=Assets/Meek/Meek",
+    "jp.hadashikick.vcontainer": "https://github.com/hadashiA/VContainer.git?path=VContainer/Assets/VContainer"
+  }
+}
