@@ -8,7 +8,7 @@ using UnityEngine.UI;
 
 namespace Sample
 {
-    public class UIManager : MonoBehaviourSingleton<UIManager>, IGlobalInputLocker, IPrefabViewManager
+    public class UIManager : MonoBehaviourSingleton<UIManager>, IInputLocker, IPrefabViewManager
     {
         [SerializeField] private Image _inputBlocker;
         [SerializeField] private Transform _rootNode;
@@ -16,7 +16,7 @@ namespace Sample
         /// <summary>
         /// Inputをロックする
         /// </summary>
-        IDisposable IGlobalInputLocker.LockInput()
+        IDisposable IInputLocker.LockInput()
         {
             _inputBlocker.enabled = true;
             return new Disposer(() => _inputBlocker.enabled = false);

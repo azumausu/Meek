@@ -10,7 +10,7 @@ namespace Meek.MVP
     {
         public IServiceProvider CreateApp<TBootScreen>(
             Func<IServiceProvider, IContainerBuilder> containerBuilderFactory,
-            IGlobalInputLocker globalInputLocker,
+            IInputLocker inputLocker,
             IPrefabViewManager prefabViewManager,
             Action<IServiceCollection> configure
             ) where TBootScreen : IScreen
@@ -41,7 +41,7 @@ namespace Meek.MVP
             }).ConfigureServices(serviceCollection =>
             {
                 serviceCollection.AddScreenNavigatorEvent();
-                serviceCollection.AddGlobalInputLocker(x => { x.GlobalInputLocker = globalInputLocker; });
+                serviceCollection.AddInputLocker(x => { x.InputLocker = inputLocker; });
                 serviceCollection.AddScreenUI();
                 serviceCollection.AddNavigatorAnimation(
                     x =>
@@ -62,7 +62,7 @@ namespace Meek.MVP
             }).Configure(app =>
             {
                 app.UseScreenNavigatorEvent();
-                app.UseGlobalInputLocker();
+                app.UseInputLocker();
                 app.UseScreenUI();
                 app.UseNavigatorAnimation();
                 app.UseMiddleware<SyncChildScreenContainerMiddleware>();
