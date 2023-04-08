@@ -175,6 +175,11 @@ namespace Meek.NavigationStack
             finally { _semaphoreSlim.Release(); }  
         }
 
+        public void Dispatch<T>(T args)
+        {
+            DispatchAsync(typeof(T).FullName, args).Forget();
+        }
+
         public void Dispatch(string eventName, object parameter)
         {
             DispatchAsync(eventName, parameter).Forget();

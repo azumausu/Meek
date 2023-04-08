@@ -5,8 +5,8 @@ using UnityEngine;
 
 namespace Meek.UGUI.Editor
 {
-    [CustomEditor(typeof(UINavigatorTweenByAnimationClip))]
-    public class UINavigatorTweenByAnimationClipInspector : UnityEditor.Editor
+    [CustomEditor(typeof(NavigatorTweenByAnimationClip))]
+    public class NavigatorTweenByAnimationClipInspector : UnityEditor.Editor
     {
         #region Fields
 
@@ -32,7 +32,7 @@ namespace Meek.UGUI.Editor
             {
                 EditorGUILayout.PropertyField(
                     _enabledFromScreenNameProperty,
-                    new GUIContent("遷移前のStateTypeを指定する。")
+                    new GUIContent("Check FromStateType")
                 );
                 if (_enabledFromScreenNameProperty.boolValue)
                 {
@@ -46,7 +46,7 @@ namespace Meek.UGUI.Editor
 
                 EditorGUILayout.PropertyField(
                     _enabledToScreenNameProperty,
-                    new GUIContent("遷移後のStateTypeを指定する。")
+                    new GUIContent("Check ToStateType")
                 );
                 if (_enabledToScreenNameProperty.boolValue)
                 {

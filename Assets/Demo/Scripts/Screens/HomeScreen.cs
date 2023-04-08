@@ -26,11 +26,24 @@ namespace Demo
             {
                 var presenter = await LoadPresenterAsync<HomePresenter>();
                 
-                presenter.OnClickHome.Subscribe(_ => { });
+                presenter.OnClickHome.Subscribe(_ => model.UpdateTab(TabType.Home));
+                presenter.OnClickShop.Subscribe(_ => model.UpdateTab(TabType.Shop));
+                presenter.OnClickBag.Subscribe(_ => model.UpdateTab(TabType.Bag));
+                presenter.OnClickFavorites.Subscribe(_ => model.UpdateTab(TabType.Favorites));
+                presenter.OnClickProfile.Subscribe(_ => model.UpdateTab(TabType.Profile));
                 presenter.OnClickProduct.Subscribe(x =>
                 {
-                    _stackNavigationService.PushAsync<SelectSizeScreen>().Forget();
+                    _stackNavigationService.PushAsync<SelectSizeScreen>(new SelectSizeScreenParameter()
+                    {
+                        ProductId = x,
+                    }).Forget();
                 });
+            });
+            
+            eventHolder.SubscribeDispatchEvent<AddToCartEventArgs>(x =>
+            {
+                model.AddProduct(x.ProductId);
+                return true;
             });
         }
     }

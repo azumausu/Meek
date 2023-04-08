@@ -37,14 +37,14 @@ namespace Demo
                 {
                     _stackNavigationService.PushAsync<LogInScreen>().Forget();
                 });
-                presenter.OnClickSocialLoginAsFacebook.Subscribe(_ =>
-                {
-                    _stackNavigationService.PushAsync<HomeScreen>().Forget();
-                });
-                presenter.OnClickSocialLoginAsGoogle.Subscribe(_ =>
-                {
-                    _stackNavigationService.PushAsync<HomeScreen>().Forget();
-                });
+                // presenter.OnClickSocialLoginAsFacebook.Subscribe(_ =>
+                // {
+                //     _stackNavigationService.PushAsync<HomeScreen>().Forget();
+                // });
+                // presenter.OnClickSocialLoginAsGoogle.Subscribe(_ =>
+                // {
+                //     _stackNavigationService.PushAsync<HomeScreen>().Forget();
+                // });
 
                 presenter.OnEndEditName.Subscribe(model.UpdateName);
                 presenter.OnEndEditEmail.Subscribe(model.UpdateEmail);

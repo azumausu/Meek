@@ -28,10 +28,10 @@ namespace Meek.NavigationStack
         {
             if (context.NavigatingSourceType is StackNavigationSourceType.Insert or StackNavigationSourceType.Remove)
                 return;
-            
-            if (context.NavigatingSourceType == StackNavigationSourceType.Pop) 
+
+            if (context.NavigatingSourceType == StackNavigationSourceType.Pop)
                 ScreenEventInvoker.Invoke(ScreenLifecycleEvent.ScreenWillDestroy);
-            
+
             if (context.NavigatingSourceType == StackNavigationSourceType.Push)
             {
                 ScreenEventInvoker.Invoke(ScreenLifecycleEvent.ScreenWillPause);

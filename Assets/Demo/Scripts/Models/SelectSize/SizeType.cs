@@ -1,6 +1,6 @@
 namespace Demo
 {
-    public enum Size
+    public enum SizeType
     {
         XS,
         S,

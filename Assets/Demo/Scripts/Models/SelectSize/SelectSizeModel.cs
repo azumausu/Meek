@@ -4,13 +4,18 @@ namespace Demo
 {
     public class SelectSizeModel
     {
-        private readonly ReactiveProperty<Size> _size = new();
+        private readonly ReactiveProperty<SizeType> _size = new();
         
-        public IReadOnlyReactiveProperty<Size> Size => _size;
+        public IReadOnlyReactiveProperty<SizeType> Size => _size;
 
-        public void UpdateSize(Size size)
+        public SelectSizeModel(int productId)
         {
-            _size.Value = size;
+            
+        }
+
+        public void UpdateSize(SizeType sizeType)
+        {
+            _size.Value = sizeType;
         }
     }
 }

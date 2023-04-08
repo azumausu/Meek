@@ -10,6 +10,7 @@ namespace Demo
     public class SelectSizePresenter : Presenter<SelectSizeModel>
     {
         [SerializeField] private Button _backButton;
+        [SerializeField] private Button _addToCartButton;
         
         [SerializeField] private ToggleButton _xsButton;
         [SerializeField] private ToggleButton _sButton;
@@ -19,6 +20,8 @@ namespace Demo
 
         
         public IObservable<Unit> OnClickBack => _backButton.OnClickAsObservable();
+        public IObservable<Unit> OnClickAddToCart => _addToCartButton.OnClickAsObservable();
+
         public IObservable<Unit> OnClickXS => _xsButton.OnClick;
         public IObservable<Unit> OnClickS => _sButton.OnClick;
         public IObservable<Unit> OnClickM => _mButton.OnClick;
@@ -29,11 +32,11 @@ namespace Demo
         {
             yield return model.Size.Subscribe(x =>
             {
-                _xsButton.UpdateView(x == Size.XS);
-                _sButton.UpdateView(x == Size.S);
-                _mButton.UpdateView(x == Size.M);
-                _lButton.UpdateView(x == Size.L);
-                _xlButton.UpdateView(x == Size.XL);
+                _xsButton.UpdateView(x == SizeType.XS);
+                _sButton.UpdateView(x == SizeType.S);
+                _mButton.UpdateView(x == SizeType.M);
+                _lButton.UpdateView(x == SizeType.L);
+                _xlButton.UpdateView(x == SizeType.XL);
             });
         }
     }

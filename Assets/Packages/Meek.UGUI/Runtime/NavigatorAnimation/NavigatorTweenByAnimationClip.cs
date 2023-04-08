@@ -7,19 +7,19 @@ using UnityEngine.Serialization;
 namespace Meek.UGUI
 {
     [RequireComponent(typeof(SimpleAnimationPlayer))]
-    public class UINavigatorTweenByAnimationClip : MonoBehaviour, INavigatorTween
+    public class NavigatorTweenByAnimationClip : MonoBehaviour, INavigatorTween
 #if UNITY_2018_3_OR_NEWER
         , IAnimationClipSource
 #endif
     {
         #region Serialized Fields
 
-        [SerializeField] [HideInInspector] private bool _enabledLastStateName;
-        [SerializeField] [HideInInspector] private bool _enabledNextStateName;
-        [FormerlySerializedAs("navigationType")] [FormerlySerializedAs("_transitionType")] [SerializeField] private NavigatorAnimationType transitionType;
+        [SerializeField] [HideInInspector] private bool _enabledFromScreenName;
+        [SerializeField] [HideInInspector] private bool _enabledToScreenName;
+        [SerializeField] private NavigatorAnimationType transitionType;
         [SerializeField] private AnimationClip _animationClip;
-        [SerializeField] [HideInInspector] private string _lastStateName;
-        [SerializeField] [HideInInspector] private string _nextStateName;
+        [SerializeField] [HideInInspector] private string _fromScreenName;
+        [SerializeField] [HideInInspector] private string _toScreenName;
 
         #endregion
 
@@ -40,12 +40,12 @@ namespace Meek.UGUI
 
         public NavigatorAnimationType NavigatorAnimationType => transitionType;
 
-        public string FromScreenName => _enabledLastStateName
-            ? _lastStateName
+        public string FromScreenName => _enabledFromScreenName
+            ? _fromScreenName
             : null;
 
-        public string ToScreenName => _enabledNextStateName
-            ? _nextStateName
+        public string ToScreenName => _enabledToScreenName
+            ? _toScreenName
             : null;
 
         public float Length => _animationClip.length;

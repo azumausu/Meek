@@ -38,10 +38,10 @@ namespace Meek.NavigationStack
         );
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SubscribeDispatchEvent<TParam>(string eventName, Func<TParam, bool> function) => _screenDispatchEvents.Add(
+        public void SubscribeDispatchEvent<TParam>(Func<TParam, bool> function) => _screenDispatchEvents.Add(
             new ScreenDispatchEvent
             {
-                EventName = ToDispatchEventName(eventName), Function = value => function.Invoke((TParam)value),
+                EventName = ToDispatchEventName(typeof(TParam).FullName), Function = value => function.Invoke((TParam)value),
             }
         );
 
