@@ -25,31 +25,25 @@ namespace Demo
             eventHolder.ScreenWillStart(async () =>
             {
                 var presenter = await LoadPresenterAsync<SignUpPresenter>();
-                
-                presenter.OnClickSignUp.Subscribe(async _ =>
-                {
-                    using var disposable = UI.LockInteractable();
-                    
-                    await model.SignUpAsync();
-                    await _stackNavigationService.PushAsync<HomeScreen>();
-                });
+
+                presenter.OnClickSignUp.Subscribe(_ => SignUpAsync().Forget());
                 presenter.OnClickAlreadyHaveAnAccount.Subscribe(_ =>
                 {
                     _stackNavigationService.PushAsync<LogInScreen>().Forget();
                 });
-                // presenter.OnClickSocialLoginAsFacebook.Subscribe(_ =>
-                // {
-                //     _stackNavigationService.PushAsync<HomeScreen>().Forget();
-                // });
-                // presenter.OnClickSocialLoginAsGoogle.Subscribe(_ =>
-                // {
-                //     _stackNavigationService.PushAsync<HomeScreen>().Forget();
-                // });
 
                 presenter.OnEndEditName.Subscribe(model.UpdateName);
                 presenter.OnEndEditEmail.Subscribe(model.UpdateEmail);
                 presenter.OnEndEditPassword.Subscribe(model.UpdatePassword);
             });
+
+            async Task SignUpAsync()
+            {
+                using var disposable = UI.LockInteractable();
+                    
+                await model.SignUpAsync();
+                await _stackNavigationService.PushAsync<HomeScreen>(); 
+            }
         }
     }
 }

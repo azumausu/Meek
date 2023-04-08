@@ -25,18 +25,10 @@ namespace Meek.MVP
             rootContainerBuilder.ServiceCollection.AddSingleton(coroutineRunner);
             var rootContainer = rootContainerBuilder.Build();
             
-            // ChildStackNavigator Service
-            var childStackNavigator = new NavigatorBuilder(option =>
-                {
-                    option.ContainerBuilder = containerBuilderFactory(rootContainer);
-                    option.ScreenNavigator.Set<ChildStackScreenContainer>();
-                }).ConfigureServices(serviceCollection => { }).Configure(app => { })
-                .Build();
-            
             // StackNavigator Service
             var stackNavigator = new NavigatorBuilder(option =>
             {
-                option.ContainerBuilder = containerBuilderFactory(childStackNavigator.ServiceProvider);
+                option.ContainerBuilder = containerBuilderFactory(rootContainer);
                 option.ScreenNavigator.Set<StackScreenContainer>();
             }).ConfigureServices(serviceCollection =>
             {
@@ -58,14 +50,12 @@ namespace Meek.MVP
                     x.PresenterLoaderFactory.Set<PresenterLoaderFactoryFromResources>();
                 });
                 serviceCollection.AddScreenLifecycleEvent();
-                serviceCollection.AddSingleton(new SyncChildScreenContainerMiddleware(childStackNavigator));
             }).Configure(app =>
             {
                 app.UseScreenNavigatorEvent();
                 app.UseInputLocker();
                 app.UseScreenUI();
                 app.UseNavigatorAnimation();
-                app.UseMiddleware<SyncChildScreenContainerMiddleware>();
                 app.UseUGUI();
                 app.UseScreenLifecycleEvent();
             }).Build();
@@ -74,7 +64,6 @@ namespace Meek.MVP
             // App Service
             var appBuilder = containerBuilderFactory(stackNavigator.ServiceProvider);
             appBuilder.ServiceCollection.AddSingleton(x => new StackNavigationService(stackNavigator, x));
-            appBuilder.ServiceCollection.AddSingleton(x => new ChildStackNavigationService(childStackNavigator, x));
             configure(appBuilder.ServiceCollection);
             var app = appBuilder.Build();
             

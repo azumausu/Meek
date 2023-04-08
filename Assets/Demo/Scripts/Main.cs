@@ -11,6 +11,7 @@ namespace Sample
         
         public void Start()
         {
+            Application.targetFrameRate = Screen.currentResolution.refreshRate;
             App = new MVPApplication().CreateApp<SignUpScreen>(
                 x => new VContainerServiceCollection(x),
                 UIManager.I,
@@ -21,8 +22,6 @@ namespace Sample
                     x.AddTransient<LogInScreen>();
                     x.AddTransient<HomeScreen>();
                     x.AddTransient<SelectSizeScreen>();
-
-                    x.AddTransient<TabChildScreen>();
                 }
             );
         }
