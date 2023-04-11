@@ -1,7 +1,6 @@
 using System.Threading.Tasks;
 using Meek.MVP;
 using Meek.NavigationStack;
-using Sample;
 using UniRx;
 
 namespace Demo

@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 
 
-namespace Sample
+namespace Demo
 {
     /// <summary>
     /// MonoBehaviourのSingletonパターン

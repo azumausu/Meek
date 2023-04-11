@@ -30,3 +30,47 @@ Add following two lines to Pacakges/manifest.json.
 }
 ```
 It is recommended that UniRx be installed for implementation in the MVP(Model-View-Presenter) pattern.
+
+# Quick Start
+## Entry Point
+```csharp
+using Demo;
+using Meek;
+using Meek.MVP;
+using UnityEngine;
+
+namespace Demo
+{
+    public class Main : MonoBehaviour
+    {
+        public void Start()
+        {
+            var app = new MVPApplication().CreateApp<SplashScreen>(
+                x => new VContainerServiceCollection(x),
+                UIManager.I,
+                UIManager.I,
+                x =>
+                {
+                    x.AddTransient<SplashScreen>();
+                    x.AddTransient<SignUpScreen>();
+                    x.AddTransient<LogInScreen>();
+                    x.AddTransient<HomeScreen>();
+                    x.AddTransient<ReviewScreen>();
+                }
+            );
+        }
+    }
+}
+```
+
+## Screen
+#TODO
+
+## Lifecycle
+#TODO
+
+## Navigation
+#TODO
+
+## MVP(Model-View-Presenter)
+#TODO

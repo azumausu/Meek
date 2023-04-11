@@ -6,7 +6,7 @@ using Meek.UGUI;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Sample
+namespace Demo
 {
     public class UIManager : MonoBehaviourSingleton<UIManager>, IInputLocker, IPrefabViewManager
     {
