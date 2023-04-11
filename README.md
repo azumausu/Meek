@@ -7,7 +7,8 @@ https://user-images.githubusercontent.com/19426596/231222911-1acaf0f8-439b-4603-
   
   
 The images used in the demo are free content.  
-For copyright information, please check the following websites
+For copyright information, please check the following websites.  
+[Nucleus UI](https://www.nucleus-ui.com/)
 
 # Requirements
 - Unity 2021.3 (LTS) or newer
