@@ -28,8 +28,6 @@ namespace Demo
 
                 presenter.OnClickBack.Subscribe(_ => _stackNavigationService.PopAsync().Forget());
                 presenter.OnClickLogIn.Subscribe(_ => _stackNavigationService.PushAsync<HomeScreen>().Forget());
-                presenter.OnClickSocialLoginAsFacebook.Subscribe(_ => _stackNavigationService.PushAsync<HomeScreen>().Forget());
-                presenter.OnClickSocialLoginAsGoogle.Subscribe(_ => _stackNavigationService.PushAsync<HomeScreen>().Forget());
 
                 presenter.OnEndEditEmail.Subscribe(model.UpdateEmail);
                 presenter.OnEndEditPassword.Subscribe(model.UpdatePassword);

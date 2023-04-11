@@ -3,8 +3,7 @@ namespace Demo
     public enum TabType
     {
         Home,
-        Shop,
-        Bag,
+        Search,
         Favorites,
         Profile,
     }

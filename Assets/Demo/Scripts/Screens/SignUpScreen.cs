@@ -26,8 +26,9 @@ namespace Demo
             {
                 var presenter = await LoadPresenterAsync<SignUpPresenter>();
 
+                presenter.OnClickBack.Subscribe(_ => _stackNavigationService.PopAsync().Forget());
                 presenter.OnClickSignUp.Subscribe(_ => SignUpAsync().Forget());
-                presenter.OnClickAlreadyHaveAnAccount.Subscribe(_ =>
+                presenter.OnClickLogIn.Subscribe(_ =>
                 {
                     _stackNavigationService.PushAsync<LogInScreen>().Forget();
                 });

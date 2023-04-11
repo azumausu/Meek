@@ -12,17 +12,14 @@ namespace Demo
         [SerializeField] private InputFieldView _nameInputField;
         [SerializeField] private InputFieldView _emailInputField;
         [SerializeField] private InputFieldView _passwordInputField;
-        
-        [SerializeField] private Button _alreadyHaveAnAccountButton;
+
+        [SerializeField] private Button _backButton;
+        [SerializeField] private Button _logInButton;
         [SerializeField] private Button _signUpButton;
-        [SerializeField] private Button _socialLoginAsGoogleButton;
-        [SerializeField] private Button _socialLoginAsFacebookButton;
         
-        
+        public IObservable<Unit> OnClickBack => _backButton.OnClickAsObservable();
         public IObservable<Unit> OnClickSignUp => _signUpButton.OnClickAsObservable();
-        public IObservable<Unit> OnClickAlreadyHaveAnAccount => _alreadyHaveAnAccountButton.OnClickAsObservable();
-        public IObservable<Unit> OnClickSocialLoginAsGoogle => _socialLoginAsGoogleButton.OnClickAsObservable();
-        public IObservable<Unit> OnClickSocialLoginAsFacebook => _socialLoginAsFacebookButton.OnClickAsObservable();
+        public IObservable<Unit> OnClickLogIn => _logInButton.OnClickAsObservable();
         
         public IObservable<string> OnEndEditName => _nameInputField.OnEndEdit;
         public IObservable<string> OnEndEditEmail => _emailInputField.OnEndEdit;

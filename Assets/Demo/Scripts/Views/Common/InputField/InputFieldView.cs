@@ -25,7 +25,7 @@ namespace Demo
             _inputField.onSelect.AsObservable().Subscribe(_ =>
             {
                 var sequence = DOTween.Sequence()
-                    .Append(_label.DOAnchorPosY(50, 0.3f).SetEase(Ease.InOutSine))
+                    .Append(_label.DOAnchorPosY(37, 0.3f).SetEase(Ease.InOutSine))
                     .Join(_label.DOScale(new Vector3(0.7f, 0.7f, 1.0f), 0.3f).SetEase(Ease.InOutSine))
                     .Play();
             });
