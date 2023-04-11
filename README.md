@@ -13,7 +13,9 @@ For copyright information, please check the following websites.
 # Requirements
 - Unity 2021.3 (LTS) or newer
 - uGUI
-- (VContainer)[https://github.com/hadashiA/VContainer]
+- [VContainer](https://github.com/hadashiA/VContainer)
+
+  
 
 # Install
 Add following two lines to Pacakges/manifest.json.  
@@ -30,7 +32,7 @@ Add following two lines to Pacakges/manifest.json.
   }
 }
 ```
-It is recommended that (UniRx)[https://github.com/neuecc/UniRx] be installed for implementation in the MVP(Model-View-Presenter) pattern.
+It is recommended that [UniRx](https://github.com/neuecc/UniRx) be installed for implementation in the MVP(Model-View-Presenter) pattern.
 
 # Quick Start
 #TODO
