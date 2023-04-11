@@ -32,6 +32,9 @@ Add following two lines to Pacakges/manifest.json.
 It is recommended that UniRx be installed for implementation in the MVP(Model-View-Presenter) pattern.
 
 # Quick Start
+#TODO
+
+# Fundamentals
 ## Entry Point
 ```csharp
 using Demo;
@@ -70,6 +73,9 @@ namespace Demo
 #TODO
 
 ## Navigation
+### Navigation Method
+
+### Navigation Animation
 #TODO
 
 ## MVP(Model-View-Presenter)
