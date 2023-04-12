@@ -18,7 +18,7 @@ For copyright information, please check the following websites.
   
 
 # Install
-Add following two lines to Pacakges/manifest.json.  
+Add following six lines to Pacakges/manifest.json.  
 
 ```json
 {
