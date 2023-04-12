@@ -14,8 +14,6 @@ namespace Meek.MVP
             Action<IServiceCollection> configure
             ) where TBootScreen : IScreen
         {
-            // 依存関係順にContainerを作成する。
-            
             // Global Service
             var rootContainerBuilder = containerBuilderFactory(null);
             var gameObject = new GameObject("CoroutineRunner");
@@ -23,46 +21,22 @@ namespace Meek.MVP
             UnityEngine.Object.DontDestroyOnLoad(coroutineRunner);
             rootContainerBuilder.ServiceCollection.AddSingleton(coroutineRunner);
             var rootContainer = rootContainerBuilder.Build();
-            
+
             // StackNavigator Service
-            var stackNavigator = new NavigatorBuilder(option =>
-            {
-                option.ContainerBuilder = containerBuilderFactory(rootContainer);
-                option.ScreenNavigator.Set<StackScreenContainer>();
-            }).ConfigureServices(serviceCollection =>
-            {
-                serviceCollection.AddScreenNavigatorEvent();
-                serviceCollection.AddInputLocker(x => { x.InputLocker = inputLocker; });
-                serviceCollection.AddScreenUI();
-                serviceCollection.AddNavigatorAnimation(
-                    x =>
-                    {
-                        x.Strategies.Add<PushNavigatorAnimationStrategy>();
-                        x.Strategies.Add<PopNavigatorAnimationStrategy>();
-                        x.Strategies.Add<RemoveNavigatorAnimationStrategy>();
-                        x.Strategies.Add<InsertNavigatorAnimationStrategy>();
-                    }
-                );
-                serviceCollection.AddUGUIAsMVP(x =>
-                {
-                    x.UGUIOption.PrefabViewManager = prefabViewManager;
-                    x.PresenterLoaderFactory.Set<PresenterLoaderFactoryFromResources>();
-                });
-                serviceCollection.AddScreenLifecycleEvent();
-            }).Configure(app =>
-            {
-                app.UseScreenNavigatorEvent();
-                app.UseInputLocker();
-                app.UseScreenUI();
-                app.UseNavigatorAnimation();
-                app.UseUGUI();
-                app.UseScreenLifecycleEvent();
-            }).Build();
-            
+            var stackNavigator = StackNavigator.CreateAsMVP(
+                containerBuilderFactory(rootContainer),
+                inputLocker,
+                prefabViewManager
+            );
             
             // App Service
             var appBuilder = containerBuilderFactory(stackNavigator.ServiceProvider);
-            appBuilder.ServiceCollection.AddSingleton(x => new StackNavigationService(stackNavigator, x));
+            appBuilder.ServiceCollection.AddSingleton(stackNavigator);
+            appBuilder.ServiceCollection.AddSingleton(x =>
+            {
+                var stackNavigatorService = x.GetService<StackNavigator>();
+                return new StackNavigationService(stackNavigatorService, x);
+            });
             configure(appBuilder.ServiceCollection);
             var app = appBuilder.Build();
             

@@ -12,6 +12,8 @@ namespace Meek.NavigationStack
         private readonly INavigator _stackNavigator;
         private readonly IServiceProvider _serviceProvider;
         private readonly SemaphoreSlim _semaphoreSlim = new SemaphoreSlim(1, 1);
+        
+        public IScreenContainer ScreenContainer => _stackNavigator.ScreenContainer;
 
         public StackNavigationService(INavigator stackNavigator, IServiceProvider serviceProvider)
         {

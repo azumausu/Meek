@@ -1,4 +1,3 @@
-using Demo;
 using Meek;
 using Meek.MVP;
 using UnityEngine;
@@ -7,13 +6,16 @@ namespace Demo
 {
     public class Main : MonoBehaviour
     {
+        [SerializeField] private InputLocker _inputLocker;
+        [SerializeField] private PrefabViewManager _prefabViewManager;
+        
         public void Start()
         {
             Application.targetFrameRate = Screen.currentResolution.refreshRate;
             var app = new MVPApplication().CreateApp<SplashScreen>(
                 x => new VContainerServiceCollection(x),
-                UIManager.I,
-                UIManager.I,
+                _inputLocker,
+                _prefabViewManager,
                 x =>
                 {
                     x.AddTransient<SplashScreen>();

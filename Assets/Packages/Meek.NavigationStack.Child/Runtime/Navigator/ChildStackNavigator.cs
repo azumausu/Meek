@@ -16,7 +16,6 @@ namespace Meek.NavigationStack.Child
 
         public ValueTask NavigateAsync(NavigationContext context)
         {
-            context.AppServices = _internalNavigator.ServiceProvider;
             return _internalNavigator.NavigateAsync(context);
         }
     }

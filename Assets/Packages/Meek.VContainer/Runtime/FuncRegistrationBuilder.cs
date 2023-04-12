@@ -18,7 +18,7 @@ public class FuncRegistrationBuilder : RegistrationBuilder
         this.implementationProvider = implementationProvider;
         _serviceType = serviceType;
         _implementationType = implementationType;
-        lifetime = lifetime;
+        _lifetime = lifetime;
         this.As(serviceType);
     }
 

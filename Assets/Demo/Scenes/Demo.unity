@@ -232,7 +232,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 697912238}
-  - component: {fileID: 697912237}
+  - component: {fileID: 697912240}
+  - component: {fileID: 697912239}
   m_Layer: 0
   m_Name: UIManager
   m_TagString: Untagged
@@ -240,20 +241,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &697912237
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 697912236}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 02b2dbed00f3b4b0caac91d46ef62829, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _inputBlocker: {fileID: 1632204128}
-  _rootNode: {fileID: 389098991}
 --- !u!4 &697912238
 Transform:
   m_ObjectHideFlags: 0
@@ -272,6 +259,32 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &697912239
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 697912236}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d9018af07286407c8e9f11f86fd233b4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _rootNode: {fileID: 389098991}
+--- !u!114 &697912240
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 697912236}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bb6065f43f3b49088ea3b7530f1213b0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _inputBlocker: {fileID: 1632204128}
 --- !u!1 &705507993
 GameObject:
   m_ObjectHideFlags: 0
@@ -494,6 +507,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 93fc1f5b1aa5415b81b5944381aeae0c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _inputLocker: {fileID: 697912240}
+  _prefabViewManager: {fileID: 697912239}
 --- !u!1 &1199641521
 GameObject:
   m_ObjectHideFlags: 0
