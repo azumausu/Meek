@@ -73,7 +73,7 @@ namespace Demo
     }
 }
 ```
-MVPApplication().CreateAppメソッドを呼び出すことで、アプリケーションのエントリポイントとなるクラスを作成します。
+MVPApplication().CreateApp<TScreen>()メソッドを呼び出すことで、アプリケーションを作成します。
 
 InputLockerは以下のInterfaceを実装します。
 ```csharp
