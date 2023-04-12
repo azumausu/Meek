@@ -1,3 +1,5 @@
+[日本語ドキュメント](README_JA.md)
+
 # Meek
 Meek is a Unity library for building user interfaces implemented on a DI basis.  
 It primarily provides screen navigation and screen management functions and tools to facilitate implementation based on the MVP architecture.
@@ -40,7 +42,6 @@ It is recommended that [UniRx](https://github.com/neuecc/UniRx) be installed for
 # Fundamentals
 ## Entry Point
 ```csharp
-using Demo;
 using Meek;
 using Meek.MVP;
 using UnityEngine;
@@ -49,12 +50,15 @@ namespace Demo
 {
     public class Main : MonoBehaviour
     {
+        [SerializeField] private InputLocker _inputLocker;
+        [SerializeField] private PrefabViewManager _prefabViewManager;
+        
         public void Start()
         {
             var app = new MVPApplication().CreateApp<SplashScreen>(
                 x => new VContainerServiceCollection(x),
-                UIManager.I,
-                UIManager.I,
+                _inputLocker,
+                _prefabViewManager,
                 x =>
                 {
                     x.AddTransient<SplashScreen>();
@@ -68,6 +72,7 @@ namespace Demo
     }
 }
 ```
+MVPApplication
 
 ## Screen
 #TODO
