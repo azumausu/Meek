@@ -1,4 +1,4 @@
-namespace Meek.NavigationStack.Context
+namespace Meek.NavigationStack
 {
     public class PopContext
     {

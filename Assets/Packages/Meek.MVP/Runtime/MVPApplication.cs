@@ -37,6 +37,8 @@ namespace Meek.MVP
             appBuilder.ServiceCollection.AddTransient<RemoveNavigation>();
             appBuilder.ServiceCollection.AddTransient<InsertNavigation>();
             appBuilder.ServiceCollection.AddTransient<BackToNavigation>();
+            appBuilder.ServiceCollection.AddTransient<ChangeWithPopNavigation>();
+            appBuilder.ServiceCollection.AddTransient<ChangeWithPushNavigation>();
             
             appBuilder.ServiceCollection.AddSingleton(stackNavigator);
             appBuilder.ServiceCollection.AddSingleton(x =>

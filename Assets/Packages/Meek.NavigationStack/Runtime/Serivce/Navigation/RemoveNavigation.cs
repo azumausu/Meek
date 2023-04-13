@@ -1,6 +1,5 @@
 using System;
 using System.Threading.Tasks;
-using Meek.NavigationStack.Context;
 
 namespace Meek.NavigationStack
 {

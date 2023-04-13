@@ -21,11 +21,7 @@ namespace Demo
                 presenter.OnClickHome.Subscribe(_ => model.UpdateTab(TabType.Home));
                 presenter.OnClickSearch.Subscribe(_ => model.UpdateTab(TabType.Search));
                 presenter.OnClickFavorites.Subscribe(_ => model.UpdateTab(TabType.Favorites));
-                presenter.OnClickProfile.Subscribe(_ =>
-                {
-                    BackToNavigation.BackToAsync<SplashScreen>();
-                    model.UpdateTab(TabType.Profile);
-                });
+                presenter.OnClickProfile.Subscribe(_ => model.UpdateTab(TabType.Profile));
                 presenter.OnClickProduct.Subscribe(index =>
                 {
                    PushNavigation.UpdateNextScreenParameter(new ReviewScreenParameter(){ ProductId = index + 1, })

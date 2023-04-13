@@ -89,6 +89,9 @@ namespace Meek.MVP
         protected RemoveNavigation RemoveNavigation => AppServices.GetService<RemoveNavigation>();
         protected InsertNavigation InsertNavigation => AppServices.GetService<InsertNavigation>();
         protected BackToNavigation BackToNavigation => AppServices.GetService<BackToNavigation>();
+        protected ChangeWithPopNavigation ChangeWithPopNavigation => AppServices.GetService<ChangeWithPopNavigation>();
+        protected ChangeWithPushNavigation ChangeWithPushNavigation => AppServices.GetService<ChangeWithPushNavigation>();
+        
         protected void Dispatch<TParam>(TParam param) => AppServices.GetService<StackNavigationService>().Dispatch(param);
         
         #endregion
