@@ -7,13 +7,6 @@ namespace Demo
 {
     public class SignUpScreen : MVPScreen<SignUpModel>
     {
-        private readonly StackNavigationService _stackNavigationService;
-        
-        public SignUpScreen(StackNavigationService stackNavigationService)
-        {
-            _stackNavigationService = stackNavigationService;
-        }
-        
         protected override async ValueTask<SignUpModel> CreateModelAsync()
         {
             return await Task.FromResult(new SignUpModel());
@@ -25,11 +18,11 @@ namespace Demo
             {
                 var presenter = await LoadPresenterAsync<SignUpPresenter>();
 
-                presenter.OnClickBack.Subscribe(_ => _stackNavigationService.PopAsync().Forget());
+                presenter.OnClickBack.Subscribe(_ => PopNavigation.PopAsync().Forget());
                 presenter.OnClickSignUp.Subscribe(_ => SignUpAsync().Forget());
                 presenter.OnClickLogIn.Subscribe(_ =>
                 {
-                    _stackNavigationService.PushAsync<LogInScreen>().Forget();
+                    PushNavigation.PushAsync<LogInScreen>().Forget();
                 });
 
                 presenter.OnEndEditName.Subscribe(model.UpdateName);
@@ -42,7 +35,7 @@ namespace Demo
                 using var disposable = UI.LockInteractable();
                     
                 await model.SignUpAsync();
-                await _stackNavigationService.PushAsync<HomeScreen>(); 
+                await PushNavigation.PushAsync<HomeScreen>(); 
             }
         }
     }

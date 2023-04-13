@@ -2,12 +2,11 @@ using System;
 using System.Collections.Generic;
 using Meek.NavigationStack;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace Meek.UGUI
 {
     [RequireComponent(typeof(SimpleAnimationPlayer))]
-    public class NavigatorTweenByAnimationClip : MonoBehaviour, INavigatorTween
+    public class NavigatorAnimationByAnimationClip : MonoBehaviour, INavigatorAnimation
 #if UNITY_2018_3_OR_NEWER
         , IAnimationClipSource
 #endif
@@ -16,7 +15,7 @@ namespace Meek.UGUI
 
         [SerializeField] [HideInInspector] private bool _enabledFromScreenName;
         [SerializeField] [HideInInspector] private bool _enabledToScreenName;
-        [SerializeField] private NavigatorAnimationType transitionType;
+        [SerializeField] private NavigatorAnimationType _navigatorAnimationType;
         [SerializeField] private AnimationClip _animationClip;
         [SerializeField] [HideInInspector] private string _fromScreenName;
         [SerializeField] [HideInInspector] private string _toScreenName;
@@ -38,7 +37,7 @@ namespace Meek.UGUI
 
         #region Interface Implementations
 
-        public NavigatorAnimationType NavigatorAnimationType => transitionType;
+        public NavigatorAnimationType NavigatorAnimationType => _navigatorAnimationType;
 
         public string FromScreenName => _enabledFromScreenName
             ? _fromScreenName

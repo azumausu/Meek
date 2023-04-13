@@ -6,6 +6,6 @@ namespace Meek.NavigationStack
 
         public bool IsCrossFade;
         
-        public bool EnableNavigateAnimation;
+        public bool SkipAnimation;
     }
 }

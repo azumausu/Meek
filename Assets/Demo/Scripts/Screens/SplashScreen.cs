@@ -7,13 +7,6 @@ namespace Demo
 {
     public class SplashScreen : MVPScreen<SplashModel>
     {
-        private readonly StackNavigationService _stackNavigationService;
-        
-        public SplashScreen(StackNavigationService stackNavigationService)
-        {
-            _stackNavigationService = stackNavigationService;
-        }
-        
         protected override async ValueTask<SplashModel> CreateModelAsync()
         {
             return await Task.FromResult(new SplashModel());
@@ -25,8 +18,8 @@ namespace Demo
             {
                 var presenter = await LoadPresenterAsync<SplashPresenter>();
 
-                presenter.OnClickSignUp.Subscribe(_ => _stackNavigationService.PushAsync<SignUpScreen>());
-                presenter.OnClickLogIn.Subscribe(_ => _stackNavigationService.PushAsync<LogInScreen>());
+                presenter.OnClickSignUp.Subscribe(_ => PushNavigation.PushAsync<SignUpScreen>());
+                presenter.OnClickLogIn.Subscribe(_ => PushNavigation.PushAsync<LogInScreen>());
             });
         }
     }

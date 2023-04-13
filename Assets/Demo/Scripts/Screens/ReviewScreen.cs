@@ -7,13 +7,6 @@ namespace Demo
 {
     public class ReviewScreen : MVPScreen<ReviewModel, ReviewScreenParameter>
     {
-        private readonly StackNavigationService _stackNavigationService;
-        
-        public ReviewScreen(StackNavigationService stackNavigationService)
-        {
-            _stackNavigationService = stackNavigationService;
-        }
-        
         protected override async ValueTask<ReviewModel> CreateModelAsync(ReviewScreenParameter parameter)
         {
             return await Task.FromResult(new ReviewModel(parameter.ProductId));
@@ -25,12 +18,12 @@ namespace Demo
             {
                 var presenter = await LoadPresenterAsync<ReviewPresenter>();
 
-                presenter.OnClickBack.Subscribe(_ => _stackNavigationService.PopAsync().Forget());
-                presenter.OnClickCancel.Subscribe(_ => _stackNavigationService.PopAsync().Forget());
+                presenter.OnClickBack.Subscribe(_ => PopNavigation.PopAsync().Forget());
+                presenter.OnClickCancel.Subscribe(_ => PopNavigation.PopAsync().Forget());
                 presenter.OnClickGood.Subscribe(async _ =>
                 {
-                    await _stackNavigationService.PopAsync();
-                    _stackNavigationService.Dispatch(new ReviewEventArgs()
+                    await PopNavigation.PopAsync();
+                    Dispatch(new ReviewEventArgs()
                     {
                         ProductId = model.ProductId.Value,
                         IsGood = true
@@ -38,8 +31,8 @@ namespace Demo
                 });
                 presenter.OnClickBad.Subscribe(async _ =>
                 {
-                    await _stackNavigationService.PopAsync();
-                    _stackNavigationService.Dispatch(new ReviewEventArgs()
+                    await PopNavigation.PopAsync();
+                    Dispatch(new ReviewEventArgs()
                     {
                         ProductId = model.ProductId.Value,
                         IsGood = false

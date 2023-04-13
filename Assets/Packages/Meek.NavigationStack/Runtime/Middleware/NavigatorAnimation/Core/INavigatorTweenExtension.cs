@@ -6,16 +6,16 @@ namespace Meek.NavigationStack
 {
     public static class INavigatorTweenExtension
     {
-        public static IEnumerable<INavigatorTween> MatchNavigatorAnimationType(
-            this IEnumerable<INavigatorTween> self,
+        public static IEnumerable<INavigatorAnimation> MatchNavigatorAnimationType(
+            this IEnumerable<INavigatorAnimation> self,
             NavigatorAnimationType transitionType
             )
         {
             return self.Where(x => x.NavigatorAnimationType == transitionType);
         }
 
-        public static IEnumerable<INavigatorTween> MatchFromScreenClassType(
-            this IEnumerable<INavigatorTween> self,
+        public static IEnumerable<INavigatorAnimation> MatchFromScreenClassType(
+            this IEnumerable<INavigatorAnimation> self,
             Type fromScreenClassType
         )
         {
@@ -25,8 +25,8 @@ namespace Meek.NavigationStack
             );
         }
         
-        public static IEnumerable<INavigatorTween> MatchToScreenClassType(
-            this IEnumerable<INavigatorTween> self,
+        public static IEnumerable<INavigatorAnimation> MatchToScreenClassType(
+            this IEnumerable<INavigatorAnimation> self,
             Type toScreenClassType
         )
         {

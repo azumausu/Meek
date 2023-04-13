@@ -1,6 +1,7 @@
 using System;
 using DG.Tweening;
 using UniRx;
+using UniRx.Triggers;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -22,6 +23,7 @@ namespace Demo
                     .Append(_activeImage.DOFade(1f, 0.2f).SetEase(Ease.InOutSine))
                     .Join(_inactiveImage.DOFade(0f, 0.2f).SetEase(Ease.InOutSine))
                     .Play();
+                this.OnDestroyAsObservable().Subscribe(_ => sequence?.Kill());
             }
             else
             {
@@ -29,6 +31,7 @@ namespace Demo
                     .Append(_activeImage.DOFade(0f, 0.2f).SetEase(Ease.InOutSine))
                     .Join(_inactiveImage.DOFade(1f, 0.2f).SetEase(Ease.InOutSine))
                     .Play(); 
+                this.OnDestroyAsObservable().Subscribe(_ => sequence?.Kill());
             }
         }
     }

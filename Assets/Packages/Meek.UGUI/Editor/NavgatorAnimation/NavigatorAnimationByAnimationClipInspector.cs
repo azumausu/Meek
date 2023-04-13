@@ -5,8 +5,8 @@ using UnityEngine;
 
 namespace Meek.UGUI.Editor
 {
-    [CustomEditor(typeof(NavigatorTweenByAnimationClip))]
-    public class NavigatorTweenByAnimationClipInspector : UnityEditor.Editor
+    [CustomEditor(typeof(NavigatorAnimationByAnimationClip))]
+    public class NavigatorAnimationByAnimationClipInspector : UnityEditor.Editor
     {
         #region Fields
 
@@ -89,45 +89,19 @@ namespace Meek.UGUI.Editor
 
             _screenTypeNames = AppDomain.CurrentDomain.GetAssemblies()
                 .SelectMany(x => x.GetTypes())
-                .Where(
-                    x => x.IsSubclassOf(typeof(IScreen)) ||
-                         x == typeof(IScreen)
-                )
+                .Where(x => x.GetInterfaces().Any(y => y == typeof(IScreen)))
+                .Where(x => !x.IsAbstract)
                 .Select(x => x.Name)
                 .ToArray();
 
-            var gameStateIndex = _screenTypeNames.Select(
-                    (typeName, index) => new
-                    {
-                        TypeName = typeName,
-                        Index = index,
-                    }
-                )
-                .First(x => x.TypeName == nameof(IScreen))
-                .Index;
-
-            _selectedFromScreenNameIndex = _screenTypeNames.Select(
-                    (typeName, index) => new
-                    {
-                        TypeName = typeName,
-                        Index = index,
-                    }
-                )
-                .FirstOrDefault(
-                    x => x.TypeName == _fromScreenNameProperty.stringValue
-                )
-                ?.Index ?? gameStateIndex;
-            _selectedToScreenNameIndex = _screenTypeNames.Select(
-                    (typeName, index) => new
-                    {
-                        TypeName = typeName,
-                        Index = index,
-                    }
-                )
-                .FirstOrDefault(
-                    x => x.TypeName == _toScreenNameProperty.stringValue
-                )
-                ?.Index ?? gameStateIndex;
+            _selectedFromScreenNameIndex = _screenTypeNames
+                .Select((typeName, index) => new { TypeName = typeName, Index = index, })
+                .FirstOrDefault(x => x.TypeName == _fromScreenNameProperty.stringValue)
+                ?.Index ?? 0;
+            _selectedToScreenNameIndex = _screenTypeNames
+                .Select((typeName, index) => new { TypeName = typeName, Index = index, })
+                .FirstOrDefault(x => x.TypeName == _toScreenNameProperty.stringValue)
+                ?.Index ?? 0;
         }
 
         #endregion

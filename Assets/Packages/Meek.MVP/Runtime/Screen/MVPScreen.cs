@@ -1,4 +1,5 @@
 using System;
+using System.Reflection;
 using System.Threading.Tasks;
 using Meek.NavigationStack;
 using Meek.UGUI;
@@ -68,10 +69,10 @@ namespace Meek.MVP
         protected async Task<TPresenter> LoadPresenterAsync<TPresenter>(string prefabName)
             where TPresenter : class, IPresenter<TModel>
         {
-            var factory = StackServiceProvider.GetService<IPresenterLoaderFactory>();
+            var factory = AppServices.GetService<IPresenterLoaderFactory>();
             var loader = factory.CreateLoader(Model, prefabName);
             var viewHandler =  await UI.LoadViewHandlerAsync(loader) as PrefabViewHandler;
-            var prefabViewManager = StackServiceProvider.GetService<IPrefabViewManager>();
+            var prefabViewManager = AppServices.GetService<IPrefabViewManager>();
             prefabViewManager.AddInHierarchy(viewHandler);
             
             return viewHandler.Instance.GetComponent<TPresenter>();
@@ -82,6 +83,13 @@ namespace Meek.MVP
         {
             return LoadPresenterAsync<TPresenter>(typeof(TPresenter).Name);
         }
+        
+        protected PushNavigation PushNavigation => AppServices.GetService<PushNavigation>();
+        protected PopNavigation PopNavigation => AppServices.GetService<PopNavigation>();
+        protected RemoveNavigation RemoveNavigation => AppServices.GetService<RemoveNavigation>();
+        protected InsertNavigation InsertNavigation => AppServices.GetService<InsertNavigation>();
+        protected BackToNavigation BackToNavigation => AppServices.GetService<BackToNavigation>();
+        protected void Dispatch<TParam>(TParam param) => AppServices.GetService<StackNavigationService>().Dispatch(param);
         
         #endregion
     }

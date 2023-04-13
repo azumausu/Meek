@@ -48,7 +48,7 @@ namespace Meek.UGUI.Editor
         void DrawITransitionHandler(NavigatorAnimationPlayer t)
         {
             EditorGUILayout.LabelField("遷移アニメーションがアタッチされているGameObject");
-            var handlers = t.GetComponentsInChildren<INavigatorTween>();
+            var handlers = t.GetComponentsInChildren<INavigatorAnimation>();
             if (handlers == null || handlers.Length == 0)
             {
                 EditorGUILayout.LabelField("未使用");

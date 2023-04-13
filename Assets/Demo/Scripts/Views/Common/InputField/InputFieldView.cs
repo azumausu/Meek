@@ -3,6 +3,7 @@ using System.Linq;
 using DG.Tweening;
 using TMPro;
 using UniRx;
+using UniRx.Triggers;
 using UnityEngine;
 using UnityEngine.Pool;
 
@@ -28,6 +29,7 @@ namespace Demo
                     .Append(_label.DOAnchorPosY(37, 0.3f).SetEase(Ease.InOutSine))
                     .Join(_label.DOScale(new Vector3(0.7f, 0.7f, 1.0f), 0.3f).SetEase(Ease.InOutSine))
                     .Play();
+                this.OnDestroyAsObservable().Subscribe(_ => sequence?.Kill());
             });
             _inputField.onDeselect.AsObservable()
                 .Where(_ => string.IsNullOrEmpty(_inputField.text))
@@ -37,6 +39,7 @@ namespace Demo
                     .Append(_label.DOAnchorPosY(0, 0.3f).SetEase(Ease.InOutSine))
                     .Join(_label.DOScale(new Vector3(1f, 1f, 1.0f), 0.3f).SetEase(Ease.InOutSine))
                     .Play();
+                this.OnDestroyAsObservable().Subscribe(_ => sequence?.Kill());
             });
         }
 

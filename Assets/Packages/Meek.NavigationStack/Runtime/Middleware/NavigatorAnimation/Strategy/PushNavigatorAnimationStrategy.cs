@@ -36,7 +36,7 @@ namespace Meek.NavigationStack
             var fromScreenType = context.FromScreen?.GetType();
             var toScreen = context.ToScreen as StackScreen;
             var fromScreen = context.FromScreen as StackScreen;
-            var enableTransitionAnimation = context.EnableNavigateAnimation;
+            var skipAnimation = context.SkipAnimation;
             var isCrossFade = context.IsCrossFade;
             
             // TODO: 失敗のハンドリングは後ほど検討
@@ -53,8 +53,8 @@ namespace Meek.NavigationStack
                 
                 // 次ScreenのVisibleをONにしておく
                 toScreen!.UI.SetVisible(true);
-                coroutines.Add(fromScreen.UI.HideRoutine(fromScreenType, toScreenType, !enableTransitionAnimation));
-                coroutines.Add(toScreen.UI.OpenRoutine(fromScreenType, toScreenType, !enableTransitionAnimation));
+                coroutines.Add(fromScreen.UI.HideRoutine(fromScreenType, toScreenType, skipAnimation));
+                coroutines.Add(toScreen.UI.OpenRoutine(fromScreenType, toScreenType, skipAnimation));
                 yield return _coroutineRunner.StartParallelCoroutine(coroutines.ToArray());
                 
                 ListPool<IEnumerator>.Release(coroutines);
@@ -62,9 +62,9 @@ namespace Meek.NavigationStack
             else
             {
                 if (fromScreen != null)
-                    yield return fromScreen.UI.HideRoutine(fromScreenType, toScreenType, !enableTransitionAnimation);
+                    yield return fromScreen.UI.HideRoutine(fromScreenType, toScreenType, skipAnimation);
                 toScreen!.UI.SetVisible(true);
-                yield return toScreen.UI.OpenRoutine(fromScreenType, toScreenType, !enableTransitionAnimation);
+                yield return toScreen.UI.OpenRoutine(fromScreenType, toScreenType, skipAnimation);
             }
 
             // FullScreenUIが乗った時のみ、1つ下の全画面Viewが見つかるまで全て非表示にする。

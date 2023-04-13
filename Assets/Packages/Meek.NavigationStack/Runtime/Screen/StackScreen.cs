@@ -9,7 +9,7 @@ namespace Meek.NavigationStack
     {
         private readonly Stack<IDisposable> _interactableLocks = new Stack<IDisposable>();
 
-        protected IServiceProvider StackServiceProvider;
+        protected IServiceProvider AppServices;
         protected List<IDisposable> Disposables = new List<IDisposable>();
 
         private CoroutineRunner _coroutineRunner;
@@ -115,7 +115,7 @@ namespace Meek.NavigationStack
         {
             var stackContext = navigationContext.ToStackNavigationContext();
             
-            StackServiceProvider = stackContext.AppServices;
+            AppServices = stackContext.AppServices;
             _coroutineRunner = stackContext.AppServices.GetService<CoroutineRunner>();
             UI = stackContext.AppServices.GetService<ScreenUI>();
         }

@@ -31,6 +31,13 @@ namespace Meek.MVP
             
             // App Service
             var appBuilder = containerBuilderFactory(stackNavigator.ServiceProvider);
+            
+            appBuilder.ServiceCollection.AddTransient<PushNavigation>();
+            appBuilder.ServiceCollection.AddTransient<PopNavigation>();
+            appBuilder.ServiceCollection.AddTransient<RemoveNavigation>();
+            appBuilder.ServiceCollection.AddTransient<InsertNavigation>();
+            appBuilder.ServiceCollection.AddTransient<BackToNavigation>();
+            
             appBuilder.ServiceCollection.AddSingleton(stackNavigator);
             appBuilder.ServiceCollection.AddSingleton(x =>
             {
@@ -41,8 +48,7 @@ namespace Meek.MVP
             var app = appBuilder.Build();
             
             // Push Initial Screen
-            var stackNavigatorService = app.GetService<StackNavigationService>();
-            stackNavigatorService.PushAsync<TBootScreen>().Forget();
+            app.GetService<PushNavigation>().PushAsync<TBootScreen>().Forget();
 
             return app;
         }

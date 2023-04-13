@@ -41,7 +41,7 @@ namespace Meek.NavigationStack
             var toScreen = context.ToScreen as StackScreen;
             var fromScreenClassType = fromScreen.GetType();
             var toScreenClassType = toScreen?.GetType();
-            var enableNavigationAnimation = context.EnableNavigateAnimation;
+            var skipAnimation = context.SkipAnimation;
             var isCrossFade = context.IsCrossFade;
             
             // 破棄されるScreenが全てNoneの場合は何もせずに終了。
@@ -59,9 +59,9 @@ namespace Meek.NavigationStack
             {
                 var coroutines = ListPool<IEnumerator>.Get();
                 
-                coroutines.Add(fromScreen.UI.CloseRoutine(fromScreenClassType, toScreenClassType, !enableNavigationAnimation));
+                coroutines.Add(fromScreen.UI.CloseRoutine(fromScreenClassType, toScreenClassType, skipAnimation));
                 if (toScreen != null)
-                    coroutines.Add(toScreen.UI.ShowRoutine(fromScreenClassType, toScreenClassType, !enableNavigationAnimation));
+                    coroutines.Add(toScreen.UI.ShowRoutine(fromScreenClassType, toScreenClassType, skipAnimation));
                 yield return _coroutineRunner.StartParallelCoroutine(coroutines);
                 
                 ListPool<IEnumerator>.Release(coroutines);
@@ -69,10 +69,10 @@ namespace Meek.NavigationStack
             else
             {
                 yield return _coroutineRunner.StartCoroutine(
-                    fromScreen.UI.CloseRoutine(fromScreenClassType, toScreenClassType, !enableNavigationAnimation)
+                    fromScreen.UI.CloseRoutine(fromScreenClassType, toScreenClassType, skipAnimation)
                 );
                 if (toScreen != null)
-                    yield return toScreen.UI.ShowRoutine(fromScreenClassType, toScreenClassType, !enableNavigationAnimation);
+                    yield return toScreen.UI.ShowRoutine(fromScreenClassType, toScreenClassType, skipAnimation);
             }
         }
     }

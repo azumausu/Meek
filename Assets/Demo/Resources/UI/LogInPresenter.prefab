@@ -693,7 +693,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _enabledFromScreenName: 0
   _enabledToScreenName: 0
-  transitionType: 0
+  _navigatorAnimationType: 0
   _animationClip: {fileID: 7400000, guid: 1d3c889e5d8dc429ca28c51622140278, type: 2}
   _fromScreenName: 
   _toScreenName: 
@@ -723,7 +723,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _enabledFromScreenName: 0
   _enabledToScreenName: 0
-  transitionType: 1
+  _navigatorAnimationType: 1
   _animationClip: {fileID: 7400000, guid: e6e8fe8c9082f47fc961d48a1a2cc86b, type: 2}
   _fromScreenName: IScreen
   _toScreenName: IScreen

@@ -2,7 +2,7 @@
 
 namespace Meek.NavigationStack
 {
-    public interface INavigatorTween
+    public interface INavigatorAnimation
     {
         #region Methods
         

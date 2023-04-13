@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Meek.NavigationStack.Context;
 using UnityEngine;
 using UnityEngine.Pool;
 
@@ -21,20 +22,20 @@ namespace Meek.NavigationStack
             _serviceProvider = serviceProvider;
         }
 
-        public Task PushAsync<TScreen>(object nextScreenParameter = null, bool enableNavigationAnimation = true, bool isCrossFade = false) 
+        public Task PushAsync<TScreen>(PushContext pushContext) 
             where TScreen : IScreen
         {
-            return PushAsync(typeof(TScreen), nextScreenParameter, enableNavigationAnimation, isCrossFade);
+            return PushAsync(typeof(TScreen), pushContext);
         }
         
-        public async Task PushAsync(Type screenClassType, object nextScreenParameter = null, bool enableNavigationAnimation = true, bool isCrossFade = false)
+        public async Task PushAsync(Type screenClassType, PushContext pushContext)
         {
             await _semaphoreSlim.WaitAsync();
             try
             {
                 DictionaryPool<string, object>.Get(out var features);
                 
-                features.Add(StackNavigationContextFeatureDefine.NextScreenParameter, nextScreenParameter);
+                features.Add(StackNavigationContextFeatureDefine.NextScreenParameter, pushContext.NextScreenParameter);
                 
                 var fromScreen = _stackNavigator.ScreenContainer.Screens.FirstOrDefault();
                 var toScreen = _serviceProvider.GetService(screenClassType) as IScreen
@@ -43,8 +44,8 @@ namespace Meek.NavigationStack
                 var context = new StackNavigationContext()
                 {
                     NavigatingSourceType = StackNavigationSourceType.Push,
-                    IsCrossFade = isCrossFade,
-                    EnableNavigateAnimation = enableNavigationAnimation,
+                    IsCrossFade = pushContext.IsCrossFade,
+                    SkipAnimation = pushContext.SkipAnimation,
                     Features = features,
                     FromScreen = fromScreen,
                     ToScreen = toScreen,
@@ -58,7 +59,7 @@ namespace Meek.NavigationStack
             finally { _semaphoreSlim.Release(); }
         }
 
-        public async Task PopAsync(bool enableNavigationAnimation = true, bool isCrossFade = false)
+        public async Task PopAsync(PopContext popContext)
         {
             await _semaphoreSlim.WaitAsync();
             try
@@ -71,8 +72,8 @@ namespace Meek.NavigationStack
                 var context = new StackNavigationContext()
                 {
                     NavigatingSourceType = StackNavigationSourceType.Pop,
-                    IsCrossFade = isCrossFade,
-                    EnableNavigateAnimation = enableNavigationAnimation,
+                    IsCrossFade = popContext.IsCrossFade,
+                    SkipAnimation = popContext.SkipAnimation,
                     Features = features,
                     FromScreen = fromScreen,
                     ToScreen = toScreen,
@@ -87,20 +88,26 @@ namespace Meek.NavigationStack
             finally { _semaphoreSlim.Release(); } 
         }
 
-        public Task InsertScreenBeforeAsync<TBeforeScreen, TInsertionScreen>(object nextScreenParameter = null)
+        public Task InsertScreenBeforeAsync<TBeforeScreen, TInsertionScreen>(InsertContext insertionContext)
             where TBeforeScreen : IScreen
             where TInsertionScreen : IScreen
         {
-            return InsertScreenBeforeAsync(typeof(TBeforeScreen), typeof(TInsertionScreen), nextScreenParameter);
+            return InsertScreenBeforeAsync(typeof(TBeforeScreen), typeof(TInsertionScreen), insertionContext);
         }
         
-        public async Task InsertScreenBeforeAsync(Type beforeScreenClassType, Type insertionScreenClassType, object nextScreenParameter = null)
+        public async Task InsertScreenBeforeAsync(Type beforeScreenClassType, Type insertionScreenClassType, InsertContext insertionContext)
         {
             var fromScreen = _stackNavigator.ScreenContainer.GetPeekScreen();
             if (fromScreen?.GetType() == beforeScreenClassType)
             {
                 Debug.LogWarning("Trying to insert into peek screen. You can convert \"Invert\" to \"Push\"");
-                await PushAsync(insertionScreenClassType, nextScreenParameter);
+                var pushContext = new PushContext()
+                {
+                    NextScreenParameter = insertionContext.NextScreenParameter,
+                    IsCrossFade = insertionContext.IsCrossFade,
+                    SkipAnimation = insertionContext.SkipAnimation,
+                };
+                await PushAsync(insertionScreenClassType, pushContext);
                 return;
             }
             
@@ -114,13 +121,13 @@ namespace Meek.NavigationStack
                 
                 features.Add(StackNavigationContextFeatureDefine.InsertionBeforeScreenType, beforeScreenClassType);
                 features.Add(StackNavigationContextFeatureDefine.InsertionScreen, insertionScreen);
-                features.Add(StackNavigationContextFeatureDefine.NextScreenParameter, nextScreenParameter);
+                features.Add(StackNavigationContextFeatureDefine.NextScreenParameter, insertionContext.NextScreenParameter);
                 
                 var context = new StackNavigationContext()
                 {
                     NavigatingSourceType = StackNavigationSourceType.Insert,
-                    IsCrossFade = false,
-                    EnableNavigateAnimation = false,
+                    IsCrossFade = insertionContext.IsCrossFade,
+                    SkipAnimation = insertionContext.SkipAnimation,
                     Features = features,
                     FromScreen = fromScreen,
                     ToScreen = fromScreen,
@@ -134,18 +141,23 @@ namespace Meek.NavigationStack
             finally { _semaphoreSlim.Release(); } 
         }
 
-        public Task RemoveAsync<TScreen>() where TScreen : IScreen
+        public Task RemoveAsync<TScreen>(RemoveContext removeContext) where TScreen : IScreen
         {
-            return RemoveAsync(typeof(TScreen));
+            return RemoveAsync(typeof(TScreen), removeContext);
         }
         
-        public async Task RemoveAsync(Type screenClassType)
+        public async Task RemoveAsync(Type screenClassType, RemoveContext removeContext)
         {
             var fromScreen = _stackNavigator.ScreenContainer.GetPeekScreen();
             if (fromScreen?.GetType() == screenClassType)
             {
                 Debug.LogWarning("Trying to remove into peek screen. You can convert \"Remove\" to \"Pop\"");
-                await PopAsync();
+                var popContext = new PopContext()
+                {
+                    IsCrossFade = removeContext.IsCrossFade,
+                    SkipAnimation = removeContext.SkipAnimation,
+                };
+                await PopAsync(popContext);
                 return;
             }
             
@@ -163,7 +175,7 @@ namespace Meek.NavigationStack
                 {
                     NavigatingSourceType = StackNavigationSourceType.Remove,
                     IsCrossFade = false,
-                    EnableNavigateAnimation = false,
+                    SkipAnimation = false,
                     Features = features,
                     FromScreen = fromScreen,
                     ToScreen = fromScreen,

@@ -7,13 +7,6 @@ namespace Demo
 {
     public class LogInScreen : MVPScreen<LogInModel>
     {
-        private readonly StackNavigationService _stackNavigationService;
-        
-        public LogInScreen(StackNavigationService stackNavigationService)
-        {
-            _stackNavigationService = stackNavigationService;
-        }
-        
         protected override async ValueTask<LogInModel> CreateModelAsync()
         {
             return await Task.FromResult(new LogInModel());
@@ -25,8 +18,8 @@ namespace Demo
             {
                 var presenter = await LoadPresenterAsync<LogInPresenter>();
 
-                presenter.OnClickBack.Subscribe(_ => _stackNavigationService.PopAsync().Forget());
-                presenter.OnClickLogIn.Subscribe(_ => _stackNavigationService.PushAsync<HomeScreen>().Forget());
+                presenter.OnClickBack.Subscribe(_ => PopNavigation.PopAsync().Forget());
+                presenter.OnClickLogIn.Subscribe(_ => PushNavigation.PushAsync<HomeScreen>().Forget());
 
                 presenter.OnEndEditEmail.Subscribe(model.UpdateEmail);
                 presenter.OnEndEditPassword.Subscribe(model.UpdatePassword);

@@ -11,7 +11,7 @@ namespace Meek.UGUI
     {
         #region Fields
 
-        private INavigatorTween[] _animationHandlers = new INavigatorTween[0];
+        private INavigatorAnimation[] _animationHandlers = new INavigatorAnimation[0];
 
         #endregion
 
@@ -134,7 +134,7 @@ namespace Meek.UGUI
             if (defaultHandlers.Length > 0) yield return PlayAnimation(defaultHandlers);
         }
 
-        private IEnumerator PlayAnimation(INavigatorTween[] handlers)
+        private IEnumerator PlayAnimation(INavigatorAnimation[] handlers)
         {
             var count = handlers.Length;
             foreach (var handler in handlers) handler.Play(() => count--);
@@ -142,7 +142,7 @@ namespace Meek.UGUI
             yield return new WaitUntil(() => count == 0);
         }
         
-        private void Evaluate(IEnumerable<INavigatorTween> handlers, float t)
+        private void Evaluate(IEnumerable<INavigatorAnimation> handlers, float t)
         {
             foreach (var handler in handlers) handler.Evaluate(t);
         }
@@ -152,7 +152,7 @@ namespace Meek.UGUI
         #region Unity events
 
         private void Awake() => _animationHandlers =
-            GetComponentsInChildren<INavigatorTween>();
+            GetComponentsInChildren<INavigatorAnimation>();
 
         #endregion
     }
