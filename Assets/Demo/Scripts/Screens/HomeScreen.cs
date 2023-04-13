@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Demo.ApplicationServices;
 using Meek.MVP;
@@ -10,9 +11,9 @@ namespace Demo
     {
         private readonly GlobalStore _globalStore;
         
-        public HomeScreen(GlobalStore globalStore)
+        public HomeScreen(IServiceProvider serviceProvider)
         {
-            _globalStore = globalStore;
+            _globalStore = serviceProvider.GetService(typeof(GlobalStore)) as GlobalStore;
         }
         
         protected override async ValueTask<HomeModel> CreateModelAsync()

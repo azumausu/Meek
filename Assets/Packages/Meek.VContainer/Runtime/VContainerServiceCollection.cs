@@ -4,7 +4,6 @@ using Meek;
 using VContainer;
 using VContainer.Unity;
 using IContainerBuilder = Meek.IContainerBuilder;
-using IServiceProvider = Meek.IServiceProvider;
 using Object = UnityEngine.Object;
 
 public class VContainerServiceCollection : IContainerBuilder

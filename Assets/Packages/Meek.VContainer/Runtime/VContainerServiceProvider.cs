@@ -1,6 +1,5 @@
 using System;
 using VContainer;
-using IServiceProvider = Meek.IServiceProvider;
 
 public class VContainerServiceProvider : IServiceProvider, IDisposable
 {

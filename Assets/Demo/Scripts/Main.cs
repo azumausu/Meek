@@ -26,7 +26,7 @@ namespace Demo
                     x.AddTransient<SplashScreen>();
                     x.AddTransient<SignUpScreen>();
                     x.AddTransient<LogInScreen>();
-                    x.AddTransient<HomeScreen>();
+                    x.AddTransient<HomeScreen>(x => new HomeScreen(x));
                     x.AddTransient<ReviewScreen>();
                 }
             );

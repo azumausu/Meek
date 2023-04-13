@@ -1,7 +1,9 @@
+using System;
 using System.Threading.Tasks;
 using Meek.MVP;
 using Meek.UGUI;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace Meek.NavigationStack.MVP
 {

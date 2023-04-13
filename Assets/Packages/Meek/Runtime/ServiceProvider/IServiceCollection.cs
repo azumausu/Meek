@@ -4,6 +4,5 @@ namespace Meek
 {
     public interface IServiceCollection : IList<ServiceDescriptor>
     {
-        
     }
 }
