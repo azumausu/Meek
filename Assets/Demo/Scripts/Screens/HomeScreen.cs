@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using Demo.ApplicationServices;
 using Meek.MVP;
 using Meek.NavigationStack;
 using UniRx;
@@ -7,9 +8,16 @@ namespace Demo
 {
     public class HomeScreen : MVPScreen<HomeModel>
     {
+        private readonly GlobalStore _globalStore;
+        
+        public HomeScreen(GlobalStore globalStore)
+        {
+            _globalStore = globalStore;
+        }
+        
         protected override async ValueTask<HomeModel> CreateModelAsync()
         {
-            return await Task.FromResult(new HomeModel());
+            return await Task.FromResult(new HomeModel(_globalStore));
         }
         
         protected override void RegisterEvents(EventHolder eventHolder, HomeModel model)

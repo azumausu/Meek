@@ -1,9 +1,9 @@
-using System;
 using System.Threading.Tasks;
 using Meek.MVP;
 using Meek.UGUI;
+using UnityEngine;
 
-namespace Meek.NavigationStack
+namespace Meek.NavigationStack.MVP
 {
     public class StackNavigator : INavigator
     {
@@ -24,6 +24,11 @@ namespace Meek.NavigationStack
 
         public static StackNavigator CreateAsMVP(IContainerBuilder containerBuilder, IInputLocker inputLocker, IPrefabViewManager prefabViewManager)
         {
+            var gameObject = new GameObject("CoroutineRunner");
+            var coroutineRunner = gameObject.AddComponent<CoroutineRunner>();
+            Object.DontDestroyOnLoad(coroutineRunner);
+            containerBuilder.ServiceCollection.AddSingleton(coroutineRunner);
+            
             // StackNavigator Service
             var stackNavigator = new NavigatorBuilder(option =>
             {

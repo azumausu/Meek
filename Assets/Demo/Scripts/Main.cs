@@ -1,3 +1,4 @@
+using Demo.ApplicationServices;
 using Meek;
 using Meek.MVP;
 using UnityEngine;
@@ -18,6 +19,10 @@ namespace Demo
                 _prefabViewManager,
                 x =>
                 {
+                    // App Services
+                    x.AddSingleton<GlobalStore>();
+                    
+                    // Screen
                     x.AddTransient<SplashScreen>();
                     x.AddTransient<SignUpScreen>();
                     x.AddTransient<LogInScreen>();
