@@ -740,6 +740,7 @@ MonoBehaviour:
   _favoritesCanvasGroup: {fileID: 7083553472958814142}
   _favoritesInputLocker: {fileID: 3690511407864742067}
   _favoritesPrefabViewManager: {fileID: 3690511408831929720}
+  _badgeActiveSwitcher: {fileID: 6031208555497158204}
   _profileToggleButton: {fileID: 8647450130943832953}
   _profileCanvasGroup: {fileID: 5719302605695796524}
   _profileInputLocker: {fileID: 3690511409249001360}

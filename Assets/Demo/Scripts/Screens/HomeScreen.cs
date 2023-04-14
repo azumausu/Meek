@@ -1,6 +1,4 @@
-using System;
 using System.Threading.Tasks;
-using Demo.ApplicationServices;
 using Meek.MVP;
 using Meek.NavigationStack;
 using UniRx;
@@ -26,9 +24,9 @@ namespace Demo
             eventHolder.ScreenWillStart(async () =>
             {
                 var presenter = await LoadPresenterAsync<HomePresenter>();
-                presenter.OnClickProduct.Subscribe(index =>
+                presenter.OnClickProduct.Subscribe(id =>
                 {
-                   PushNavigation.UpdateNextScreenParameter(new ReviewScreenParameter(){ ProductId = index + 1, })
+                   PushNavigation.UpdateNextScreenParameter(new ReviewScreenParameter(){ ProductId = id, })
                        .PushAsync<ReviewScreen>().Forget();
                 });
             });

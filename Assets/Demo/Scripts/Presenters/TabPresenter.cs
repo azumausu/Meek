@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Meek;
 using Meek.MVP;
@@ -24,7 +25,8 @@ namespace Demo
         [SerializeField] private CanvasGroup _favoritesCanvasGroup;
         [SerializeField] private InputLocker _favoritesInputLocker;
         [SerializeField] private PrefabViewManager _favoritesPrefabViewManager;
-        
+        [SerializeField] private GameObjectActiveSwitcher _badgeActiveSwitcher;
+
         [SerializeField] private ToggleButton _profileToggleButton;
         [SerializeField] private CanvasGroup _profileCanvasGroup;
         [SerializeField] private InputLocker _profileInputLocker;
@@ -54,6 +56,11 @@ namespace Demo
                 _profileToggleButton.UpdateView(x == TabType.Profile);
                 _profileCanvasGroup.alpha = x == TabType.Profile ? 1 : 0;
                 _profileCanvasGroup.blocksRaycasts = x == TabType.Profile;
+            });
+
+            yield return model.FavoriteProducts.Subscribe(x =>
+            {
+                _badgeActiveSwitcher.Switch(x.Count(y => y.IsNew) > 0);
             });
         }
 

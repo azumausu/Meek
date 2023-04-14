@@ -1,4 +1,4 @@
-using Demo.ApplicationServices;
+using System.Collections.Generic;
 using UniRx;
 
 namespace Demo
@@ -6,12 +6,9 @@ namespace Demo
     public class HomeModel
     {
         private readonly GlobalStore _globalStore;
-        private readonly ReactiveCollection<int> _favoriteProducts = new();
-        private readonly ReactiveProperty<TabType> _selectingTab = new();
-        
-        public IReadOnlyReactiveProperty<TabType> SelectingTab => _selectingTab;
-        public IReadOnlyReactiveCollection<int> FavoriteProducts => _globalStore.FavoriteProducts;
-        
+        public IReadOnlyReactiveProperty<List<FavoritesProductEntity>> FavoriteProducts => _globalStore.FavoriteProducts;
+        public IReadOnlyReactiveProperty<List<ProductEntity>> Products => _globalStore.Products;
+
         public HomeModel(GlobalStore globalStore)
         {
             _globalStore = globalStore;
@@ -20,11 +17,6 @@ namespace Demo
         public void AddProduct(int productId, bool isGood)
         {
             if (isGood) _globalStore.AddFavoriteProduct(productId);
-        }
-
-        public void UpdateTab(TabType tabType)
-        {
-            _selectingTab.Value = tabType;
         }
     }
 }

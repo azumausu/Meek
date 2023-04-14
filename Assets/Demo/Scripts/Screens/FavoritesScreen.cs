@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Meek.MVP;
 using Meek.NavigationStack;
@@ -8,7 +9,8 @@ namespace Demo
     {
         protected override async ValueTask<FavoritesModel> CreateModelAsync()
         {
-            return await Task.FromResult(new FavoritesModel());
+            var globalStore = AppServices.GetService<GlobalStore>();
+            return await Task.FromResult(new FavoritesModel(globalStore));
         }
 
         protected override void RegisterEvents(EventHolder eventHolder, FavoritesModel model)
