@@ -1,6 +1,4 @@
-using System;
-
-namespace Meek
+namespace System
 {
     public static class IServiceProviderExtension
     {

@@ -13,7 +13,7 @@ namespace Demo
         
         public HomeScreen(IServiceProvider serviceProvider)
         {
-            _globalStore = serviceProvider.GetService(typeof(GlobalStore)) as GlobalStore;
+            _globalStore = serviceProvider.GetService<GlobalStore>();
         }
         
         protected override async ValueTask<HomeModel> CreateModelAsync()

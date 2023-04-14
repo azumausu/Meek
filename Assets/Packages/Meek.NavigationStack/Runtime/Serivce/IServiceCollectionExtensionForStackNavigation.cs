@@ -1,3 +1,5 @@
+using System;
+
 namespace Meek.NavigationStack
 {
     public static class IServiceCollectionExtensionForStackNavigation
