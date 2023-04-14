@@ -13,7 +13,7 @@ namespace Demo
         public void Start()
         {
             Application.targetFrameRate = Screen.currentResolution.refreshRate;
-            var app = new MVPApplication().CreateApp<SplashScreen>(
+            var app = MVPApplication.CreateRootApp<SplashScreen>(
                 x => new VContainerServiceCollection(x),
                 _inputLocker,
                 _prefabViewManager,
@@ -26,7 +26,7 @@ namespace Demo
                     x.AddTransient<SplashScreen>();
                     x.AddTransient<SignUpScreen>();
                     x.AddTransient<LogInScreen>();
-                    x.AddTransient<HomeScreen>(x => new HomeScreen(x));
+                    x.AddTransient<TabScreen>();
                     x.AddTransient<ReviewScreen>();
                 }
             );

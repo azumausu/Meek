@@ -35,7 +35,7 @@ namespace Demo
                 using var disposable = UI.LockInteractable();
                     
                 await model.SignUpAsync();
-                await PushNavigation.PushAsync<HomeScreen>(); 
+                await PushNavigation.PushAsync<TabScreen>(); 
             }
         }
     }

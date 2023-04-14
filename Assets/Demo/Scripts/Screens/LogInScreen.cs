@@ -19,7 +19,7 @@ namespace Demo
                 var presenter = await LoadPresenterAsync<LogInPresenter>();
 
                 presenter.OnClickBack.Subscribe(_ => PopNavigation.PopAsync().Forget());
-                presenter.OnClickLogIn.Subscribe(_ => PushNavigation.PushAsync<HomeScreen>().Forget());
+                presenter.OnClickLogIn.Subscribe(_ => PushNavigation.PushAsync<TabScreen>().Forget());
 
                 presenter.OnEndEditEmail.Subscribe(model.UpdateEmail);
                 presenter.OnEndEditPassword.Subscribe(model.UpdatePassword);
