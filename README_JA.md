@@ -3,7 +3,9 @@ Meekは、DIベースで実装されたUnityのユーザーインターフェイ
 主な機能としては、画面遷移や画面ライフサイクルの管理機能を提供しています。  
 また、MVPアーキテクチャでの実装を容易にするためのツールも提供しています。  
 
-![MeekDemo](Docs/Assets/MeekDemo.gif)
+<p align="center">
+  <img width="40%" src="Docs/Assets/MeekDemo.gif" alt="Demo">
+</p>
 
 デモの中で使用している画像はフリーのコンテンツです。    
 著作権に関する情報は以下のウェブサイトをご確認ください。  
