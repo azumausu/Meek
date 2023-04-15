@@ -4,9 +4,7 @@
 Meek is a Unity library for building user interfaces implemented on a DI basis.  
 It primarily provides screen navigation and screen management functions and tools to facilitate implementation based on the MVP architecture.
 
-<p align="center">
-  <img width="40%" src="Docs/Assets/MeekDemo.gif" alt="Demo">
-</p>
+[MeekDemo](https://user-images.githubusercontent.com/19426596/232242080-f2eac6e7-e1ae-48c3-9816-8aebae1f951b.mov)
 
 The images used in the demo are free content.  
 For copyright information, please check the following websites.  
