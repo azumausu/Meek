@@ -50,57 +50,116 @@ namespace Demo
         
         public void Start()
         {
-            // ジェネリック引数は、最初に表示する画面のクラスを指定します。
-            var app = new MVPApplication().CreateApp<SplashScreen>(
-                // DIコンテナのサービスコレクションを作成するためのファクトリメソッドです。
-                x => new VContainerServiceCollection(x),
-                // 画面遷移時に入力をロックするためのクラスです。
-                _inputLocker,
-                // 画面遷移時に表示するプレハブを管理するクラスです。
-                _prefabViewManager,
+            // アプリケーションを作成します。
+            var app = MVPApplication.CreateRootApp(
+                // アプリケーションの初期化時にオプションを指定します。
+                new MVPRootApplicationOption()
+                {
+                    // DIコンテナを作成するためのファクトリメソッドです。
+                    ContainerBuilderFactory = x => new VContainerServiceCollection(x),
+                    // 画面遷移時に入力をロックするためのクラスです。
+                    InputLocker = _inputLocker,
+                    // 画面遷移時に表示するプレハブを管理するクラスです。
+                    PrefabViewManager = _prefabViewManager,
+                },
+                // 使用する画面のクラスや機能を登録します。
                 x =>
                 {
-                    // 画面のクラスを登録します。
+                    // App Services
+                    x.AddSingleton<GlobalStore>();
+                    
+                    // Screen
                     x.AddTransient<SplashScreen>();
                     x.AddTransient<SignUpScreen>();
                     x.AddTransient<LogInScreen>();
-                    x.AddTransient<HomeScreen>();
+                    x.AddTransient<TabScreen>();
                     x.AddTransient<ReviewScreen>();
                 }
             );
+            // アプリケーションを起動する最初のScreenを指定します。
+            app.RunAsync<SplashScreen>().Forget();
         }
     }
 }
 ```
-MVPApplication().CreateApp<TScreen>()メソッドを呼び出すことで、アプリケーションを作成します。
+`MVPApplication.CreateRootApp`を呼び出すことで、アプリケーションを作成します。
+アプリケーションを作成した後に、`app.RunAsync<TScreen>`を呼び出すことで、最初の画面を表示します。
 
-InputLockerは以下のInterfaceを実装します。
+### InputLocker
+以下のInterfaceを実装する必要があります。
 ```csharp
 public interface IInputLocker
 {
-    // Inputをロックする
+    // Inputをロック機能を実装してください。
     IDisposable LockInput();
 
+    // Inputをロックしているかどうかを返してください
     public bool IsInputLocking { get; }
 }
 ```
-PrefabViewManagerは以下のInterfaceを実装します。
+Demoでは、以下のように実装しています。
+```csharp
+public class InputLocker : MonoBehaviour, IInputLocker
+{
+    // Unity uGUIのImageコンポーネントです。
+    [SerializeField] private Image _inputBlocker;
+    
+    public IDisposable LockInput()
+    {
+        _inputBlocker.enabled = true;
+        return new Disposer(() => _inputBlocker.enabled = false);
+    }
+    
+    public bool IsInputLocking => _inputBlocker.enabled;
+}
+```
+### PrefabViewManager
+以下のInterfaceを実装する必要があります。
 ```csharp
 public interface IPrefabViewManager
 {
-    // 管理しているPrefabの描画順を変更します
+    // 管理しているPrefabの描画順を変更する処理を実装してください。
     // 画面遷移時に呼び出されます。
     void SortOrderInHierarchy(NavigationContext context);
     
-    // 作成されたPrefabを管理下に追加する処理を実装します。
+    // 作成されたPrefabをHierarchyに追加する処理を実装してください。
     void AddInHierarchy(PrefabViewHandler handler);
 }
 ```
+
+Demoでは、以下のように実装しています。
+```csharp
+public class PrefabViewManager : MonoBehaviour, IPrefabViewManager
+{
+    [SerializeField] private Transform _rootNode;
+    
+    void IPrefabViewManager.AddInHierarchy(PrefabViewHandler handler)
+    {
+        // 配置するNodeに合わせてLayerを設定します。
+        handler.RootNode.gameObject.SetLayerRecursively(_rootNode.gameObject.layer);
+        handler.RootNode.SetParent(_rootNode);
+    }
+
+    void IPrefabViewManager.SortOrderInHierarchy(NavigationContext navigationContext)
+    {
+        // 新しく作成されたものが最前面に来るように、Hierarchyの順番を変更します。
+        var navigationService = navigationContext.AppServices.GetService<StackNavigationService>();
+        var uis = navigationService.ScreenContainer.Screens.OfType<StackScreen>().Select(x => x.UI);
+        foreach (var ui in uis)
+        {
+            foreach (var prefabView in ui.ViewHandlers.Reverse().OfType<PrefabViewHandler>())
+                prefabView.RootNode.SetAsFirstSibling();
+        }
+    }
+}
+```
+
+
 ## MVP(Model-View-Presenter)
 MeekのMVPアーキテクチャは、以下のような構成になっています。  
 ![MVP](Docs/Assets/MVP.png)  
-通常のMVPアーキテクチャとの違いは、PresenterがModelを更新するのではなくてScreenが更新するところです。
-また、ModelやPresenterを作成するタイミングやPresenterへのModelのDIなどはライブラリ内で行っています。
+通常のMVPアーキテクチャとの違いは、PresenterではなくScreenがModelを更新するところです。
+また、PresenterをロードするとModelクラスが自動でPresenterにDIされます。
 ### Screen
 Screenは画面を表すクラスです。
 MVPアーキテクチャで実装する場合は、以下の役割を持ちます。
@@ -111,48 +170,35 @@ MVPアーキテクチャで実装する場合は、以下の役割を持ちま�
 - 他Screenへの遷移
 
 ```csharp
-public class LogInScreen : MVPScreen<LogInModel>
+public class FavoritesScreen : MVPScreen<FavoritesModel>
 {
-    private readonly StackNavigationService _stackNavigationService;
-    
-    // DIコンテナから登録したServiceを取得できます。
-    public LogInScreen(StackNavigationService stackNavigationService)
-    {
-        _stackNavigationService = stackNavigationService;
-    }
-    
     // Modelを作成します。
-    protected override async ValueTask<LogInModel> CreateModelAsync()
+    protected override async ValueTask<FavoritesModel> CreateModelAsync()
     {
-        return await Task.FromResult(new LogInModel());
+        // DIコンテナに登録したServiceは、
+        // コンストラクタインジェクションかベースクラスが保持しているAppServicesから取得できます。
+        var globalStore = AppServices.GetService<GlobalStore>();
+        return await Task.FromResult(new FavoritesModel(globalStore));
     }
 
     // Screenのライフサイクルイベントを購読します。
-    protected override void RegisterEvents(EventHolder eventHolder, LogInModel model)
+    protected override void RegisterEvents(EventHolder eventHolder, FavoritesModel model)
     {
-        // Screenが初期化される前に呼び出されます。
+        // Screenがアクティブになる前に呼び出されます。
         eventHolder.ScreenWillStart(async () =>
         {
             // Presenterをロードします。
-            var presenter = await LoadPresenterAsync<LogInPresenter>();
-
-            // Presenterのイベントを購読します。
-            // 以下は、別のScreenへ遷移するための処理を実装しています。
-            presenter.OnClickBack.Subscribe(_ => _stackNavigationService.PopAsync().Forget());
-            presenter.OnClickLogIn.Subscribe(_ => _stackNavigationService.PushAsync<HomeScreen>().Forget());
-
-            // 以下は、Modelを更新する処理を実装しています。
-            presenter.OnEndEditEmail.Subscribe(model.UpdateEmail);
-            presenter.OnEndEditPassword.Subscribe(model.UpdatePassword);
+            var presenter = await LoadPresenterAsync<FavoritesPresenter>();
+            
+            // Presenterが公開しているイベントを購読する場合は以下に記述します。
         });
     }
 }
 ```
-CreateModelAsyncメソッドでModelを作成します。  
-Modelを作成する際にServerとの通信などの非同期処理を挟めるようにasync/awaitを使用しています。
-RegisterEventsメソッドでScreenのライフサイクルイベントを購読し必要な処理を実装します。  
-サンプルでは、ScreenWillStart（Screenの初期化前）にPresenterをロードしてPresenterのイベントを購読しています。
-また、1つのScreenに複数のPresenterをロードすることも可能です。
+Screenは、`MVPScreen<TModel>`を継承します。また、`CreateModelAsync`と`RegisterEvents`を実装する必要があります。  
+`CreateModelAsync`は、Modelを作成します。 Serverとの通信などの非同期処理を挟めるようにasync/awaitを使用しています。  
+`RegisterEvents`は、Screenのライフサイクルイベントを購読し必要な処理を実装します。  
+サンプルでは、`ScreenWillStart`（Screenがアクティブになる前）を使用してPresenterをロードしています。
 
 ### Model
 Modelは画面の状態を表すクラスです。
@@ -181,16 +227,20 @@ public class LogInModel
 
     public async Task LogInAsync()
     {
-        // Log in 処理をここに実装します。
+        // Login 処理をここに実装します。
     }
 }
 ```
 ### Presenter
 Presenterは画面の表示を表すクラスです。  
-Demoでは、Resources/UIディレクトリにPrefabを配置しロードしています。 
+Demoでは、`Resources/UI`ディレクトリにPrefabを配置しロードしています。 
 ![PrefabResourcesFolder](Docs/Assets/PrefabResourcesFolder.png)
 
-Prefabは以下の画像のように、RootNodeにPresenterをアタッチしています。
+> **ヒント**  
+> デフォルトでは`Resources/UI`をディレクトリからPrefabをロードしますが、
+> アプリケーションを作成する時に、`IPresenterLoaderFactory`を渡すことでカスタムすることが可能です。
+
+Prefabは下の画像のように、PrefabのルートにPresenterをアタッチする必要があります。
 ![PrefabPresenter](Docs/Assets/PrefabPresenter.png)
 
 ```csharp
@@ -218,8 +268,8 @@ public class LogInPresenter : Presenter<LogInModel>
     }
 }
 ```
-BindメソッドでModelのイベントを購読して、Viewの状態を更新する関数を呼び出します。  
-また、Bind関数以外に以下の関数を実装することができます。  
+`Bind`でModelのイベントを購読して、Viewの状態を更新する関数を呼び出します。  
+また、`Bind`以外に以下の関数を実装することができます。  
 ```csharp
 // Presenterがインスタンス化された時に呼び出されます。
 protected virtual void OnInit() { }
@@ -228,7 +278,7 @@ protected virtual void OnInit() { }
 // Presenterのロードに合わせて、UnityのSceneAssetや追加のPrefabをロードすることができます。
 protected virtual Task LoadAsync(TModel model) { return Task.CompletedTask; }
 
-// Bindの前に呼び出されます。
+// Bindの直前に呼び出されます。
 // 主にPresenterが持つViewの初期化処理を行ます。
 protected virtual void OnSetup(TModel model) { }
 
@@ -237,7 +287,7 @@ protected virtual void OnDeinit(TModel model) { }
 ```
 
 その他の実装のポイント
-- Modelの状態を書き換えない  
+- PresenterでModelの状態を書き換えない  
 => 複雑になるとScreenとPresenterの双方でModelを書き換えることで可読性が下がります
 - Presenterには極力ロジックは含めない  
 => PresenterはViewとModelをBindingする役割に留めた方が可読性が上がります
@@ -246,15 +296,20 @@ protected virtual void OnDeinit(TModel model) { }
 - Viewは純粋関数で構成する  
 => SSOT(Single Source of Truth)に従って、必ずModelが持つ状態が唯一の情報源となるように実装しましょう。
 
+> **ヒント**  
+> InGameなど、複雑なViewを実装する必要がある場合はPresenterの配下に
+> 別のアーキテクチャを採用することをお勧めします。
+
 ## Navigation
 MeekのStackNavigatorは[MAUI](https://learn.microsoft.com/en-us/dotnet/maui/user-interface/pages/navigationpage?view=net-maui-7.0)のNavigation機能を参考にしています。  
-以下の4つの機能があります。
+基本機能は、以下の4つがあります。
 - Push
 - Pop
 - InsertScreenBefore
 - Remove
 
 これらの4つの機能を組み合わせて、様々な画面遷移を実装します。  
+また、Navigation機能はScreenクラス内で呼び出します。
 > **注意**  
 > StackNavigatorは、同じ型のScreenを同時に複数持つことができません。
 
@@ -265,16 +320,15 @@ MeekのStackNavigatorは[MAUI](https://learn.microsoft.com/en-us/dotnet/maui/use
 Pushは、現在のScreenの上に新しいScreenを追加します。  
 遷移先のScreenは、Generic引数で指定します。
 ```csharp
-_stackNavigationService.PushAsync<ReviewScreen>();
+PushNavigation.PushAsync<TabScreen>();
 ```
 非同期関数なので、Push処理が終了するまで待機することも可能です。
-また、以下のように引数にParameterを渡すことで次のScreenに状態を渡すことができます。
+また、以下のように`UpdateNextScreenParameter`を呼び出すことで次のScreenに状態を渡すことができます。
 ```csharp
-_stackNavigationService.PushAsync<ReviewScreen>(new ReviewScreenParameter()
-{
-    // ここに状態を渡します。
-    ProductId = productId,
-}).Forget();
+PushNavigation
+    // ここで状態を渡します。
+    .UpdateNextScreenParameter(new ReviewScreenParameter(){ ProductId = id, })
+    .PushAsync<ReviewScreen>().Forget();
 ```
 上の例では、ReviewScreenに対してProductIdを渡しています。  
 受け取る側のScreenでは以下のように実装します。
@@ -300,25 +354,25 @@ public class ReviewScreen : MVPScreen<ReviewModel, ReviewScreenParameter>
 ### Pop
 Popは、現在のScreenを削除します。
 ```csharp
-_stackNavigationService.PopAsync();
+PopNavigation.PopAsync();
 ```
 
 ### InsertScreenBefore
 ScreenStackの途中に新しいScreenを追加します。
 Genericの第一引数で指定したScreenの上に、第二引数で指定したScreenを追加します。
 ```csharp
-_stackNavigationService.InsertScreenBeforeAsync<SplashScreen, HomeScreen>();
+InsertNavigation.InsertScreenBeforeAsync<SplashScreen, HomeScreen>();
 ```
 
 ### Remove
 ScreenStackの途中にあるScreenを取り除きます。  
 取り除きたいScreenは、Generic引数で指定します。
 ```csharp
-_stackNavigationService.RemoveAsync<SignUpScreen>();
+RemoveNavigation.RemoveAsync<SignUpScreen>();
 ```
 
 ## Navigation Animation
-StackNavigatorは、画面遷移時にアニメーションを実行することができます。
+StackNavigatorは、画面遷移時にアニメーションを再生することができます。
 アニメーションには以下の4つの概念があります。 
 #### Open
 新しいScreenが表示される時に再生されるアニメーションです。
@@ -331,7 +385,7 @@ Push等の遷移処理で、現在のScreenが非アクティブになる時に�
 
 
 ### AnimationClipを使用したアニメーション
-AnimationClipでアニメーションを設定する場合、 Presenter用のPrefabにAnimatorと専用のコンポーネントをアタッチすることで実現できます。
+PresenterのPrefabのルートにAnimatorと専用のコンポーネントをアタッチすることで実現できます。
 ![MVP](Docs/Assets/NavigatorAnimationByAnimationClip.png)  
 
 StackNavigatorは、画面遷移時にアニメーションを実行することができます。  
@@ -341,7 +395,7 @@ StackNavigatorは、画面遷移時にアニメーションを実行すること
 3. NavigatorTweenByAnimationClipのAnimationClipとNavigationTypeを設定する
 
 > **ヒント**  
-> NavigatorAnimationPlayerがアタッチされているノードをクリックした状態でアニメーションウィンドウを開くと、AnimationClipの調整が可能です。
+> アニメーションウィンドウを開くと、AnimationClipの調整が可能です(NavigatorAnimationPlayerノードを選択している必要があります)。
 
 
 ## Screen Lifecycle
