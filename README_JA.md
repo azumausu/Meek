@@ -314,7 +314,7 @@ MeekのStackNavigatorは[MAUI](https://learn.microsoft.com/en-us/dotnet/maui/use
 > StackNavigatorは、同じ型のScreenを同時に複数持つことができません。
 
 > **ヒント**  
-> StackNavigatorは、[Middleware](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/middleware/?view=aspnetcore-7.0)を使用して実装しているので、Middlewareを継承して独自の機能を実装することも可能です。
+> StackNavigatorは、[Middlewareパターン](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/middleware/?view=aspnetcore-7.0)を参考に実装しているので、使用するMiddlewareを変更して機能をカスタムすることも可能です。
 
 ### Push
 Pushは、現在のScreenの上に新しいScreenを追加します。  
