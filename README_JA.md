@@ -371,6 +371,50 @@ ScreenStackの途中にあるScreenを取り除きます。
 RemoveNavigation.RemoveAsync<SignUpScreen>();
 ```
 
+### StackNavigatorの処理フロー（発展）
+StackNavigatorは、以下のような処理フローで動作します。
+![StackNavigatorProcess](Docs/Assets/StackNavigatorProcess.png)
+```csharp
+// NavigatorBuilderを作成します。
+var stackNavigator = new NavigatorBuilder(navigatorBuilderOption =>
+{
+    // Optionパターンで設定を行います。
+    navigatorBuilderOption.ContainerBuilder = option.ContainerBuilder;
+    navigatorBuilderOption.ScreenNavigator = typeof(StackScreenContainer);
+}).ConfigureServices(serviceCollection =>
+{
+    // 必要なServiceをDIコンテナに登録します。
+    serviceCollection.AddScreenNavigatorEvent();
+    serviceCollection.AddInputLocker(x => { x.InputLocker = option.InputLocker; });
+    serviceCollection.AddScreenUI();
+    serviceCollection.AddNavigatorAnimation(
+        x =>
+        {
+            // 使用する遷移アニメーションのロジックを登録します。
+            x.Strategies.Add<PushNavigatorAnimationStrategy>();
+            x.Strategies.Add<PopNavigatorAnimationStrategy>();
+            x.Strategies.Add<RemoveNavigatorAnimationStrategy>();
+            x.Strategies.Add<InsertNavigatorAnimationStrategy>();
+        }
+    );
+    serviceCollection.AddUGUIAsMVP(x =>
+    {
+        x.UGUIOption.PrefabViewManager = option.PrefabViewManager;
+        x.PresenterLoaderFactoryType = option.PresenterLoaderFactoryType;
+    });
+    serviceCollection.AddScreenLifecycleEvent();
+}).Configure(app =>
+{
+    // Middlewareを実行順序を定義します。
+    app.UseScreenNavigatorEvent();
+    app.UseInputLocker();
+    app.UseScreenUI();
+    app.UseNavigatorAnimation();
+    app.UseUGUI();
+    app.UseScreenLifecycleEvent();
+}).Build();
+```
+
 ## Navigation Animation
 StackNavigatorは、画面遷移時にアニメーションを再生することができます。
 アニメーションには以下の4つの概念があります。 
