@@ -1,5 +1,5 @@
 {
-    "name": "Meek.UI.VContainer",
+    "name": "Meek.VContainer",
     "rootNamespace": "",
     "references": [
         "GUID:604a20abbe3ac48a891e244f8282b1d7",
