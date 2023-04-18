@@ -380,7 +380,7 @@ var stackNavigator = new NavigatorBuilder(navigatorBuilderOption =>
 {
     // Optionパターンで設定を行います。
     navigatorBuilderOption.ContainerBuilder = option.ContainerBuilder;
-    navigatorBuilderOption.ScreenNavigator = typeof(StackScreenContainer);
+    navigatorBuilderOption.ScreenContainer = typeof(StackScreenContainer);
 }).ConfigureServices(serviceCollection =>
 {
     // 必要なServiceをDIコンテナに登録します。

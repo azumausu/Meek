@@ -19,7 +19,7 @@ namespace Meek
             configure(option);
             
             _containerBuilder = option.ContainerBuilder;
-            _containerBuilder.ServiceCollection.AddSingleton(typeof(IScreenContainer), option.ScreenNavigator);
+            _containerBuilder.ServiceCollection.AddSingleton(typeof(IScreenContainer), option.ScreenContainer);
         }
 
         public NavigatorBuilder ConfigureServices(Action<IServiceCollection> configureServices)

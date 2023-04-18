@@ -33,7 +33,7 @@ namespace Meek.MVP
             var stackNavigator = new NavigatorBuilder(navigatorBuilderOption =>
             {
                 navigatorBuilderOption.ContainerBuilder = option.ContainerBuilder;
-                navigatorBuilderOption.ScreenNavigator = typeof(StackScreenContainer);
+                navigatorBuilderOption.ScreenContainer = typeof(StackScreenContainer);
             }).ConfigureServices(serviceCollection =>
             {
                 serviceCollection.AddScreenNavigatorEvent();

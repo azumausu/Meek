@@ -6,15 +6,15 @@ namespace Meek
     {
         public IContainerBuilder ContainerBuilder;
 
-        private Type _screenNavigator;
+        private Type _screenContainer;
         
-        public Type ScreenNavigator
+        public Type ScreenContainer
         {
-            get => _screenNavigator;
+            get => _screenContainer;
             set
             {
                 value.AssertImplementation<IScreenContainer>();
-                _screenNavigator = value;
+                _screenContainer = value;
             }
         }
     }
