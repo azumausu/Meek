@@ -323,7 +323,7 @@ Pushは、現在のScreenの上に新しいScreenを追加します。
 PushNavigation.PushAsync<TabScreen>();
 ```
 非同期関数なので、Push処理が終了するまで待機することも可能です。
-また、以下のように`UpdateNextScreenParameter`を呼び出すことで次のScreenに状態を渡すことができます。
+また、以下のように`NextScreenParameter`を呼び出すことで次のScreenに状態を渡すことができます。
 ```csharp
 PushNavigation
     // ここで状態を渡します。
