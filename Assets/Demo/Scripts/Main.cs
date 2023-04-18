@@ -12,10 +12,13 @@ namespace Demo
         public void Start()
         {
             Application.targetFrameRate = Screen.currentResolution.refreshRate;
-            var app = MVPApplication.CreateRootApp<SplashScreen>(
-                x => new VContainerServiceCollection(x),
-                _inputLocker,
-                _prefabViewManager,
+            var app = MVPApplication.CreateRootApp(
+                new MVPRootApplicationOption()
+                {
+                    ContainerBuilderFactory = x => new VContainerServiceCollection(x),
+                    InputLocker = _inputLocker,
+                    PrefabViewManager = _prefabViewManager,
+                },
                 x =>
                 {
                     // App Services
@@ -29,6 +32,7 @@ namespace Demo
                     x.AddTransient<ReviewScreen>();
                 }
             );
+            app.RunAsync<SplashScreen>().Forget();
         }
     }
 }

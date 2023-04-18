@@ -12,7 +12,7 @@ namespace Meek.NavigationStack
         protected IServiceProvider AppServices;
         protected List<IDisposable> Disposables = new List<IDisposable>();
 
-        private CoroutineRunner _coroutineRunner;
+        private ICoroutineRunner _coroutineRunner;
 
         public ScreenUI UI { get; private set; }
         public IScreenEventInvoker ScreenEventInvoker { get; private set; }
@@ -116,7 +116,7 @@ namespace Meek.NavigationStack
             var stackContext = navigationContext.ToStackNavigationContext();
             
             AppServices = stackContext.AppServices;
-            _coroutineRunner = stackContext.AppServices.GetService<CoroutineRunner>();
+            _coroutineRunner = stackContext.AppServices.GetService<ICoroutineRunner>();
             UI = stackContext.AppServices.GetService<ScreenUI>();
         }
         

@@ -7,7 +7,7 @@ namespace Meek.NavigationStack.Child
     {
         protected StackScreen ParentScreen;
         protected TModel Model;
-        private CoroutineRunner _coroutineRunner;
+        private ICoroutineRunner _coroutineRunner;
 
         private IViewHandler _viewHandler;
 
@@ -21,7 +21,7 @@ namespace Meek.NavigationStack.Child
 
             Model = CreateModel(childStackContext);
             ParentScreen = childStackContext.ParentScreen;
-            _coroutineRunner = childStackContext.AppServices.GetService<CoroutineRunner>();
+            _coroutineRunner = childStackContext.AppServices.GetService<ICoroutineRunner>();
         }
 
         IScreen IChildScreen.ParentScreen => ParentScreen;

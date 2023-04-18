@@ -128,7 +128,8 @@ namespace Meek.UGUI
         
         void IDisposable.Dispose()
         {
-            Object.Destroy(RootNode.gameObject);
+            if (RootNode != null && RootNode.gameObject != null) 
+                Object.Destroy(RootNode.gameObject);
         }
         
         #endregion

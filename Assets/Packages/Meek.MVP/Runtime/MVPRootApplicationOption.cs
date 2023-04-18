@@ -1,12 +1,22 @@
 using System;
+using Meek.NavigationStack;
 using Meek.UGUI;
 
 namespace Meek.MVP
 {
-    public class MVPOption
+    public class MVPRootApplicationOption
     {
-        public UGUIOption UGUIOption;
+        public Func<IServiceProvider, IContainerBuilder> ContainerBuilderFactory;
+
+        public IInputLocker InputLocker;
+
+        public IPrefabViewManager PrefabViewManager;
+
+        /// <summary>
+        /// Default: PresenterLoaderFactoryFromResources.cs
+        /// </summary>
         private Type _presenterLoaderFactoryType;
+
         public Type PresenterLoaderFactoryType
         {
             get => _presenterLoaderFactoryType;

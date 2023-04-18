@@ -1,4 +1,6 @@
 using System;
+using System.Threading;
+using UnityEngine;
 using VContainer;
 
 public class VContainerServiceProvider : IServiceProvider, IDisposable
@@ -11,11 +13,6 @@ public class VContainerServiceProvider : IServiceProvider, IDisposable
         ObjectResolver = objectResolver;
     }
     
-    ~VContainerServiceProvider()
-    {
-        Dispose();
-    }
-
     public T GetService<T>()
     {
         if (_isDisposable)
@@ -35,9 +32,8 @@ public class VContainerServiceProvider : IServiceProvider, IDisposable
     public void Dispose()
     {
         if (_isDisposable) return;
-
+        
         _isDisposable = true;
         ObjectResolver?.Dispose();
-        GC.SuppressFinalize(this);
     }
 }

@@ -10,9 +10,9 @@ namespace Meek.MVP
             self.AddUGUI(uguiOption =>
             {
                 var mvpOption = new MVPOption() { UGUIOption = uguiOption, };
-                mvpOption.PresenterLoaderFactory.Set<PresenterLoaderFactoryFromResources>();
                 configure(mvpOption);
-                self.AddSingleton(typeof(IPresenterLoaderFactory), mvpOption.PresenterLoaderFactory.Get());
+                mvpOption.PresenterLoaderFactoryType ??= typeof(PresenterLoaderFactoryFromResources);
+                self.AddSingleton(typeof(IPresenterLoaderFactory), mvpOption.PresenterLoaderFactoryType);
             });
             
             return self;

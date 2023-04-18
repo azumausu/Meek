@@ -7,10 +7,10 @@ namespace Meek.NavigationStack
     public class PopNavigatorAnimationStrategy : INavigatorAnimationStrategy
     {
         private readonly IScreenContainer _screenContainer;
-        private readonly CoroutineRunner _coroutineRunner;
+        private readonly ICoroutineRunner _coroutineRunner;
         
         [Preserve]
-        public PopNavigatorAnimationStrategy(IScreenContainer screenContainer, CoroutineRunner coroutineRunner)
+        public PopNavigatorAnimationStrategy(IScreenContainer screenContainer, ICoroutineRunner coroutineRunner)
         {
             _screenContainer = screenContainer;
             _coroutineRunner = coroutineRunner;

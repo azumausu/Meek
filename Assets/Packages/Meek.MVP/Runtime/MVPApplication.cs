@@ -1,59 +1,94 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Meek.NavigationStack;
-using Meek.NavigationStack.MVP;
-using Meek.UGUI;
 
 namespace Meek.MVP
 {
-    public static class MVPApplication
+    public class MVPApplication : IDisposable
     {
-        public static IServiceProvider CreateRootApp<TBootScreen>(
-            Func<IServiceProvider, IContainerBuilder> containerBuilderFactory,
-            IInputLocker inputLocker,
-            IPrefabViewManager prefabViewManager,
-            Action<IServiceCollection> configure
-            ) where TBootScreen : IScreen
-        {
-            // StackNavigator
-            var stackNavigator = StackNavigator.CreateAsMVP(containerBuilderFactory(null), inputLocker, prefabViewManager);
-            
-            // App Service
-            var appBuilder = containerBuilderFactory(stackNavigator.ServiceProvider);
-            appBuilder.ServiceCollection.AddSingleton<INavigator>(stackNavigator);
-            appBuilder.ServiceCollection.AddNavigationService();
-            
-            configure(appBuilder.ServiceCollection);
-            var app = appBuilder.Build();
-            
-            // Push Initial Screen
-            app.GetService<PushNavigation>().PushAsync<TBootScreen>().Forget();
+        private readonly IServiceProvider _serviceProvider;
+        private readonly IList<IDisposable> _disposables;
 
-            return app;
+        public IServiceProvider AppServices => _serviceProvider;
+        
+        private MVPApplication(IServiceProvider serviceProvider, IList<IDisposable> disposables)
+        {
+            _serviceProvider = serviceProvider;
+            _disposables = disposables;
+        }
+        
+        public Task RunAsync<TBootScreen>() where TBootScreen : IScreen
+        {
+            return _serviceProvider.GetService<PushNavigation>().PushAsync<TBootScreen>();
         }
 
-        public static async Task<IServiceProvider> CreateChildAppAsync<TBootScreen>(
-            Func<IServiceProvider, IContainerBuilder> containerBuilderFactory,
-            IInputLocker inputLocker,
-            IPrefabViewManager prefabViewManager,
-            Action<IServiceCollection> configure,
-            IServiceProvider parentApp = null
-        ) where TBootScreen : IScreen
+        public void Dispose()
         {
-            var stackNavigator = StackNavigator.CreateAsMVP(containerBuilderFactory(parentApp), inputLocker, prefabViewManager);
+            foreach (var disposable in _disposables) disposable.Dispose();
+            _disposables.Clear();
+        }
+        
+        public static MVPApplication CreateRootApp(MVPRootApplicationOption option, Action<IServiceCollection> configure) 
+        {
+            if (option == null) throw new ArgumentNullException(nameof(option));
+            if (option.ContainerBuilderFactory == null) throw new ArgumentNullException(nameof(option.ContainerBuilderFactory));
+            if (option.InputLocker == null) throw new ArgumentNullException(nameof(option.InputLocker));
+            if (option.PrefabViewManager == null) throw new ArgumentNullException(nameof(option.PrefabViewManager));
+            
+            // StackNavigator
+            var stackNavigator = StackNavigator.CreateAsMVP(stackNavigatorOption =>
+            {
+                stackNavigatorOption.ContainerBuilder = option.ContainerBuilderFactory(null);
+                stackNavigatorOption.InputLocker = option.InputLocker;
+                stackNavigatorOption.PrefabViewManager = option.PrefabViewManager;
+                stackNavigatorOption.PresenterLoaderFactoryType = option.PresenterLoaderFactoryType;
+            });
             
             // App Service
-            var appBuilder = containerBuilderFactory(stackNavigator.ServiceProvider);
+            var appBuilder = option.ContainerBuilderFactory(stackNavigator.ServiceProvider);
             appBuilder.ServiceCollection.AddSingleton<INavigator>(stackNavigator);
             appBuilder.ServiceCollection.AddNavigationService();
             
             configure(appBuilder.ServiceCollection);
-            var app = appBuilder.Build();
-            
-            // Push Initial Screen
-            await app.GetService<PushNavigation>().UpdateSkipAnimation(true).PushAsync<TBootScreen>();
+            var appServices = appBuilder.Build();
 
-            return app; 
+            var disposables = new List<IDisposable>();
+            disposables.Add(stackNavigator);
+            if (appServices is IDisposable disposable) disposables.Add(disposable);
+            
+            return new MVPApplication(appServices, disposables);
+        }
+
+        public static MVPApplication CreateChildAppAsync(MVPChildAppliactionOption option, Action<IServiceCollection> configure)
+        {
+            if (option == null) throw new ArgumentNullException(nameof(option));
+            if (option.ContainerBuilderFactory == null) throw new ArgumentNullException(nameof(option.ContainerBuilderFactory));
+            if (option.InputLocker == null) throw new ArgumentNullException(nameof(option.InputLocker));
+            if (option.PrefabViewManager == null) throw new ArgumentNullException(nameof(option.PrefabViewManager));
+            if (option.Parent == null) throw new ArgumentNullException(nameof(option.Parent));
+            
+            var stackNavigator = StackNavigator.CreateAsMVP(stackNavigatorOption =>
+            {
+                stackNavigatorOption.ContainerBuilder = option.ContainerBuilderFactory(option.Parent);
+                stackNavigatorOption.InputLocker = option.InputLocker;
+                stackNavigatorOption.PrefabViewManager = option.PrefabViewManager;
+                stackNavigatorOption.PresenterLoaderFactoryType = option.PresenterLoaderFactoryType;
+            });
+            
+            // App Service
+            var appBuilder = option.ContainerBuilderFactory(stackNavigator.ServiceProvider);
+            appBuilder.ServiceCollection.AddSingleton<INavigator>(stackNavigator);
+            appBuilder.ServiceCollection.AddNavigationService();
+            
+            configure(appBuilder.ServiceCollection);
+            var appServices = appBuilder.Build();
+            
+            var disposables = new List<IDisposable>();
+            disposables.Add(stackNavigator);
+            if (appServices is IDisposable disposable) disposables.Add(disposable); 
+            
+            return new MVPApplication(appServices, disposables); 
         }
     }
 }

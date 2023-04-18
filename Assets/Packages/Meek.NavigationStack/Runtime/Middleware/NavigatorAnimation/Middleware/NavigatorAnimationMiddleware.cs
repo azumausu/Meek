@@ -10,12 +10,12 @@ namespace Meek.NavigationStack
     {
         private readonly NavigatorAnimationOption _option;
         private readonly IScreenContainer _screenContainer;
-        private readonly CoroutineRunner _coroutineRunner;
+        private readonly ICoroutineRunner _coroutineRunner;
         
         private List<INavigatorAnimationStrategy> _transitionAnimationModules;
         
         [Preserve]
-        public NavigatorAnimationMiddleware(NavigatorAnimationOption option, IScreenContainer screenContainer, CoroutineRunner coroutineRunner)
+        public NavigatorAnimationMiddleware(NavigatorAnimationOption option, IScreenContainer screenContainer, ICoroutineRunner coroutineRunner)
         {
             _option = option;
             _screenContainer = screenContainer;

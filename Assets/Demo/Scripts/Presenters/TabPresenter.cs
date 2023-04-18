@@ -66,49 +66,70 @@ namespace Demo
 
         protected override async Task LoadAsync(TabModel model)
         {
-            await MVPApplication.CreateChildAppAsync<HomeScreen>(
-                x => new VContainerServiceCollection(x),
-                _homeInputLocker,
-                _homePrefabViewManager,
+
+            var homeApp = MVPApplication.CreateChildAppAsync(
+                new MVPChildAppliactionOption()
+                {
+                    ContainerBuilderFactory = x => new VContainerServiceCollection(x),
+                    InputLocker = _homeInputLocker,
+                    PrefabViewManager = _homePrefabViewManager,
+                    Parent = model.AppServices, 
+                },
                 x =>
                 {
                     x.AddTransient<HomeScreen>();
-                },
-                model.AppServices
-            ).AddTo(this);
+                }
+            );
+            homeApp.AddTo(this);
+            await homeApp.RunAsync<HomeScreen>();
             
-            await MVPApplication.CreateChildAppAsync<SearchScreen>(
-                x => new VContainerServiceCollection(x),
-                _searchInputLocker,
-                _searchPrefabViewManager,
+            var searchApp = MVPApplication.CreateChildAppAsync(
+                new MVPChildAppliactionOption()
+                {
+                    ContainerBuilderFactory = x => new VContainerServiceCollection(x),
+                    InputLocker = _searchInputLocker,
+                    PrefabViewManager = _searchPrefabViewManager,
+                    Parent = model.AppServices,
+                },
                 x =>
                 {
                     x.AddTransient<SearchScreen>();
-                },
-                model.AppServices
-            ).AddTo(this);
+                }
+            );
+            searchApp.AddTo(this);
+            await searchApp.RunAsync<SearchScreen>();
             
-            await MVPApplication.CreateChildAppAsync<FavoritesScreen>(
-                x => new VContainerServiceCollection(x),
-                _favoritesInputLocker,
-                _favoritesPrefabViewManager,
+            var favoritesApp = MVPApplication.CreateChildAppAsync(
+                new MVPChildAppliactionOption()
+                {
+                    ContainerBuilderFactory = x => new VContainerServiceCollection(x),
+                    InputLocker = _favoritesInputLocker,
+                    PrefabViewManager = _favoritesPrefabViewManager,
+                    Parent = model.AppServices,
+                },
                 x =>
                 {
                     x.AddTransient<FavoritesScreen>();
-                },
-                model.AppServices
-            ).AddTo(this);
+                }
+            );
+            favoritesApp.AddTo(this);
+            await favoritesApp.RunAsync<FavoritesScreen>();
 
-            await MVPApplication.CreateChildAppAsync<ProfileScreen>(
-                x => new VContainerServiceCollection(x),
-                _profileInputLocker,
-                _profilePrefabViewManager,
+            var profileApp = MVPApplication.CreateChildAppAsync(
+                new MVPChildAppliactionOption()
+                {
+                    ContainerBuilderFactory = x => new VContainerServiceCollection(x),
+                    InputLocker = _profileInputLocker,
+                    PrefabViewManager = _profilePrefabViewManager,
+                    Parent = model.AppServices,
+                },
                 x =>
                 {
                     x.AddTransient<ProfileScreen>();
-                },
-                model.AppServices
-            ).AddTo(this);
+                }
+            );
+            profileApp.AddTo(this);
+            await profileApp.RunAsync<ProfileScreen>();
         }
     }
 }

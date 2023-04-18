@@ -11,7 +11,7 @@ namespace Meek.NavigationStack
     {
         #region Fields
 
-        private readonly CoroutineRunner _coroutineRunner;
+        private readonly ICoroutineRunner _coroutineRunner;
         private readonly List<IDisposable> _disposables = new List<IDisposable>();
         private readonly List<IViewHandlerLoader> _viewHandlerLoaders = new List<IViewHandlerLoader>();
         private readonly List<IViewHandler> _viewHandlers = new List<IViewHandler>();
@@ -26,7 +26,7 @@ namespace Meek.NavigationStack
 
         #region Constructors
 
-        public ScreenUI(CoroutineRunner coroutineRunner)
+        public ScreenUI(ICoroutineRunner coroutineRunner)
         {
             _coroutineRunner = coroutineRunner;
             _interactableLocker = new LockObject(

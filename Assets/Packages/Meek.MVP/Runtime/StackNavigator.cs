@@ -1,13 +1,11 @@
 using System;
 using System.Threading.Tasks;
-using Meek.MVP;
+using Meek.NavigationStack;
 using Meek.UGUI;
-using UnityEngine;
-using Object = UnityEngine.Object;
 
-namespace Meek.NavigationStack.MVP
+namespace Meek.MVP
 {
-    public class StackNavigator : INavigator
+    public class StackNavigator : INavigator, IDisposable
     {
         private readonly INavigator _internalNavigator;
        
@@ -24,22 +22,22 @@ namespace Meek.NavigationStack.MVP
             return _internalNavigator.NavigateAsync(context);
         }
 
-        public static StackNavigator CreateAsMVP(IContainerBuilder containerBuilder, IInputLocker inputLocker, IPrefabViewManager prefabViewManager)
+        public static StackNavigator CreateAsMVP(Action<MVPStackNavigatorOption> configure)
         {
-            var gameObject = new GameObject("CoroutineRunner");
-            var coroutineRunner = gameObject.AddComponent<CoroutineRunner>();
-            Object.DontDestroyOnLoad(coroutineRunner);
-            containerBuilder.ServiceCollection.AddSingleton(coroutineRunner);
+            var option = new MVPStackNavigatorOption();
+            configure(option);
+            
+            option.ContainerBuilder.ServiceCollection.AddSingleton<ICoroutineRunner, CoroutineRunner>();
             
             // StackNavigator Service
-            var stackNavigator = new NavigatorBuilder(option =>
+            var stackNavigator = new NavigatorBuilder(navigatorBuilderOption =>
             {
-                option.ContainerBuilder = containerBuilder;
-                option.ScreenNavigator.Set<StackScreenContainer>();
+                navigatorBuilderOption.ContainerBuilder = option.ContainerBuilder;
+                navigatorBuilderOption.ScreenNavigator = typeof(StackScreenContainer);
             }).ConfigureServices(serviceCollection =>
             {
                 serviceCollection.AddScreenNavigatorEvent();
-                serviceCollection.AddInputLocker(x => { x.InputLocker = inputLocker; });
+                serviceCollection.AddInputLocker(x => { x.InputLocker = option.InputLocker; });
                 serviceCollection.AddScreenUI();
                 serviceCollection.AddNavigatorAnimation(
                     x =>
@@ -52,8 +50,8 @@ namespace Meek.NavigationStack.MVP
                 );
                 serviceCollection.AddUGUIAsMVP(x =>
                 {
-                    x.UGUIOption.PrefabViewManager = prefabViewManager;
-                    x.PresenterLoaderFactory.Set<PresenterLoaderFactoryFromResources>();
+                    x.UGUIOption.PrefabViewManager = option.PrefabViewManager;
+                    x.PresenterLoaderFactoryType = option.PresenterLoaderFactoryType;
                 });
                 serviceCollection.AddScreenLifecycleEvent();
             }).Configure(app =>
@@ -67,6 +65,11 @@ namespace Meek.NavigationStack.MVP
             }).Build();
 
             return new StackNavigator(stackNavigator);
+        }
+        
+        public void Dispose()
+        {
+            if (_internalNavigator.ServiceProvider is IDisposable disposable) disposable.Dispose();
         }
     }
 }

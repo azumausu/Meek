@@ -9,7 +9,7 @@ namespace Meek.NavigationStack
 {
     public static class CoroutineRunnerExtension
     {
-        public static Task StartCoroutineAsTask(this MonoBehaviour self, IEnumerator action, CancellationToken ct = default)
+        public static Task StartCoroutineAsTask(this ICoroutineRunner self, IEnumerator action, CancellationToken ct = default)
         {
             if (ct.IsCancellationRequested) return Task.CompletedTask;
             
@@ -20,18 +20,18 @@ namespace Meek.NavigationStack
             return tcs.Task;
         }
         
-        public static IEnumerator StartParallelCoroutine(this MonoBehaviour self, IReadOnlyCollection<IEnumerator> coroutines) 
+        public static IEnumerator StartParallelCoroutine(this ICoroutineRunner self, IReadOnlyCollection<IEnumerator> coroutines) 
         { 
             return self.StartParallelCoroutineInternal(coroutines, coroutines.Count);
         }
 
-        public static void StartCoroutineWithCallback(this MonoBehaviour self, IEnumerator action, Action onComplete)
+        public static void StartCoroutineWithCallback(this ICoroutineRunner self, IEnumerator action, Action onComplete)
         { 
             self.StartCoroutine(CoroutineWithCallbackInternal(action, onComplete));
         }
 
         private static IEnumerator StartParallelCoroutineInternal(
-            this MonoBehaviour self,
+            this ICoroutineRunner self,
             IEnumerable<IEnumerator> coroutines,
             int length
         )

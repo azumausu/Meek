@@ -1,12 +1,19 @@
 using System;
+using Meek.NavigationStack;
 using Meek.UGUI;
 
 namespace Meek.MVP
 {
-    public class MVPOption
+    public class MVPStackNavigatorOption
     {
-        public UGUIOption UGUIOption;
+        public IContainerBuilder ContainerBuilder;
+
+        public IInputLocker InputLocker;
+
+        public IPrefabViewManager PrefabViewManager;
+
         private Type _presenterLoaderFactoryType;
+
         public Type PresenterLoaderFactoryType
         {
             get => _presenterLoaderFactoryType;

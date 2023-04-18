@@ -1,11 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine.Pool;
 
 namespace Meek.NavigationStack
 {
-    public class StackScreenContainer : IScreenContainer
+    public class StackScreenContainer : IScreenContainer, IDisposable
     {
         private readonly Stack<IScreen> _screenStack = new Stack<IScreen>(32);
         private readonly Stack<IScreen> _insertOrRemoveCacheStack = new(16);
@@ -54,6 +55,12 @@ namespace Meek.NavigationStack
             }
 
             return default;
+        }
+        
+        public void Dispose()
+        {
+            foreach (var screen in _screenStack.OfType<IDisposable>()) screen.Dispose();
+            _screenStack.Clear();
         }
     }
 }

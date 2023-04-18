@@ -1,9 +1,21 @@
+using System;
+
 namespace Meek
 {
     public class NavigatorBuilderOption
     {
         public IContainerBuilder ContainerBuilder;
 
-        public readonly ServiceType<IScreenContainer> ScreenNavigator = new();
+        private Type _screenNavigator;
+        
+        public Type ScreenNavigator
+        {
+            get => _screenNavigator;
+            set
+            {
+                value.AssertImplementation<IScreenContainer>();
+                _screenNavigator = value;
+            }
+        }
     }
 }
