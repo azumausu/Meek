@@ -8,10 +8,6 @@ namespace Meek.NavigationStack
         private readonly StackNavigationService _stackNavigationService;
         private readonly ChangeContext _changeContext = new();
 
-        public object NextScreenParameter => _changeContext.NextScreenParameter;
-        public bool IsCrossFade => _changeContext.IsCrossFade;
-        public bool SkipAnimation => _changeContext.SkipAnimation;
-        
         public ChangeWithPushNavigation(StackNavigationService stackNavigationService)
         {
             _stackNavigationService = stackNavigationService;
@@ -31,9 +27,9 @@ namespace Meek.NavigationStack
 
             await _stackNavigationService.PushAsync(pushScreenClassType, new PushContext()
             {
-                IsCrossFade = IsCrossFade,
-                NextScreenParameter = NextScreenParameter,
-                SkipAnimation = SkipAnimation
+                IsCrossFade = _changeContext.IsCrossFade,
+                NextScreenParameter = _changeContext.NextScreenParameter,
+                SkipAnimation = _changeContext.SkipAnimation
             });
 
             foreach (var screen in _stackNavigationService.ScreenContainer.Screens)
@@ -43,19 +39,19 @@ namespace Meek.NavigationStack
             }
         } 
         
-        public ChangeWithPushNavigation UpdateNextScreenParameter(object nextScreenParameter)
+        public ChangeWithPushNavigation NextScreenParameter(object nextScreenParameter)
         {
             _changeContext.NextScreenParameter = nextScreenParameter;
             return this;
         }
         
-        public ChangeWithPushNavigation UpdateIsCrossFade(bool isCrossFade)
+        public ChangeWithPushNavigation IsCrossFade(bool isCrossFade)
         {
             _changeContext.IsCrossFade = isCrossFade;
             return this;
         }
         
-        public ChangeWithPushNavigation UpdateSkipAnimation(bool skipAnimation)
+        public ChangeWithPushNavigation SkipAnimation(bool skipAnimation)
         {
             _changeContext.SkipAnimation = skipAnimation;
             return this;

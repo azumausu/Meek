@@ -9,8 +9,8 @@ namespace Meek.NavigationStack
     {
         private readonly StackNavigationService _stackNavigationService;
 
-        public bool IsCrossFade { get; private set; } = false;
-        public bool SkipAnimation { get; private set; } = true;
+        private bool _isCrossFade = false;
+        private bool _skipAnimation = true;
         
         public BackToNavigation(StackNavigationService stackNavigationService)
         {
@@ -36,8 +36,8 @@ namespace Meek.NavigationStack
             {
                 await _stackNavigationService.PopAsync(new PopContext()
                 {
-                    IsCrossFade = IsCrossFade,
-                    SkipAnimation = SkipAnimation,
+                    IsCrossFade = _isCrossFade,
+                    SkipAnimation = _skipAnimation,
                 });
             }
             else
@@ -46,8 +46,8 @@ namespace Meek.NavigationStack
                     await _stackNavigationService.RemoveAsync(screen.GetType(), new RemoveContext());
                 await _stackNavigationService.PopAsync(new PopContext()
                 {
-                    IsCrossFade = IsCrossFade,
-                    SkipAnimation = SkipAnimation,
+                    IsCrossFade = _isCrossFade,
+                    SkipAnimation = _skipAnimation,
                 });
             }
 
@@ -55,15 +55,15 @@ namespace Meek.NavigationStack
         }
         
         
-        public BackToNavigation UpdateIsCrossFade(bool isCrossFade)
+        public BackToNavigation IsCrossFade(bool isCrossFade)
         {
-            IsCrossFade = isCrossFade;
+            _isCrossFade = isCrossFade;
             return this;
         }
         
         public BackToNavigation UpdateSkipAnimation(bool skipAnimation)
         {
-            SkipAnimation = skipAnimation;
+            _skipAnimation = skipAnimation;
             return this;
         }   
     }

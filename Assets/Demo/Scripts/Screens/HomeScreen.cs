@@ -26,7 +26,7 @@ namespace Demo
                 var presenter = await LoadPresenterAsync<HomePresenter>();
                 presenter.OnClickProduct.Subscribe(id =>
                 {
-                   PushNavigation.UpdateNextScreenParameter(new ReviewScreenParameter(){ ProductId = id, })
+                   PushNavigation.NextScreenParameter(new ReviewScreenParameter(){ ProductId = id, })
                        .PushAsync<ReviewScreen>().Forget();
                 });
             });

@@ -8,10 +8,6 @@ namespace Meek.NavigationStack
         private readonly StackNavigationService _stackNavigationService;
         private readonly PushContext _pushContext = new();
 
-        public object NextScreenParameter => _pushContext.NextScreenParameter;
-        public bool IsCrossFade => _pushContext.IsCrossFade;
-        public bool SkipAnimation => _pushContext.SkipAnimation;
-        
         public PushNavigation(StackNavigationService stackNavigationService)
         {
             _stackNavigationService = stackNavigationService;
@@ -27,19 +23,19 @@ namespace Meek.NavigationStack
             return _stackNavigationService.PushAsync(screenClassType, _pushContext);
         } 
         
-        public PushNavigation UpdateNextScreenParameter(object nextScreenParameter)
+        public PushNavigation NextScreenParameter(object nextScreenParameter)
         {
             _pushContext.NextScreenParameter = nextScreenParameter;
             return this;
         }
         
-        public PushNavigation UpdateIsCrossFade(bool isCrossFade)
+        public PushNavigation IsCrossFade(bool isCrossFade)
         {
             _pushContext.IsCrossFade = isCrossFade;
             return this;
         }
         
-        public PushNavigation UpdateSkipAnimation(bool skipAnimation)
+        public PushNavigation SkipAnimation(bool skipAnimation)
         {
             _pushContext.SkipAnimation = skipAnimation;
             return this;

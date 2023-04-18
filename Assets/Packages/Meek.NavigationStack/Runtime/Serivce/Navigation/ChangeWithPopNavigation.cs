@@ -9,10 +9,6 @@ namespace Meek.NavigationStack
         private readonly ChangeContext _changeContext = new();
         private readonly BackToNavigation _backToNavigation;
 
-        public object NextScreenParameter => _changeContext.NextScreenParameter;
-        public bool IsCrossFade => _changeContext.IsCrossFade;
-        public bool SkipAnimation => _changeContext.SkipAnimation;
-        
         public ChangeWithPopNavigation(StackNavigationService stackNavigationService, BackToNavigation backToNavigation)
         {
             _stackNavigationService = stackNavigationService;
@@ -35,28 +31,28 @@ namespace Meek.NavigationStack
             await _stackNavigationService.InsertScreenBeforeAsync(afterPopScreen?.GetType(), pushScreenClassType, new InsertContext()
             {
                 IsCrossFade = false,
-                NextScreenParameter = NextScreenParameter,
+                NextScreenParameter = _changeContext.NextScreenParameter,
                 SkipAnimation = true
             });
             await _backToNavigation
-                .UpdateSkipAnimation(SkipAnimation)
-                .UpdateIsCrossFade(IsCrossFade)
+                .UpdateSkipAnimation(_changeContext.SkipAnimation)
+                .IsCrossFade(_changeContext.IsCrossFade)
                 .BackToAsync(pushScreenClassType);
         } 
         
-        public ChangeWithPopNavigation UpdateNextScreenParameter(object nextScreenParameter)
+        public ChangeWithPopNavigation NextScreenParameter(object nextScreenParameter)
         {
             _changeContext.NextScreenParameter = nextScreenParameter;
             return this;
         }
         
-        public ChangeWithPopNavigation UpdateIsCrossFade(bool isCrossFade)
+        public ChangeWithPopNavigation IsCrossFade(bool isCrossFade)
         {
             _changeContext.IsCrossFade = isCrossFade;
             return this;
         }
         
-        public ChangeWithPopNavigation UpdateSkipAnimation(bool skipAnimation)
+        public ChangeWithPopNavigation SkipAnimation(bool skipAnimation)
         {
             _changeContext.SkipAnimation = skipAnimation;
             return this;

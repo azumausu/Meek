@@ -8,10 +8,6 @@ namespace Meek.NavigationStack
         private readonly StackNavigationService _stackNavigationService;
         private readonly InsertContext _context = new();
 
-        public object NextScreenParameter => _context.NextScreenParameter;
-        public bool IsCrossFade => _context.IsCrossFade;
-        public bool SkipAnimation => _context.SkipAnimation;
-        
         public InsertNavigation(StackNavigationService stackNavigationService)
         {
             _stackNavigationService = stackNavigationService;
@@ -29,19 +25,19 @@ namespace Meek.NavigationStack
             return _stackNavigationService.InsertScreenBeforeAsync(beforeScreenClassType, insertionScreenClassType, this._context);
         }
         
-        public InsertNavigation UpdateNextScreenParameter(object nextScreenParameter)
+        public InsertNavigation NextScreenParameter(object nextScreenParameter)
         {
             _context.NextScreenParameter = nextScreenParameter;
             return this;
         }
         
-        public InsertNavigation UpdateIsCrossFade(bool isCrossFade)
+        public InsertNavigation IsCrossFade(bool isCrossFade)
         {
             _context.IsCrossFade = isCrossFade;
             return this;
         }
         
-        public InsertNavigation UpdateSkipAnimation(bool skipAnimation)
+        public InsertNavigation SkipAnimation(bool skipAnimation)
         {
             _context.SkipAnimation = skipAnimation;
             return this;

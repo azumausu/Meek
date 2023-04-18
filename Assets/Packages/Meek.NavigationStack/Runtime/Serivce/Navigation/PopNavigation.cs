@@ -7,9 +7,6 @@ namespace Meek.NavigationStack
         private readonly StackNavigationService _stackNavigationService;
         private readonly PopContext _context = new();
 
-        public bool IsCrossFade => _context.IsCrossFade;
-        public bool SkipAnimation => _context.SkipAnimation;
-        
         public PopNavigation(StackNavigationService stackNavigationService)
         {
             _stackNavigationService = stackNavigationService;
@@ -20,13 +17,13 @@ namespace Meek.NavigationStack
             return _stackNavigationService.PopAsync(_context);
         } 
         
-        public PopNavigation UpdateIsCrossFade(bool isCrossFade)
+        public PopNavigation IsCrossFade(bool isCrossFade)
         {
             _context.IsCrossFade = isCrossFade;
             return this;
         }
         
-        public PopNavigation UpdateSkipAnimation(bool skipAnimation)
+        public PopNavigation SkipAnimation(bool skipAnimation)
         {
             _context.SkipAnimation = skipAnimation;
             return this;
