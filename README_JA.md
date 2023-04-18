@@ -327,7 +327,7 @@ PushNavigation.PushAsync<TabScreen>();
 ```csharp
 PushNavigation
     // ここで状態を渡します。
-    .UpdateNextScreenParameter(new ReviewScreenParameter(){ ProductId = id, })
+    .NextScreenParameter(new ReviewScreenParameter(){ ProductId = id, })
     .PushAsync<ReviewScreen>().Forget();
 ```
 上の例では、ReviewScreenに対してProductIdを渡しています。  
