@@ -30,7 +30,7 @@ namespace Meek.UGUI
             _graph = PlayableGraph.Create("Simple");
             _graph.SetTimeUpdateMode(DirectorUpdateMode.GameTime);
 
-            _mixer = AnimationMixerPlayable.Create(_graph, 2, true);
+            _mixer = AnimationMixerPlayable.Create(_graph, 2);
 
             var output = AnimationPlayableOutput.Create(_graph, "output", _animator);
             output.SetSourcePlayable(_mixer);

@@ -44,6 +44,7 @@ public class VContainerServiceCollection : IContainerBuilder
                     ServiceLifeTime.Singleton => Lifetime.Singleton,
                     ServiceLifeTime.Scoped => Lifetime.Scoped,
                     ServiceLifeTime.Transient => Lifetime.Transient,
+                    _ => throw new ArgumentOutOfRangeException()
                 };
 
                 var registrationBuilder = new FuncRegistrationBuilder(x =>
