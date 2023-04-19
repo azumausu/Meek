@@ -4,7 +4,7 @@ Meek の画面遷移機能を提供するパッケージです。
 
 ## Getting Started
 既存のアーキテクチャを使用したい場合は、以下のページを参照してください。
-* [Meek MVP (Model-View-Presenter)](../Meek.MVP/README.md) 
+* [Meek MVP (Model-View-Presenter)](../Meek.MVP/README_JA.md) 
 
 ### Install Package
 
