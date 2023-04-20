@@ -71,8 +71,6 @@ namespace Meek.MVP
             var factory = AppServices.GetService<IPresenterLoaderFactory>();
             var loader = factory.CreateLoader(Model, prefabName);
             var viewHandler =  await UI.LoadViewHandlerAsync(loader) as PrefabViewHandler;
-            var prefabViewManager = AppServices.GetService<IPrefabViewManager>();
-            prefabViewManager.AddInHierarchy(viewHandler);
             
             return viewHandler.Instance.GetComponent<TPresenter>();
         }

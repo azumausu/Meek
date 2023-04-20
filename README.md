@@ -1,88 +1,24 @@
-[日本語ドキュメント](README_JA.md)
-
 # Meek
-Meek is a Unity library for building user interfaces implemented on a DI basis.  
-It primarily provides screen navigation and screen management functions and tools to facilitate implementation based on the MVP architecture.
+Meekは、DIベースで実装されたUnityのユーザーインターフェイスを構築するためのライブラリです。  
+主な機能としては、画面遷移や画面ライフサイクルの管理機能を提供しています。  
+また、MVPアーキテクチャでの実装を容易にするためのツールも提供しています。  
 
 [MeekDemo](https://user-images.githubusercontent.com/19426596/232242080-f2eac6e7-e1ae-48c3-9816-8aebae1f951b.mov)
 
-The images used in the demo are free content.  
-For copyright information, please check the following websites.  
+デモの中で使用している画像はフリーのコンテンツです。    
+著作権に関する情報は以下のウェブサイトをご確認ください。  
 [Nucleus UI](https://www.nucleus-ui.com/)
 
-# Requirements
-- Unity 2021.3 (LTS) or newer
-- uGUI
-- [VContainer](https://github.com/hadashiA/VContainer)
+## Requirements
+* Unity 2021.3 (LTS) or newer
 
-  
+## Getting Started
+以下から使い方にあったものを選択してください。  
+Meek に慣れていないユーザーは [Meek MVP](./Assets/Packages/Meek.MVP/README_JA.md) をお勧めします。
 
-# Install
-Add following six lines to Pacakges/manifest.json.  
+* [NavigationStack](./Assets/Packages/Meek.NavigationStack/README_JA.md) - 画面遷移 + 画面管理機能 を使用したい場合
+* [Meek MVP](./Assets/Packages/Meek.MVP/README_JA.md) - 画面遷移 + 画面管理機能 + MVPアーキテクチャ を使用したい場合
 
-```json
-{
-  "dependencies": {
-    "jp.amatech.meek": "https://github.com/azumausu/Meek.git?path=Assets/Packages/Meek",
-    "jp.amatech.meek.navigationstack": "https://github.com/azumausu/Meek.git?path=Assets/Packages/Meek.NavigationStack",
-    "jp.amatech.meek.ugui": "https://github.com/azumausu/Meek.git?path=Assets/Packages/Meek.UGUI",
-    "jp.amatech.meek.vcontainer": "https://github.com/azumausu/Meek.git?path=Assets/Packages/Meek.VContainer",
-    "jp.amatech.meek.mvp": "https://github.com/azumausu/Meek.git?path=Assets/Packages/Meek.MVP",
-    "jp.hadashikick.vcontainer": "https://github.com/hadashiA/VContainer.git?path=VContainer/Assets/VContainer"
-  }
-}
-```
-It is recommended that [UniRx](https://github.com/neuecc/UniRx) be installed for implementation in the MVP(Model-View-Presenter) pattern.
 
-# Quick Start
-#TODO
-
-# Fundamentals
-## Entry Point
-```csharp
-using Meek;
-using Meek.MVP;
-using UnityEngine;
-
-namespace Demo
-{
-    public class Main : MonoBehaviour
-    {
-        [SerializeField] private InputLocker _inputLocker;
-        [SerializeField] private PrefabViewManager _prefabViewManager;
-        
-        public void Start()
-        {
-            var app = new MVPApplication().CreateApp<SplashScreen>(
-                x => new VContainerServiceCollection(x),
-                _inputLocker,
-                _prefabViewManager,
-                x =>
-                {
-                    x.AddTransient<SplashScreen>();
-                    x.AddTransient<SignUpScreen>();
-                    x.AddTransient<LogInScreen>();
-                    x.AddTransient<HomeScreen>();
-                    x.AddTransient<ReviewScreen>();
-                }
-            );
-        }
-    }
-}
-```
-MVPApplication
-
-## Screen
-#TODO
-
-## Lifecycle
-#TODO
-
-## Navigation
-### Navigation Method
-#TODO
-### Navigation Animation
-#TODO
-
-## MVP(Model-View-Presenter)
-#TODO
+## License
+Meek is licensed under the MIT License.

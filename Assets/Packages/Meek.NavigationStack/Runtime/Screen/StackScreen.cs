@@ -69,14 +69,14 @@ namespace Meek.NavigationStack
         
         protected virtual async ValueTask ResumingImplAsync(StackNavigationContext context)
         {
-            ScreenEventInvoker.Invoke(ScreenLifecycleEvent.ScreenDidPause);
-            await ScreenEventInvoker.InvokeAsync(ScreenLifecycleEvent.ScreenDidPause);
+            ScreenEventInvoker.Invoke(ScreenLifecycleEvent.ScreenWillResume);
+            await ScreenEventInvoker.InvokeAsync(ScreenLifecycleEvent.ScreenWillResume);
         }
 
         protected virtual async ValueTask PausingImplAsync(StackNavigationContext context)
         {
-            ScreenEventInvoker.Invoke(ScreenLifecycleEvent.ScreenWillResume);
-            await ScreenEventInvoker.InvokeAsync(ScreenLifecycleEvent.ScreenWillResume);
+            ScreenEventInvoker.Invoke(ScreenLifecycleEvent.ScreenDidPause);
+            await ScreenEventInvoker.InvokeAsync(ScreenLifecycleEvent.ScreenDidPause);
         }
 
         protected virtual async ValueTask DestroyingImplAsync(StackNavigationContext context)

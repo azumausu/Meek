@@ -360,7 +360,8 @@ public class ReviewScreen : MVPScreen<ReviewModel, ReviewScreenParameter>
     }
 }
 ```
-
+処理の流れは以下の図のようになります。
+![PushFlow](../../../Docs/Assets/PushFlow.png)
 ### Pop
 Popは、最前面のScreenを破棄します。
 ```csharp
@@ -381,6 +382,8 @@ presenter.OnClickGood.Subscribe(async _ =>
     });
 });
 ```
+処理の流れは以下の図のようになります。
+![PopFlow](../../../Docs/Assets/PopFlow.png)
 
 ### InsertScreenBefore
 ScreenStackの途中に新しいScreenを追加します。
@@ -461,6 +464,22 @@ StackNavigatorは、画面遷移時にアニメーションを実行すること
 > **ヒント**  
 > アニメーションウィンドウを開くと、AnimationClipの調整が可能です(NavigatorAnimationPlayerノードを選択している必要があります)。
 
-
 ## Screen Lifecycle
-#TODO
+以下のイベントをScreenの`RegisterEvent`で登録することができます。
+
+| EventName         | Description                               |
+|-------------------|-------------------------------------------|
+| ScreenWillStart   | 新しく作成されたScreenの処理が開始される直前に呼び出されます         |
+| ScreenDidStart    | 新しく作成されたScreenの処理が開始された直後に呼び出されます         |
+| ScreenWillDestroy | Screenの破棄処理の直前に呼び出されます                    |
+| ScreenDidDestroy  | Screenの破棄処理の直後に呼び出されます                    |
+| ScreenWillResume  | 前面のScreenが破棄され自身のScreenが最前面になる直前に呼び出されます  |
+| ScreenDidResume   | 前面のScreenが破棄され自身のScreenが最前面になった直後に呼び出されます |
+| ScreenWillPause   | 自身のScreenの前面に新しいScreenがPushされる直前に呼び出されます  |
+| ScreenDidPause    | 自身のScreenの前面に新しいScreenがPushされた直後に呼び出されます  |
+| ViewWillOpen      | 新しく作成されたScreenの表示アニメーションの直前に呼び出されます       |
+| ViewDidOpen       | 新しく作成されたScreenの表示アニメーションの直後に呼び出されます       |
+| ViewWillClose     | Screenの破棄アニメーションの直前に呼び出されます               |
+| ViewDidClose      | Screenの破棄アニメーションの直後に呼び出されます               |
+| ViewWillSetup     | PresenterのSetupの直前に呼び出されます                |
+| ViewDidSetup      | PresenterのSetupの直後に呼び出されます                |
