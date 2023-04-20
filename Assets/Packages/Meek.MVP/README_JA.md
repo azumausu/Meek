@@ -360,8 +360,8 @@ public class ReviewScreen : MVPScreen<ReviewModel, ReviewScreenParameter>
     }
 }
 ```
-処理の流れは以下の図のようになります。
-![PushFlow](../../../Docs/Assets/PushFlow.png)
+StackにScreenAが入っている状態でScreenBをPushした時の処理の流れは以下のようになります。  
+<img src="/Docs/Assets/PushFlow.png" width="60%"/>
 ### Pop
 Popは、最前面のScreenを破棄します。
 ```csharp
@@ -382,8 +382,8 @@ presenter.OnClickGood.Subscribe(async _ =>
     });
 });
 ```
-処理の流れは以下の図のようになります。
-![PopFlow](../../../Docs/Assets/PopFlow.png)
+処理の流れは以下の図のようになります。  
+<img src="/Docs/Assets/PopFlow.png" width="60%"/>
 
 ### InsertScreenBefore
 ScreenStackの途中に新しいScreenを追加します。
