@@ -146,7 +146,8 @@ public class PrefabViewManager : MonoBehaviour, IPrefabViewManager
 
 ## MVP(Model-View-Presenter)
 MeekのMVPアーキテクチャは、以下のような構成になっています。  
-![MVP](../../../Docs/Assets/MVP.png)  
+<img src="/Docs/Assets/MVP.png" width="60%"/>. 
+
 通常のMVPアーキテクチャとの違いは、PresenterではなくScreenがModelを更新するところです。
 また、PresenterをロードするとModelクラスが自動でPresenterにDIされます。
 ### Screen
