@@ -36,6 +36,7 @@ namespace Meek.UGUI
             
             if (stackScreen != null)
             {
+                // Viewのロード時に呼び出すように修正したので一旦コメントアウト
                 // foreach (var prefabViewHandler in stackScreen.UI.ViewHandlers.OfType<PrefabViewHandler>())
                 //     _prefabViewManager.AddInHierarchy(prefabViewHandler);
                 _prefabViewManager.SortOrderInHierarchy(stackContext);
