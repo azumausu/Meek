@@ -36,8 +36,8 @@ namespace Meek.UGUI
             
             if (stackScreen != null)
             {
-                foreach (var prefabViewHandler in stackScreen.UI.ViewHandlers.OfType<PrefabViewHandler>())
-                    _prefabViewManager.AddInHierarchy(prefabViewHandler);
+                // foreach (var prefabViewHandler in stackScreen.UI.ViewHandlers.OfType<PrefabViewHandler>())
+                //     _prefabViewManager.AddInHierarchy(prefabViewHandler);
                 _prefabViewManager.SortOrderInHierarchy(stackContext);
             }
         }
