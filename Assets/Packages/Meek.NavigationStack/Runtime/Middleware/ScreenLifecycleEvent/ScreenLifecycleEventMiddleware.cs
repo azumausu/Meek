@@ -1,83 +1,98 @@
-using System;
 using System.Threading.Tasks;
-using UnityEngine.Scripting;
 
 namespace Meek.NavigationStack
 {
     public class ScreenLifecycleEventMiddleware : IMiddleware
     {
-        private readonly IScreenContainer _screenContainer;
-        
-        [Preserve]
-        public ScreenLifecycleEventMiddleware(IScreenContainer screenContainer)
-        {
-            _screenContainer = screenContainer;
-        }
-        
         public async ValueTask InvokeAsync(NavigationContext context, NavigationDelegate next)
         {
             var stackContext = context.ToStackNavigationContext();
-            // --- Pause処理: Active状態なScreenの上にScreenが乗った場合
-            if (stackContext.NavigatingSourceType == StackNavigationSourceType.Push)
-            {
-                if (context.FromScreen is IScreenLifecycleEventHandler eventHandler) 
-                    await eventHandler.PausingImplAsync(context); 
-            }
-            if (stackContext.NavigatingSourceType == StackNavigationSourceType.Insert)
-            {
-                var pauseScreenType =
-                    context.GetFeatureValue<Type>(StackNavigationContextFeatureDefine.InsertionBeforeScreenType);
-                var pauseScreen = _screenContainer.GetScreen(pauseScreenType) ?? throw new InvalidOperationException("");
-                var insertionScreen = context.GetFeatureValue<IScreen>(StackNavigationContextFeatureDefine.InsertionScreen);
-                if (pauseScreen is IScreenLifecycleEventHandler pauseScreenEventHandler) 
-                    await pauseScreenEventHandler.PausingImplAsync(context); 
-                if (insertionScreen is IScreenLifecycleEventHandler insertionScreenEventHandler) 
-                    await insertionScreenEventHandler.PausingImplAsync(context); 
-            }
 
-            // --- Screen破棄処理
-            if (stackContext.NavigatingSourceType == StackNavigationSourceType.Pop)
+            switch (stackContext.NavigatingSourceType)
             {
-                // Popの場合はFromScreenが破棄対象なので、必ずFromScreenが存在する
-                if (context.FromScreen is IScreenLifecycleEventHandler eventHandler)
-                    await eventHandler.DestroyingImplAsync(context);
-            }
-            if (stackContext.NavigatingSourceType == StackNavigationSourceType.Remove)
-            {
-                var removeScreen = context.GetFeatureValue<IScreen>(StackNavigationContextFeatureDefine.RemoveScreen);
-                if (removeScreen is IScreenLifecycleEventHandler eventHandler)
-                    await eventHandler.DestroyingImplAsync(context);
-            }
-            
-            // 遷移処理開始
-            // --- Screen作成処理: 新しく再生されるScreen
-            if (stackContext.NavigatingSourceType == StackNavigationSourceType.Push)
-            {
-                if (context.ToScreen is IScreenLifecycleEventHandler eventHandler) 
-                    await eventHandler.StartingImplAsync(context);
-            }
-            if (stackContext.NavigatingSourceType == StackNavigationSourceType.Insert)
-            {
-                var insertionScreen = context.GetFeatureValue<IScreen>(StackNavigationContextFeatureDefine.InsertionScreen);
-                if (insertionScreen is IScreenLifecycleEventHandler eventHandler) 
-                    await eventHandler.StartingImplAsync(context);
-            }
-
-            // --- Resume: 既に存在するステートに遷移する場合
-            if (stackContext.NavigatingSourceType == StackNavigationSourceType.Pop)
-            {
-                if (context.ToScreen is IScreenLifecycleEventHandler eventHandler) 
-                    await eventHandler.ResumingImplAsync(context);
-            }
-            if (stackContext.NavigatingSourceType == StackNavigationSourceType.Remove)
-            {
-                var removeScreenType = context.GetFeatureValue<Type>(StackNavigationContextFeatureDefine.RemoveScreenType);
-                var resumeScreen = _screenContainer.GetScreenAfter(removeScreenType);
-                if (resumeScreen is IScreenLifecycleEventHandler eventHandler) 
-                    await eventHandler.ResumingImplAsync(context);
+                case StackNavigationSourceType.Push:
+                    await PushAsync(stackContext);
+                    break;
+                case StackNavigationSourceType.Pop:
+                    await PopAsync(stackContext);
+                    break;
+                case StackNavigationSourceType.Remove:
+                    await RemoveAsync(stackContext);
+                    break;
+                case StackNavigationSourceType.Insert:
+                    await InsertAsync(stackContext);
+                    break;
             }
 
             await next(context);
+        }
+
+        private async ValueTask PushAsync(StackNavigationContext context)
+        {
+            // Pause From Screen
+            if (context.FromScreen is IScreenLifecycleEventHandler fromScreenEventHandler)
+                await fromScreenEventHandler.PausingImplAsync(context);
+
+            // ここで、nextを呼び出した方が直感的かを検討する
+            // next()
+
+            // Start To Screen
+            if (context.ToScreen is IScreenLifecycleEventHandler toScreenEventHandler)
+                await toScreenEventHandler.StartingImplAsync(context);
+        }
+
+        private async ValueTask PopAsync(StackNavigationContext context)
+        {
+            // Destroy From Screen
+            if (context.FromScreen is IScreenLifecycleEventHandler fromScreenEventHandler)
+                await fromScreenEventHandler.DestroyingImplAsync(context);
+
+            // ここで、nextを呼び出した方が直感的かを検討する
+            // next()
+
+            // Resume To Screen
+            if (context.ToScreen is IScreenLifecycleEventHandler toScreenEventHandler)
+                await toScreenEventHandler.ResumingImplAsync(context);
+        }
+
+        private async ValueTask RemoveAsync(StackNavigationContext context)
+        {
+            // Destroy Remove Screen
+            var removeScreen = context.GetFeatureValue<IScreen>(StackNavigationContextFeatureDefine.RemoveScreen);
+            if (removeScreen is IScreenLifecycleEventHandler removeScreenEventHandler)
+                await removeScreenEventHandler.DestroyingImplAsync(context);
+
+            // ここで、nextを呼び出した方が直感的かを検討する
+            // next()
+
+            // この動作を入れたほうが直感的かを検討する
+            // var removeScreenType = context.GetFeatureValue<Type>(StackNavigationContextFeatureDefine.RemoveScreenType);
+            // var resumeScreen = _screenContainer.GetScreenAfter(removeScreenType);
+            // if (resumeScreen is IScreenLifecycleEventHandler eventHandler) 
+            //     await eventHandler.ResumingImplAsync(context); 
+        }
+
+        private async ValueTask InsertAsync(StackNavigationContext context)
+        {
+            // この動作を入れたほうが直感的かを検討する
+            // Pause Insertion Before Screen
+            // var pauseScreenType =
+            //     context.GetFeatureValue<Type>(StackNavigationContextFeatureDefine.InsertionBeforeScreenType);
+            // var pauseScreen = _screenContainer.GetScreen(pauseScreenType) ?? throw new InvalidOperationException("");
+            // if (pauseScreen is IScreenLifecycleEventHandler pauseScreenEventHandler) 
+            //     await pauseScreenEventHandler.PausingImplAsync(context); 
+
+            // ここで、nextを呼び出した方が直感的かを検討する
+            // next()
+
+            // Start To Screen
+            var insertionScreen = context.GetFeatureValue<IScreen>(StackNavigationContextFeatureDefine.InsertionScreen);
+            if (insertionScreen is IScreenLifecycleEventHandler eventHandler)
+                await eventHandler.StartingImplAsync(context);
+
+            // Pause To Screen
+            if (insertionScreen is IScreenLifecycleEventHandler insertionScreenEventHandler)
+                await insertionScreenEventHandler.PausingImplAsync(context);
         }
     }
 }
