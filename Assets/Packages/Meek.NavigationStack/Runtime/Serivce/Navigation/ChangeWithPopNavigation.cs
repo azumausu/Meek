@@ -19,16 +19,16 @@ namespace Meek.NavigationStack
             where TRemoveScreen : IScreen
             where TScreen : IScreen
         {
-            return ChangeWithPopAsync(typeof(TScreen), typeof(TRemoveScreen));
+            return ChangeWithPopAsync(typeof(TRemoveScreen), typeof(TScreen));
         }
         
-        public async Task ChangeWithPopAsync(Type baseScreen, Type pushScreenClassType)
+        public async Task ChangeWithPopAsync(Type removeScreen, Type pushScreen)
         {
-            if (baseScreen.FullName == pushScreenClassType.FullName)
+            if (removeScreen.FullName == pushScreen.FullName)
                 throw new ArgumentException($"The same type cannot be specified for PopScreen and PushScreen");
 
-            var afterPopScreen = _stackNavigationService.ScreenContainer.GetScreenAfter(baseScreen);
-            await _stackNavigationService.InsertScreenBeforeAsync(afterPopScreen?.GetType(), pushScreenClassType, new InsertContext()
+            var afterPopScreen = _stackNavigationService.ScreenContainer.GetScreenAfter(removeScreen);
+            await _stackNavigationService.InsertScreenBeforeAsync(afterPopScreen?.GetType(), pushScreen, new InsertContext()
             {
                 IsCrossFade = false,
                 NextScreenParameter = _changeContext.NextScreenParameter,
@@ -37,7 +37,7 @@ namespace Meek.NavigationStack
             await _backToNavigation
                 .UpdateSkipAnimation(_changeContext.SkipAnimation)
                 .IsCrossFade(_changeContext.IsCrossFade)
-                .BackToAsync(pushScreenClassType);
+                .BackToAsync(pushScreen);
         } 
         
         public ChangeWithPopNavigation NextScreenParameter(object nextScreenParameter)
