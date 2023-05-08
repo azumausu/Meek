@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using UnityEngine.Pool;
 
 namespace Meek.NavigationStack
 {
@@ -39,11 +40,16 @@ namespace Meek.NavigationStack
                 SkipAnimation = _changeContext.SkipAnimation
             });
 
+            using var disposable = ListPool<IScreen>.Get(out var removeScreenList);
+
             foreach (var screen in _stackNavigationService.ScreenContainer.Screens)
             {
-                await _stackNavigationService.RemoveAsync(screen.GetType(), new RemoveContext());
+                removeScreenList.Add(screen);
                 if (removeScreen.FullName == screen.GetType().FullName) break;
             }
+
+            foreach (var screen in removeScreenList)
+                await _stackNavigationService.RemoveAsync(screen.GetType(), new RemoveContext());
         }
 
         public ChangeWithPushNavigation NextScreenParameter(object nextScreenParameter)
