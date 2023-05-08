@@ -11,21 +11,26 @@ namespace Meek.NavigationStack
 
         private bool _isCrossFade = false;
         private bool _skipAnimation = true;
-        
+
         public BackToNavigation(StackNavigationService stackNavigationService)
         {
             _stackNavigationService = stackNavigationService;
         }
-        
+
+        public void BackTo<TBackScreen>() where TBackScreen : IScreen
+        {
+            BackToAsync<TBackScreen>().Forget();
+        }
+
         public Task BackToAsync<TBackScreen>() where TBackScreen : IScreen
         {
             return BackToAsync(typeof(TBackScreen));
         }
-        
+
         public async Task BackToAsync(Type backScreen)
         {
             ListPool<IScreen>.Get(out var removeScreenList);
-            
+
             foreach (var screen in _stackNavigationService.ScreenContainer.Screens)
             {
                 if (backScreen == screen.GetType()) break;
@@ -53,18 +58,18 @@ namespace Meek.NavigationStack
 
             ListPool<IScreen>.Release(removeScreenList);
         }
-        
-        
+
+
         public BackToNavigation IsCrossFade(bool isCrossFade)
         {
             _isCrossFade = isCrossFade;
             return this;
         }
-        
+
         public BackToNavigation UpdateSkipAnimation(bool skipAnimation)
         {
             _skipAnimation = skipAnimation;
             return this;
-        }   
+        }
     }
 }

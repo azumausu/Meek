@@ -13,6 +13,13 @@ namespace Meek.NavigationStack
             _stackNavigationService = stackNavigationService;
         }
 
+        public void ChangeWithPush<TRemoveScreen, TScreen>()
+            where TRemoveScreen : IScreen
+            where TScreen : IScreen
+        {
+            ChangeWithPushAsync<TRemoveScreen, TScreen>().Forget();
+        }
+
         public Task ChangeWithPushAsync<TRemoveScreen, TScreen>()
             where TRemoveScreen : IScreen
             where TScreen : IScreen

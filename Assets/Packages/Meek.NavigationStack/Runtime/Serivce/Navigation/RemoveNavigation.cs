@@ -12,23 +12,28 @@ namespace Meek.NavigationStack
         {
             _stackNavigationService = stackNavigationService;
         }
-        
+
+        public void Remove<TScreen>() where TScreen : IScreen
+        {
+            RemoveAsync<TScreen>().Forget();
+        }
+
         public Task RemoveAsync<TScreen>() where TScreen : IScreen
         {
             return RemoveAsync(typeof(TScreen));
         }
-        
+
         public Task RemoveAsync(Type screenClassType)
         {
             return _stackNavigationService.RemoveAsync(screenClassType, _removeContext);
-        } 
-        
+        }
+
         public RemoveNavigation IsCrossFade(bool isCrossFade)
         {
             _removeContext.IsCrossFade = isCrossFade;
             return this;
         }
-        
+
         public RemoveNavigation SkipAnimation(bool skipAnimation)
         {
             _removeContext.SkipAnimation = skipAnimation;
