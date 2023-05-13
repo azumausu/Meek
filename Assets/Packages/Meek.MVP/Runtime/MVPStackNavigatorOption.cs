@@ -12,6 +12,8 @@ namespace Meek.MVP
 
         public IPrefabViewManager PrefabViewManager;
 
+        public bool EnableDebug = true;
+
         private Type _presenterLoaderFactoryType;
 
         public Type PresenterLoaderFactoryType

@@ -1,0 +1,19 @@
+{
+    "name": "Meek.NavigationStack.Editor",
+    "rootNamespace": "",
+    "references": [
+        "GUID:604a20abbe3ac48a891e244f8282b1d7",
+        "GUID:6668457fe8c574f918b0cea2464835a6"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

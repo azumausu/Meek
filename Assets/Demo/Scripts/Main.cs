@@ -1,5 +1,6 @@
 using Meek;
 using Meek.MVP;
+using Meek.NavigationStack.Debugs;
 using UnityEngine;
 
 namespace Demo
@@ -8,7 +9,7 @@ namespace Demo
     {
         [SerializeField] private InputLocker _inputLocker;
         [SerializeField] private PrefabViewManager _prefabViewManager;
-        
+
         public void Start()
         {
             Application.targetFrameRate = Screen.currentResolution.refreshRate;
@@ -23,7 +24,7 @@ namespace Demo
                 {
                     // App Services
                     x.AddSingleton<GlobalStore>();
-                    
+
                     // Screen
                     x.AddTransient<SplashScreen>();
                     x.AddTransient<SignUpScreen>();

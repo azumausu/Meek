@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using Meek.NavigationStack;
+using Meek.NavigationStack.Debugs;
 using Meek.UGUI;
 
 namespace Meek.MVP
@@ -8,10 +9,10 @@ namespace Meek.MVP
     public class StackNavigator : INavigator, IDisposable
     {
         private readonly INavigator _internalNavigator;
-       
+
         public IScreenContainer ScreenContainer => _internalNavigator.ScreenContainer;
         public IServiceProvider ServiceProvider => _internalNavigator.ServiceProvider;
-        
+
         private StackNavigator(INavigator internalNavigator)
         {
             _internalNavigator = internalNavigator;
@@ -26,9 +27,9 @@ namespace Meek.MVP
         {
             var option = new MVPStackNavigatorOption();
             configure(option);
-            
+
             option.ContainerBuilder.ServiceCollection.AddSingleton<ICoroutineRunner, CoroutineRunner>();
-            
+
             // StackNavigator Service
             var stackNavigator = new NavigatorBuilder(navigatorBuilderOption =>
             {
@@ -54,8 +55,21 @@ namespace Meek.MVP
                     x.PresenterLoaderFactoryType = option.PresenterLoaderFactoryType;
                 });
                 serviceCollection.AddScreenLifecycleEvent();
+#if UNITY_EDITOR
+                if (option.EnableDebug)
+                {
+                    serviceCollection.AddDebug(new NavigationStackDebugOption());
+                }
+#endif
             }).Configure(app =>
             {
+#if UNITY_EDITOR
+                if (option.EnableDebug)
+                {
+                    app.UseDebug();
+                }
+#endif
+
                 app.UseScreenNavigatorEvent();
                 app.UseInputLocker();
                 app.UseScreenUI();
@@ -66,7 +80,7 @@ namespace Meek.MVP
 
             return new StackNavigator(stackNavigator);
         }
-        
+
         public void Dispose()
         {
             if (_internalNavigator.ServiceProvider is IDisposable disposable) disposable.Dispose();
