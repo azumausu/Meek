@@ -112,7 +112,8 @@ var stackNavigator = new NavigatorBuilder(navigatorBuilderOption =>
 | ViewWillClose     | Screenの破棄アニメーションの直前に呼び出されます               |
 | ViewDidClose      | Screenの破棄アニメーションの直後に呼び出されます               |
 | ViewWillSetup     | ViewのSetupの直前に呼び出されます                     |
-| ViewDidSetup      | ViewのSetupの直後に呼び出されます                     |
+| ViewDidSetup      | ViewのSetupの直後に呼び出されます                     |  
+
 これらは、`StackScreen`の
 ```csharp
 protected abstract void RegisterEventsInternal(EventHolder eventHolder);
