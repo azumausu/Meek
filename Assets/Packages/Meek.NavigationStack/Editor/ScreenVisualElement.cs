@@ -6,15 +6,59 @@ namespace Meek.NavigationStack.Editor
 {
     public class ScreenVisualElement : VisualElement
     {
-        public ScreenVisualElement(string screenName)
+        private readonly Label _screenNameLabel;
+        private readonly Label _screenIndexLabel;
+
+        public string screenName
         {
-            this.style.justifyContent = new StyleEnum<Justify>(Justify.Center);
-            this.style.backgroundColor = new StyleColor(new Color(0.0f, 1.0f, 0f, 0.1f));
-            Add(new Label(screenName));
-            Add(new Button()
+            get => _screenNameLabel.text;
+            set => _screenNameLabel.text = value;
+        }
+
+        public int screenIndex
+        {
+            get => int.Parse(_screenIndexLabel.text);
+            set => _screenIndexLabel.text = value.ToString();
+        }
+
+        public ScreenVisualElement()
+        {
+            style.Margin(3);
+            var root = new VisualElement()
             {
-                text = "Remove",
-            });
+                style =
+                {
+                    flexDirection = new StyleEnum<FlexDirection>(FlexDirection.Row),
+                }
+            };
+
+            _screenIndexLabel = new Label()
+            {
+                style =
+                {
+                    fontSize = 30,
+                },
+            };
+            _screenNameLabel = new Label();
+            var content = new VisualElement
+            {
+                style =
+                {
+                    flexDirection = new StyleEnum<FlexDirection>(FlexDirection.Row),
+                    backgroundColor = new Color(0f, 0f, 0f, 0.1f),
+                }
+            };
+
+            content.Add(new Button() { text = "Remove" });
+            content.Add(new Button() { text = "Remove" });
+            content.Add(new Button() { text = "Remove" });
+            content.Add(new Button() { text = "Remove" });
+
+            Add(_screenNameLabel);
+            Add(root);
+
+            root.Add(_screenIndexLabel);
+            root.Add(content);
         }
     }
 }

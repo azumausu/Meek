@@ -14,7 +14,7 @@ namespace Meek.NavigationStack.Debugs
 
         private readonly List<ServiceEntry> _serviceEntries = new();
 
-        public IReadOnlyList<ServiceEntry> ServiceEntries => _serviceEntries;
+        public List<ServiceEntry> ServiceEntries => _serviceEntries;
 
         public event Action<ServiceEntry> OnRegisterServices;
         public event Action<ServiceEntry> OnUnregisterServices;

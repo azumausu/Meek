@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using Meek.NavigationStack.Debugs;
 using UnityEditor;
@@ -10,6 +9,8 @@ namespace Meek.NavigationStack.Editor
 {
     public class ScreenContainerWindow : EditorWindow
     {
+        private ListView _rootListView;
+
         [MenuItem("Meek/NavigationStack/ScreenContainerWindow")]
         public static void Open()
         {
@@ -19,50 +20,52 @@ namespace Meek.NavigationStack.Editor
 
         private void CreateGUI()
         {
-            rootVisualElement.Add(new ScreenVisualElement("Screen1")
-            {
-            });
-        }
-
-        private void OnEnable()
-        {
             RuntimeNavigationStackManager.Instance.OnRegisterServices += OnRegister;
             RuntimeNavigationStackManager.Instance.OnUnregisterServices += OnUnregister;
+            RuntimeNavigationStackManager.Instance.ScreenDidNavigate += ScreenDidNavigate;
 
-            var serviceEntry = RuntimeNavigationStackManager.Instance.ServiceEntries.FirstOrDefault();
-            if (serviceEntry == null) return;
-
-            var screenContainer = serviceEntry.ServiceProvider.GetService<IScreenContainer>();
-            var itemList = screenContainer.Screens
-                .Reverse()
-                .Select(x => x.GetType().FullName)
-                .ToList();
-            var rootElement = rootVisualElement;
-            rootElement.Add(new ListView()
+            _rootListView = new ListView()
             {
-                itemsSource = itemList,
-                fixedItemHeight = 50,
-                makeItem = () => new Label(),
+                itemsSource = RuntimeNavigationStackManager.Instance.ServiceEntries,
+                virtualizationMethod = CollectionVirtualizationMethod.DynamicHeight,
+                makeItem = () => new ScreenContainerView(),
                 bindItem = (e, i) =>
                 {
-                    var label = e as Label;
-                    label.text = itemList[i];
+                    var screenContainerView = e as ScreenContainerView;
+                    screenContainerView.ScreenContainerName = $"Screen Container - {i}";
+                    screenContainerView.ServiceEntry = RuntimeNavigationStackManager.Instance.ServiceEntries[i];
                 }
-            });
+            };
+            _rootListView.RefreshItems();
+            rootVisualElement.Add(_rootListView);
+            
         }
 
-        private void OnDisable()
+        private void OnDestroy()
         {
             RuntimeNavigationStackManager.Instance.OnRegisterServices -= OnRegister;
             RuntimeNavigationStackManager.Instance.OnUnregisterServices -= OnUnregister;
+            RuntimeNavigationStackManager.Instance.ScreenDidNavigate -= ScreenDidNavigate;
         }
 
         private void OnRegister(ServiceEntry serviceEntry)
         {
+            _rootListView.RefreshItems();
         }
 
         private void OnUnregister(ServiceEntry serviceEntry)
         {
+            _rootListView.RefreshItems();
+        }
+
+        private void ScreenDidNavigate(StackNavigationContext context)
+        {
+            // https://forum.unity.com/threads/how-to-get-listview-child-item-visualelement-from-itemssource-index.821388/
+            var view = _rootListView.Query<ScreenContainerView>()
+                .ToList()
+                .FirstOrDefault(x => x.Equal(context.AppServices));
+            view?.Refresh();
+            _rootListView.RefreshItems();
         }
     }
 }
