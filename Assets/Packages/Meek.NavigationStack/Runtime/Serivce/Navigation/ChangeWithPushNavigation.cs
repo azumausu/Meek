@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine.Pool;
 
@@ -42,7 +43,7 @@ namespace Meek.NavigationStack
 
             using var disposable = ListPool<IScreen>.Get(out var removeScreenList);
 
-            foreach (var screen in _stackNavigationService.ScreenContainer.Screens)
+            foreach (var screen in _stackNavigationService.ScreenContainer.Screens.Skip(1))
             {
                 removeScreenList.Add(screen);
                 if (removeScreen.FullName == screen.GetType().FullName) break;
