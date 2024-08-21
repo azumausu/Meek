@@ -32,11 +32,19 @@ namespace Meek.NavigationStack
         {
             ListPool<IScreen>.Get(out var removeScreenList);
 
+            bool existBackToScreen = false;
             foreach (var screen in _stackNavigationService.ScreenContainer.Screens)
             {
-                if (backScreen == screen.GetType()) break;
+                if (backScreen == screen.GetType())
+                {
+                    existBackToScreen = true;
+                    break;
+                }
+
                 removeScreenList.Add(screen);
             }
+
+            if (!existBackToScreen) return;
 
             if (removeScreenList.Count == 1)
             {
