@@ -12,7 +12,7 @@ namespace Meek.NavigationStack
         private readonly INavigator _stackNavigator;
         private readonly IServiceProvider _serviceProvider;
         private readonly SemaphoreSlim _semaphoreSlim = new SemaphoreSlim(1, 1);
-        
+
         public IScreenContainer ScreenContainer => _stackNavigator.ScreenContainer;
 
         public StackNavigationService(INavigator stackNavigator, IServiceProvider serviceProvider)
@@ -21,25 +21,25 @@ namespace Meek.NavigationStack
             _serviceProvider = serviceProvider;
         }
 
-        public Task PushAsync<TScreen>(PushContext pushContext) 
+        public Task PushAsync<TScreen>(PushContext pushContext)
             where TScreen : IScreen
         {
             return PushAsync(typeof(TScreen), pushContext);
         }
-        
+
         public async Task PushAsync(Type screenClassType, PushContext pushContext)
         {
             await _semaphoreSlim.WaitAsync();
             try
             {
                 DictionaryPool<string, object>.Get(out var features);
-                
+
                 features.Add(StackNavigationContextFeatureDefine.NextScreenParameter, pushContext.NextScreenParameter);
-                
+
                 var fromScreen = _stackNavigator.ScreenContainer.Screens.FirstOrDefault();
                 var toScreen = _serviceProvider.GetService(screenClassType) as IScreen
                                ?? throw new ArgumentException();
-                
+
                 var context = new StackNavigationContext()
                 {
                     NavigatingSourceType = StackNavigationSourceType.Push,
@@ -52,22 +52,30 @@ namespace Meek.NavigationStack
                 };
 
                 await _stackNavigator.NavigateAsync(context);
-                
+
                 DictionaryPool<string, object>.Release(features);
             }
-            finally { _semaphoreSlim.Release(); }
+            finally
+            {
+                _semaphoreSlim.Release();
+            }
         }
 
-        public async Task PopAsync(PopContext popContext)
+        public async Task<bool> PopAsync(PopContext popContext)
         {
             await _semaphoreSlim.WaitAsync();
             try
             {
                 DictionaryPool<string, object>.Get(out var features);
-            
+
                 var fromScreen = _stackNavigator.ScreenContainer.GetPeekScreen();
                 var toScreen = _stackNavigator.ScreenContainer.Screens.Skip(1).FirstOrDefault();
-            
+
+                if (popContext.UseOnlyWhenScreen)
+                {
+                    if (popContext.OnlyWhenScreen != fromScreen) return false;
+                }
+
                 var context = new StackNavigationContext()
                 {
                     NavigatingSourceType = StackNavigationSourceType.Pop,
@@ -80,11 +88,15 @@ namespace Meek.NavigationStack
                 };
 
                 await _stackNavigator.NavigateAsync(context);
-            
+
                 DictionaryPool<string, object>.Release(features);
-                
+
+                return true;
             }
-            finally { _semaphoreSlim.Release(); } 
+            finally
+            {
+                _semaphoreSlim.Release();
+            }
         }
 
         public Task InsertScreenBeforeAsync<TBeforeScreen, TInsertionScreen>(InsertContext insertionContext)
@@ -93,7 +105,7 @@ namespace Meek.NavigationStack
         {
             return InsertScreenBeforeAsync(typeof(TBeforeScreen), typeof(TInsertionScreen), insertionContext);
         }
-        
+
         public async Task InsertScreenBeforeAsync(Type beforeScreenClassType, Type insertionScreenClassType, InsertContext insertionContext)
         {
             var fromScreen = _stackNavigator.ScreenContainer.GetPeekScreen();
@@ -109,19 +121,19 @@ namespace Meek.NavigationStack
                 await PushAsync(insertionScreenClassType, pushContext);
                 return;
             }
-            
+
             await _semaphoreSlim.WaitAsync();
             try
             {
                 DictionaryPool<string, object>.Get(out var features);
-                
+
                 var insertionScreen = _serviceProvider.GetService(insertionScreenClassType) as IScreen
                                       ?? throw new ArgumentException();
-                
+
                 features.Add(StackNavigationContextFeatureDefine.InsertionBeforeScreenType, beforeScreenClassType);
                 features.Add(StackNavigationContextFeatureDefine.InsertionScreen, insertionScreen);
                 features.Add(StackNavigationContextFeatureDefine.NextScreenParameter, insertionContext.NextScreenParameter);
-                
+
                 var context = new StackNavigationContext()
                 {
                     NavigatingSourceType = StackNavigationSourceType.Insert,
@@ -134,17 +146,20 @@ namespace Meek.NavigationStack
                 };
 
                 await _stackNavigator.NavigateAsync(context);
-            
-                DictionaryPool<string, object>.Release(features); 
+
+                DictionaryPool<string, object>.Release(features);
             }
-            finally { _semaphoreSlim.Release(); } 
+            finally
+            {
+                _semaphoreSlim.Release();
+            }
         }
 
         public Task RemoveAsync<TScreen>(RemoveContext removeContext) where TScreen : IScreen
         {
             return RemoveAsync(typeof(TScreen), removeContext);
         }
-        
+
         public async Task RemoveAsync(Type screenClassType, RemoveContext removeContext)
         {
             var fromScreen = _stackNavigator.ScreenContainer.GetPeekScreen();
@@ -159,17 +174,20 @@ namespace Meek.NavigationStack
                 await PopAsync(popContext);
                 return;
             }
-            
+
             await _semaphoreSlim.WaitAsync();
             try
             {
                 DictionaryPool<string, object>.Get(out var features);
-            
+
                 features.Add(StackNavigationContextFeatureDefine.RemoveScreenType, screenClassType);
-                features.Add(StackNavigationContextFeatureDefine.RemoveScreen, _stackNavigator.ScreenContainer.GetScreen(screenClassType) as IScreen);
-                features.Add(StackNavigationContextFeatureDefine.RemoveBeforeScreen, _stackNavigator.ScreenContainer.GetScreenBefore(screenClassType));
-                features.Add(StackNavigationContextFeatureDefine.RemoveAfterScreen, _stackNavigator.ScreenContainer.GetScreenAfter(screenClassType));
-            
+                features.Add(StackNavigationContextFeatureDefine.RemoveScreen,
+                    _stackNavigator.ScreenContainer.GetScreen(screenClassType) as IScreen);
+                features.Add(StackNavigationContextFeatureDefine.RemoveBeforeScreen,
+                    _stackNavigator.ScreenContainer.GetScreenBefore(screenClassType));
+                features.Add(StackNavigationContextFeatureDefine.RemoveAfterScreen,
+                    _stackNavigator.ScreenContainer.GetScreenAfter(screenClassType));
+
                 var context = new StackNavigationContext()
                 {
                     NavigatingSourceType = StackNavigationSourceType.Remove,
@@ -182,10 +200,13 @@ namespace Meek.NavigationStack
                 };
 
                 await _stackNavigator.NavigateAsync(context);
-            
-                DictionaryPool<string, object>.Release(features);  
+
+                DictionaryPool<string, object>.Release(features);
             }
-            finally { _semaphoreSlim.Release(); }  
+            finally
+            {
+                _semaphoreSlim.Release();
+            }
         }
 
         public void Dispatch<T>(T args)
@@ -201,8 +222,14 @@ namespace Meek.NavigationStack
         private async Task DispatchAsync(string eventName, object parameter)
         {
             await _semaphoreSlim.WaitAsync();
-            try { DispatchInternal(eventName, parameter); }
-            finally { _semaphoreSlim.Release(); }
+            try
+            {
+                DispatchInternal(eventName, parameter);
+            }
+            finally
+            {
+                _semaphoreSlim.Release();
+            }
         }
 
         private bool DispatchInternal(string eventValue, object param = null)
