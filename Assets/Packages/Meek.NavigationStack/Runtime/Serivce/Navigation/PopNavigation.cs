@@ -33,5 +33,14 @@ namespace Meek.NavigationStack
             _context.SkipAnimation = skipAnimation;
             return this;
         }
+
+        /// <summary>
+        /// Pop processing is not performed if the Screen is not the specified Screen.
+        /// </summary>
+        public PopNavigation OnlyWhen(IScreen screen)
+        {
+            _context.OnlyWhenScreen = screen;
+            return this;
+        }
     }
 }

@@ -25,6 +25,7 @@ namespace Meek.UGUI
         public PrefabViewHandler(GameObject prefab)
         {
             var rootNode = new GameObject(prefab.name);
+            Object.DontDestroyOnLoad(rootNode);
             var rootNodeRectTransform = rootNode.AddComponent<RectTransform>();
             var rootNodeCanvas = rootNode.AddComponent<Canvas>();
             rootNodeCanvas.overrideSorting = false;
@@ -56,7 +57,7 @@ namespace Meek.UGUI
             {
                 if (interactable) input.Enable();
                 else input.Disable();
-            } 
+            }
         }
 
         public virtual void SetVisibility(bool visible)
@@ -66,9 +67,9 @@ namespace Meek.UGUI
             {
                 if (visible) visibility.Show();
                 else visibility.Hide();
-            } 
+            }
         }
-        
+
         protected virtual void SetLayer()
         {
             RectTransform.anchoredPosition = Vector2.zero;
@@ -77,14 +78,16 @@ namespace Meek.UGUI
             RectTransform.sizeDelta = Vector2.zero;
             RectTransform.localScale = Vector3.one;
         }
-        
-        protected virtual void Setup() { }
+
+        protected virtual void Setup()
+        {
+        }
 
         void IViewHandler.SetInteractable(bool interactable)
         {
             SetInteractable(interactable);
         }
-        
+
         void IViewHandler.SetVisibility(bool visible)
         {
             SetVisibility(visible);
@@ -100,7 +103,10 @@ namespace Meek.UGUI
             Setup();
         }
 
-        void IViewHandler.EvaluateNavigateAnimation(NavigatorAnimationType animationType, Type fromScreenClassType, Type toScreenClassType, float t)
+        void IViewHandler.EvaluateNavigateAnimation(NavigatorAnimationType animationType,
+            Type fromScreenClassType,
+            Type toScreenClassType,
+            float t)
         {
             if (NavigatorAnimationPlayer == null) return;
 
@@ -113,25 +119,29 @@ namespace Meek.UGUI
             Type toScreenClassType)
         {
             if (NavigatorAnimationPlayer == null) yield break;
-            
+
             yield return animationType switch
             {
-                NavigatorAnimationType.Open => NavigatorAnimationPlayer.OpenRoutine(fromScreenClassType, toScreenClassType),
-                NavigatorAnimationType.Close => NavigatorAnimationPlayer.CloseRoutine(fromScreenClassType, toScreenClassType),
-                NavigatorAnimationType.Show => NavigatorAnimationPlayer.ShowRoutine(fromScreenClassType, toScreenClassType),
-                NavigatorAnimationType.Hide => NavigatorAnimationPlayer.HideRoutine(fromScreenClassType, toScreenClassType),
+                NavigatorAnimationType.Open => NavigatorAnimationPlayer.OpenRoutine(fromScreenClassType,
+                    toScreenClassType),
+                NavigatorAnimationType.Close => NavigatorAnimationPlayer.CloseRoutine(fromScreenClassType,
+                    toScreenClassType),
+                NavigatorAnimationType.Show => NavigatorAnimationPlayer.ShowRoutine(fromScreenClassType,
+                    toScreenClassType),
+                NavigatorAnimationType.Hide => NavigatorAnimationPlayer.HideRoutine(fromScreenClassType,
+                    toScreenClassType),
                 _ => throw new ArgumentOutOfRangeException(nameof(animationType), animationType, null)
             };
         }
 
         #region IDisposable
-        
+
         void IDisposable.Dispose()
         {
-            if (RootNode != null && RootNode.gameObject != null) 
+            if (RootNode != null && RootNode.gameObject != null)
                 Object.Destroy(RootNode.gameObject);
         }
-        
+
         #endregion
     }
 }

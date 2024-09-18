@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using UnityEngine;
 using UnityEngine.Pool;
 
 namespace Meek.NavigationStack
@@ -31,11 +32,19 @@ namespace Meek.NavigationStack
         {
             ListPool<IScreen>.Get(out var removeScreenList);
 
+            bool existBackToScreen = false;
             foreach (var screen in _stackNavigationService.ScreenContainer.Screens)
             {
-                if (backScreen == screen.GetType()) break;
+                if (backScreen == screen.GetType())
+                {
+                    existBackToScreen = true;
+                    break;
+                }
+
                 removeScreenList.Add(screen);
             }
+
+            if (!existBackToScreen) return;
 
             if (removeScreenList.Count == 1)
             {
@@ -45,7 +54,7 @@ namespace Meek.NavigationStack
                     SkipAnimation = _skipAnimation,
                 });
             }
-            else
+            else if (removeScreenList.Count > 1)
             {
                 foreach (var screen in removeScreenList.Skip(1))
                     await _stackNavigationService.RemoveAsync(screen.GetType(), new RemoveContext());
