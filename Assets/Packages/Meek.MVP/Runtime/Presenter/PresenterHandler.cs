@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Meek.UGUI;
 using UnityEngine;
@@ -52,6 +53,16 @@ namespace Meek.MVP
                 presenterHandler.InputSwitchers.Add(inputSwitcher);
 
             return presenterHandler;
+        }
+
+        public override async ValueTask DisposeAsync()
+        {
+            await base.DisposeAsync();
+
+            if (_presenter is IAsyncDisposable asyncDisposable)
+            {
+                await asyncDisposable.DisposeAsync();
+            }
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Meek.NavigationStack;
 using UnityEngine;
 using UnityEngine.UI;
@@ -103,10 +104,12 @@ namespace Meek.UGUI
             Setup();
         }
 
-        void IViewHandler.EvaluateNavigateAnimation(NavigatorAnimationType animationType,
+        void IViewHandler.EvaluateNavigateAnimation(
+            NavigatorAnimationType animationType,
             Type fromScreenClassType,
             Type toScreenClassType,
-            float t)
+            float t
+        )
         {
             if (NavigatorAnimationPlayer == null) return;
 
@@ -116,7 +119,8 @@ namespace Meek.UGUI
         IEnumerator IViewHandler.PlayNavigateAnimationRoutine(
             NavigatorAnimationType animationType,
             Type fromScreenClassType,
-            Type toScreenClassType)
+            Type toScreenClassType
+        )
         {
             if (NavigatorAnimationPlayer == null) yield break;
 
@@ -136,10 +140,17 @@ namespace Meek.UGUI
 
         #region IDisposable
 
-        void IDisposable.Dispose()
+        public virtual void Dispose()
         {
             if (RootNode != null && RootNode.gameObject != null)
+            {
                 Object.Destroy(RootNode.gameObject);
+            }
+        }
+
+        public virtual ValueTask DisposeAsync()
+        {
+            return new ValueTask();
         }
 
         #endregion

@@ -5,23 +5,25 @@ using UnityEngine;
 
 namespace Meek.NavigationStack
 {
-    public abstract class StackScreen : IScreen, IDisposable, IScreenLifecycleEventHandler, IScreenNavigatorEventHandler
+    public abstract class StackScreen : IScreen, IDisposable, IAsyncDisposable, IScreenLifecycleEventHandler, IScreenNavigatorEventHandler
     {
         private readonly Stack<IDisposable> _interactableLocks = new Stack<IDisposable>();
 
+        protected readonly List<IDisposable> Disposables = new List<IDisposable>();
+        protected readonly List<IAsyncDisposable> AsyncDisposables = new List<IAsyncDisposable>();
+
         protected IServiceProvider AppServices;
-        protected List<IDisposable> Disposables = new List<IDisposable>();
 
         private ICoroutineRunner _coroutineRunner;
 
         public ScreenUI UI { get; private set; }
         public IScreenEventInvoker ScreenEventInvoker { get; private set; }
-        
+
         /// <summary>
         ///     StateType
         /// </summary>
         public virtual ScreenUIType ScreenUIType => ScreenUIType.FullScreen;
-        
+
         protected abstract void RegisterEventsInternal(EventHolder eventHolder);
 
         protected virtual void StateWillNavigate(StackNavigationContext context)
@@ -49,7 +51,7 @@ namespace Meek.NavigationStack
 
             ScreenEventInvoker.Invoke(ScreenLifecycleEvent.ScreenWillStart);
             await ScreenEventInvoker.InvokeAsync(ScreenLifecycleEvent.ScreenWillStart);
-            
+
             // Load完了を待ってSetup処理の実行
             var tcs = new TaskCompletionSource<bool>();
             if (UI.IsLoaded) tcs.SetResult(true);
@@ -58,15 +60,15 @@ namespace Meek.NavigationStack
                 var waitUntil = new WaitUntil(() => UI.IsLoaded);
                 _coroutineRunner.StartCoroutineWithCallback(waitUntil, () => tcs.SetResult(true));
             }
-            
+
             await tcs.Task;
-            
+
             UI.SetLayer(context);
-            ScreenEventInvoker.Invoke(ScreenViewEvent.ViewWillSetup); 
+            ScreenEventInvoker.Invoke(ScreenViewEvent.ViewWillSetup);
             UI.Setup(context);
             ScreenEventInvoker.Invoke(ScreenViewEvent.ViewDidSetup);
         }
-        
+
         protected virtual async ValueTask ResumingImplAsync(StackNavigationContext context)
         {
             ScreenEventInvoker.Invoke(ScreenLifecycleEvent.ScreenWillResume);
@@ -84,14 +86,14 @@ namespace Meek.NavigationStack
             ScreenEventInvoker.Invoke(ScreenLifecycleEvent.ScreenDidDestroy);
             await ScreenEventInvoker.InvokeAsync(ScreenLifecycleEvent.ScreenDidDestroy);
             _interactableLocks?.DisposeAll();
-            _interactableLocks?.Clear(); 
+            _interactableLocks?.Clear();
         }
 
         protected virtual void StateDidNavigate(StackNavigationContext context)
         {
             if (context.NavigatingSourceType is StackNavigationSourceType.Insert or StackNavigationSourceType.Remove)
                 return;
-            
+
             // 一致している場合はStateDidStartかStateDidResumeになる
             var stateEvent = context.NavigatingSourceType switch
             {
@@ -99,11 +101,11 @@ namespace Meek.NavigationStack
                 StackNavigationSourceType.Pop => ScreenLifecycleEvent.ScreenDidResume,
                 _ => throw new ArgumentOutOfRangeException()
             };
-                
+
             _interactableLocks.Pop().Dispose();
             ScreenEventInvoker.Invoke(stateEvent);
         }
-        
+
         private IScreenEventInvoker CreateEventInvoker()
         {
             var eventHolder = new EventHolder();
@@ -114,12 +116,12 @@ namespace Meek.NavigationStack
         void IScreen.Initialize(NavigationContext navigationContext)
         {
             var stackContext = navigationContext.ToStackNavigationContext();
-            
+
             AppServices = stackContext.AppServices;
             _coroutineRunner = stackContext.AppServices.GetService<ICoroutineRunner>();
             UI = stackContext.AppServices.GetService<ScreenUI>();
         }
-        
+
         ValueTask IScreenLifecycleEventHandler.StartingImplAsync(NavigationContext context)
         {
             var stackContext = context.ToStackNavigationContext();
@@ -143,7 +145,7 @@ namespace Meek.NavigationStack
             var stackContext = context.ToStackNavigationContext();
             return DestroyingImplAsync(stackContext);
         }
-        
+
         void IScreenNavigatorEventHandler.ScreenWillNavigate(NavigationContext context)
         {
             var stackContext = context.ToStackNavigationContext();
@@ -156,11 +158,21 @@ namespace Meek.NavigationStack
             StateDidNavigate(stackContext);
         }
 
-        public void Dispose()
+        public virtual void Dispose()
         {
-            UI.Dispose();
             Disposables.DisposeAll();
-            Disposables.Clear(); 
+            Disposables.Clear();
+        }
+
+        public virtual async ValueTask DisposeAsync()
+        {
+            await UI.DisposeAsync();
+            foreach (var disposable in AsyncDisposables)
+            {
+                await disposable.DisposeAsync();
+            }
+
+            AsyncDisposables.Clear();
         }
     }
 }
