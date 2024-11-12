@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Meek.MVP
 {
-    public abstract class Presenter<TModel> : MonoBehaviour, IPresenter<TModel>
+    public abstract class Presenter<TModel> : MonoBehaviour, IPresenter<TModel>, IAsyncDisposable
     {
         private readonly List<IDisposable> _disposables = new List<IDisposable>();
         private readonly List<IPresenterEventHandler> _presenterEventHandlers = new List<IPresenterEventHandler>();
@@ -15,7 +15,7 @@ namespace Meek.MVP
         {
             var handlers = this.GetComponents<IPresenterEventHandler>();
             if (handlers != null && handlers.Length > 0) _presenterEventHandlers.AddRange(handlers);
-            
+
             OnInit();
             foreach (var handler in _presenterEventHandlers) handler.PresenterDidInit(this);
         }
@@ -38,6 +38,7 @@ namespace Meek.MVP
         protected virtual void OnInit() { }
 
         protected virtual Task LoadAsync(TModel model) { return Task.CompletedTask; }
+        protected virtual Task DisposeAsync() { return Task.CompletedTask; }
         protected virtual void OnSetup(TModel model) { }
         protected virtual void OnDeinit(TModel model) { }
 
@@ -52,6 +53,11 @@ namespace Meek.MVP
             OnSetup(_model);
             foreach (var handler in _presenterEventHandlers) handler.PresenterDidSetup(this, _model);
             Bind();
+        }
+
+        async ValueTask IAsyncDisposable.DisposeAsync()
+        {
+            await DisposeAsync();
         }
     }
 }

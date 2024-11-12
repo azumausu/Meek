@@ -7,16 +7,15 @@ using UnityEngine.Pool;
 
 namespace Meek.NavigationStack
 {
-    public class ScreenUI : IDisposable
+    public class ScreenUI
     {
         #region Fields
 
         private readonly ICoroutineRunner _coroutineRunner;
-        private readonly List<IDisposable> _disposables = new List<IDisposable>();
         private readonly List<IViewHandlerLoader> _viewHandlerLoaders = new List<IViewHandlerLoader>();
         private readonly List<IViewHandler> _viewHandlers = new List<IViewHandler>();
         private readonly LockObject _interactableLocker;
-        
+
         public bool IsInteractable => !_interactableLocker.IsLock;
         public bool IsVisible { get; private set; }
         public bool IsLoaded => _viewHandlerLoaders.All(x => x.IsLoaded);
@@ -44,22 +43,20 @@ namespace Meek.NavigationStack
         #endregion
 
         #region Methods
-        
+
         public async Task<IViewHandler> LoadViewHandlerAsync(IViewHandlerLoader viewHandlerLoader)
         {
             _viewHandlerLoaders.Add(viewHandlerLoader);
             var viewHandler = await viewHandlerLoader.LoadAsync();
-            _disposables.Add(viewHandler);
             _viewHandlers.Add(viewHandler);
-            
+
             return viewHandler;
         }
 
         public void DisposeViewHandler(IViewHandler viewHandler)
         {
-            if (!_disposables.Remove(viewHandler)) return;
             if (!_viewHandlers.Remove(viewHandler)) return;
-            
+
             viewHandler.Dispose();
         }
 
@@ -85,8 +82,8 @@ namespace Meek.NavigationStack
             // もしここで呼び出す場合も不都合あるならSetupCoroutine()のSetLayer版を作成する
             // Layerの設定はSetup前に行う
             foreach (var viewHandler in _viewHandlers) viewHandler.SetLayer();
-            
-            foreach (var viewController in _viewHandlers) 
+
+            foreach (var viewController in _viewHandlers)
                 viewController.EvaluateNavigateAnimation(
                     NavigatorAnimationType.Open,
                     context.FromScreen?.GetType(),
@@ -103,8 +100,8 @@ namespace Meek.NavigationStack
         internal IEnumerator OpenRoutine(Type fromScreenClassType, Type toScreenClassType, bool isImmediate = false)
         {
             return PlayNavigateAnimationRoutine(
-                NavigatorAnimationType.Open, 
-                fromScreenClassType, 
+                NavigatorAnimationType.Open,
+                fromScreenClassType,
                 toScreenClassType,
                 isImmediate
             );
@@ -113,8 +110,8 @@ namespace Meek.NavigationStack
         internal IEnumerator CloseRoutine(Type fromScreenClassType, Type toScreenClassType, bool isImmediate = false)
         {
             return PlayNavigateAnimationRoutine(
-                NavigatorAnimationType.Close, 
-                fromScreenClassType, 
+                NavigatorAnimationType.Close,
+                fromScreenClassType,
                 toScreenClassType,
                 isImmediate
             );
@@ -123,8 +120,8 @@ namespace Meek.NavigationStack
         internal IEnumerator ShowRoutine(Type fromScreenClassType, Type toScreenClassType, bool isImmediate = false)
         {
             return PlayNavigateAnimationRoutine(
-                NavigatorAnimationType.Show, 
-                fromScreenClassType, 
+                NavigatorAnimationType.Show,
+                fromScreenClassType,
                 toScreenClassType,
                 isImmediate
             );
@@ -133,22 +130,23 @@ namespace Meek.NavigationStack
         internal IEnumerator HideRoutine(Type fromScreenClassType, Type toScreenClassType, bool isImmediate = false)
         {
             return PlayNavigateAnimationRoutine(
-                NavigatorAnimationType.Hide, 
-                fromScreenClassType, 
+                NavigatorAnimationType.Hide,
+                fromScreenClassType,
                 toScreenClassType,
                 isImmediate
-                );
+            );
         }
 
         private IEnumerator PlayNavigateAnimationRoutine(
             NavigatorAnimationType navigatorAnimationType,
             Type fromScreenClassType,
             Type toScreenClassType,
-            bool isImmediate)
+            bool isImmediate
+        )
         {
             if (isImmediate)
             {
-                foreach (var viewController in _viewHandlers) 
+                foreach (var viewController in _viewHandlers)
                     viewController.EvaluateNavigateAnimation(
                         navigatorAnimationType,
                         fromScreenClassType,
@@ -158,8 +156,8 @@ namespace Meek.NavigationStack
 
                 yield break;
             }
-            
-            foreach (var viewController in _viewHandlers) 
+
+            foreach (var viewController in _viewHandlers)
                 viewController.EvaluateNavigateAnimation(
                     navigatorAnimationType,
                     fromScreenClassType,
@@ -168,28 +166,32 @@ namespace Meek.NavigationStack
                 );
 
             var coroutines = ListPool<IEnumerator>.Get();
-            
+
             coroutines.AddRange(_viewHandlers
                 .Select(x => x.PlayNavigateAnimationRoutine(
-                    navigatorAnimationType, 
-                    fromScreenClassType, 
+                    navigatorAnimationType,
+                    fromScreenClassType,
                     toScreenClassType)
                 )
             );
             yield return _coroutineRunner.StartParallelCoroutine(coroutines);
-            
-            ListPool<IEnumerator>.Release(coroutines); 
+
+            ListPool<IEnumerator>.Release(coroutines);
         }
 
         #endregion
 
-        #region Interface Implementations
-
-        public void Dispose()
+        public async ValueTask DisposeAsync()
         {
-            foreach (var d in _disposables) d.Dispose();
-        }
+            foreach (var d in _viewHandlers)
+            {
+                await d.DisposeAsync();
+            }
 
-        #endregion
+            foreach (var d in _viewHandlers)
+            {
+                d.Dispose();
+            }
+        }
     }
 }

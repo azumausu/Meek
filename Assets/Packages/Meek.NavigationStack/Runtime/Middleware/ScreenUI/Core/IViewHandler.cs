@@ -3,10 +3,10 @@ using System.Collections;
 
 namespace Meek.NavigationStack
 {
-    public interface IViewHandler : IDisposable
+    public interface IViewHandler : IDisposable, IAsyncDisposable
     {
         void SetLayer();
-        
+
         void Setup();
 
         void SetInteractable(bool interactable);
@@ -21,7 +21,7 @@ namespace Meek.NavigationStack
         );
 
         IEnumerator PlayNavigateAnimationRoutine(
-            NavigatorAnimationType navigatorAnimationType, 
+            NavigatorAnimationType navigatorAnimationType,
             Type fromScreenClassType,
             Type toScreenClassType
         );
