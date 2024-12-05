@@ -4,18 +4,16 @@ namespace Meek.NavigationStack
 {
     public static class NavigatorAnimationBuilderExtension
     {
-        public static IServiceCollection AddNavigatorAnimation(this IServiceCollection self, Action<NavigatorAnimationOption> configure)
+        public static IServiceCollection AddNavigatorAnimation(this IServiceCollection self)
         {
-            var option = new NavigatorAnimationOption();
-
-            configure(option);
-
-            foreach (var moduleType in option.Strategies) self.AddSingleton(moduleType);
-            self.AddSingleton(option);
             self.AddSingleton<NavigatorAnimationMiddleware>();
+            self.AddScope<INavigatorAnimationStrategy, PushNavigatorAnimationStrategy>();
+            self.AddScope<INavigatorAnimationStrategy, PopNavigatorAnimationStrategy>();
+            self.AddScope<INavigatorAnimationStrategy, RemoveNavigatorAnimationStrategy>();
+            self.AddScope<INavigatorAnimationStrategy, InsertNavigatorAnimationStrategy>();
             return self;
         }
-        
+
         public static INavigatorBuilder UseNavigatorAnimation(this INavigatorBuilder app)
         {
             return app.UseMiddleware<NavigatorAnimationMiddleware>();

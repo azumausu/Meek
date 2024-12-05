@@ -10,16 +10,12 @@ namespace Meek
 
         private Action<IServiceCollection> _configureServices;
         private Action<INavigatorBuilder> _configure;
-        
+
         public IServiceProvider ServiceProvider { get; private set; }
 
-        public NavigatorBuilder(Action<NavigatorBuilderOption> configure)
+        public NavigatorBuilder(IContainerBuilder builder)
         {
-            var option = new NavigatorBuilderOption() { };
-            configure(option);
-            
-            _containerBuilder = option.ContainerBuilder;
-            _containerBuilder.ServiceCollection.AddSingleton(typeof(IScreenContainer), option.ScreenContainer);
+            _containerBuilder = builder;
         }
 
         public NavigatorBuilder ConfigureServices(Action<IServiceCollection> configureServices)
@@ -38,13 +34,13 @@ namespace Meek
         {
             // MiddlewareやDIに必要なものを登録
             _configureServices.Invoke(_containerBuilder.ServiceCollection);
-            
+
             // Containerの作成
             ServiceProvider = _containerBuilder.Build();
 
             // Middlewareの実行手順の設定
             _configure.Invoke(this);
-            
+
             // 基盤の一番最初に呼び出すMiddleware
             var stackScreenManager = ServiceProvider.GetService<IScreenContainer>();
             NavigationDelegate app = stackScreenManager.NavigateAsync;
@@ -60,6 +56,6 @@ namespace Meek
         {
             _components.Add(component);
             return this;
-        } 
+        }
     }
 }

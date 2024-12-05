@@ -1,29 +1,30 @@
 using Meek;
 using Meek.MVP;
+using Meek.UGUI;
 using UnityEngine;
 
 namespace Demo
 {
     public class Main : MonoBehaviour
     {
-        [SerializeField] private InputLocker _inputLocker;
-        [SerializeField] private PrefabViewManager _prefabViewManager;
-        
+        [SerializeField] private DefaultInputLocker defaultInputLocker;
+        [SerializeField] private DefaultPrefabViewManager defaultPrefabViewManager;
+
         public void Start()
         {
             Application.targetFrameRate = Screen.currentResolution.refreshRate;
-            var app = MVPApplication.CreateRootApp(
-                new MVPRootApplicationOption()
+            var app = MVPApplication.CreateApp(
+                new MVPApplicationOption()
                 {
                     ContainerBuilderFactory = x => new VContainerServiceCollection(x),
-                    InputLocker = _inputLocker,
-                    PrefabViewManager = _prefabViewManager,
+                    InputLocker = defaultInputLocker,
+                    PrefabViewManager = defaultPrefabViewManager,
                 },
                 x =>
                 {
                     // App Services
                     x.AddSingleton<GlobalStore>();
-                    
+
                     // Screen
                     x.AddTransient<SplashScreen>();
                     x.AddTransient<SignUpScreen>();

@@ -4,8 +4,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using Meek;
 using Meek.MVP;
+using Meek.UGUI;
 using UniRx;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Demo
 {
@@ -13,25 +15,42 @@ namespace Demo
     {
         [SerializeField] private ToggleButton _homeToggleButton;
         [SerializeField] private CanvasGroup _homeCanvasGroup;
-        [SerializeField] private InputLocker _homeInputLocker;
-        [SerializeField] private PrefabViewManager _homePrefabViewManager;
-        
+
+        [FormerlySerializedAs("_homeInputLocker")] [SerializeField]
+        private DefaultInputLocker homeDefaultInputLocker;
+
+        [FormerlySerializedAs("_homePrefabViewManager")] [SerializeField]
+        private DefaultPrefabViewManager homeDefaultPrefabViewManager;
+
         [SerializeField] private ToggleButton _searchToggleButton;
         [SerializeField] private CanvasGroup _searchCanvasGroup;
-        [SerializeField] private InputLocker _searchInputLocker;
-        [SerializeField] private PrefabViewManager _searchPrefabViewManager;
-        
+
+        [FormerlySerializedAs("_searchInputLocker")] [SerializeField]
+        private DefaultInputLocker searchDefaultInputLocker;
+
+        [FormerlySerializedAs("_searchPrefabViewManager")] [SerializeField]
+        private DefaultPrefabViewManager searchDefaultPrefabViewManager;
+
         [SerializeField] private ToggleButton _favoritesToggleButton;
         [SerializeField] private CanvasGroup _favoritesCanvasGroup;
-        [SerializeField] private InputLocker _favoritesInputLocker;
-        [SerializeField] private PrefabViewManager _favoritesPrefabViewManager;
+
+        [FormerlySerializedAs("_favoritesInputLocker")] [SerializeField]
+        private DefaultInputLocker favoritesDefaultInputLocker;
+
+        [FormerlySerializedAs("_favoritesPrefabViewManager")] [SerializeField]
+        private DefaultPrefabViewManager favoritesDefaultPrefabViewManager;
+
         [SerializeField] private GameObjectActiveSwitcher _badgeActiveSwitcher;
 
         [SerializeField] private ToggleButton _profileToggleButton;
         [SerializeField] private CanvasGroup _profileCanvasGroup;
-        [SerializeField] private InputLocker _profileInputLocker;
-        [SerializeField] private PrefabViewManager _profilePrefabViewManager;
-        
+
+        [FormerlySerializedAs("_profileInputLocker")] [SerializeField]
+        private DefaultInputLocker profileDefaultInputLocker;
+
+        [FormerlySerializedAs("_profilePrefabViewManager")] [SerializeField]
+        private DefaultPrefabViewManager profileDefaultPrefabViewManager;
+
         public IObservable<Unit> OnClickHome => _homeToggleButton.OnClick;
         public IObservable<Unit> OnClickSearch => _searchToggleButton.OnClick;
         public IObservable<Unit> OnClickFavorites => _favoritesToggleButton.OnClick;
@@ -44,7 +63,7 @@ namespace Demo
                 _homeToggleButton.UpdateView(x == TabType.Home);
                 _homeCanvasGroup.alpha = x == TabType.Home ? 1 : 0;
                 _homeCanvasGroup.blocksRaycasts = x == TabType.Home;
-                
+
                 _searchToggleButton.UpdateView(x == TabType.Search);
                 _searchCanvasGroup.alpha = x == TabType.Search ? 1 : 0;
                 _searchCanvasGroup.blocksRaycasts = x == TabType.Search;
@@ -52,81 +71,65 @@ namespace Demo
                 _favoritesToggleButton.UpdateView(x == TabType.Favorites);
                 _favoritesCanvasGroup.alpha = x == TabType.Favorites ? 1 : 0;
                 _favoritesCanvasGroup.blocksRaycasts = x == TabType.Favorites;
-                
+
                 _profileToggleButton.UpdateView(x == TabType.Profile);
                 _profileCanvasGroup.alpha = x == TabType.Profile ? 1 : 0;
                 _profileCanvasGroup.blocksRaycasts = x == TabType.Profile;
             });
 
-            yield return model.FavoriteProducts.Subscribe(x =>
-            {
-                _badgeActiveSwitcher.Switch(x.Count(y => y.IsNew) > 0);
-            });
+            yield return model.FavoriteProducts.Subscribe(x => { _badgeActiveSwitcher.Switch(x.Count(y => y.IsNew) > 0); });
         }
 
         protected override async Task LoadAsync(TabModel model)
         {
-
-            var homeApp = MVPApplication.CreateChildAppAsync(
-                new MVPChildAppliactionOption()
+            var homeApp = MVPApplication.CreateApp(
+                new MVPApplicationOption()
                 {
                     ContainerBuilderFactory = x => new VContainerServiceCollection(x),
-                    InputLocker = _homeInputLocker,
-                    PrefabViewManager = _homePrefabViewManager,
-                    Parent = model.AppServices, 
+                    InputLocker = homeDefaultInputLocker,
+                    PrefabViewManager = homeDefaultPrefabViewManager,
+                    Parent = model.AppServices,
                 },
-                x =>
-                {
-                    x.AddTransient<HomeScreen>();
-                }
+                x => { x.AddTransient<HomeScreen>(); }
             );
             homeApp.AddTo(this);
             await homeApp.RunAsync<HomeScreen>();
-            
-            var searchApp = MVPApplication.CreateChildAppAsync(
-                new MVPChildAppliactionOption()
+
+            var searchApp = MVPApplication.CreateApp(
+                new MVPApplicationOption()
                 {
                     ContainerBuilderFactory = x => new VContainerServiceCollection(x),
-                    InputLocker = _searchInputLocker,
-                    PrefabViewManager = _searchPrefabViewManager,
+                    InputLocker = searchDefaultInputLocker,
+                    PrefabViewManager = searchDefaultPrefabViewManager,
                     Parent = model.AppServices,
                 },
-                x =>
-                {
-                    x.AddTransient<SearchScreen>();
-                }
+                x => { x.AddTransient<SearchScreen>(); }
             );
             searchApp.AddTo(this);
             await searchApp.RunAsync<SearchScreen>();
-            
-            var favoritesApp = MVPApplication.CreateChildAppAsync(
-                new MVPChildAppliactionOption()
+
+            var favoritesApp = MVPApplication.CreateApp(
+                new MVPApplicationOption()
                 {
                     ContainerBuilderFactory = x => new VContainerServiceCollection(x),
-                    InputLocker = _favoritesInputLocker,
-                    PrefabViewManager = _favoritesPrefabViewManager,
+                    InputLocker = favoritesDefaultInputLocker,
+                    PrefabViewManager = favoritesDefaultPrefabViewManager,
                     Parent = model.AppServices,
                 },
-                x =>
-                {
-                    x.AddTransient<FavoritesScreen>();
-                }
+                x => { x.AddTransient<FavoritesScreen>(); }
             );
             favoritesApp.AddTo(this);
             await favoritesApp.RunAsync<FavoritesScreen>();
 
-            var profileApp = MVPApplication.CreateChildAppAsync(
-                new MVPChildAppliactionOption()
+            var profileApp = MVPApplication.CreateApp(
+                new MVPApplicationOption()
                 {
                     ContainerBuilderFactory = x => new VContainerServiceCollection(x),
-                    InputLocker = _profileInputLocker,
-                    PrefabViewManager = _profilePrefabViewManager,
+                    InputLocker = profileDefaultInputLocker,
+                    PrefabViewManager = profileDefaultPrefabViewManager,
                     Parent = model.AppServices,
                 },
-                x =>
-                {
-                    x.AddTransient<ProfileScreen>();
-                }
+                x => { x.AddTransient<ProfileScreen>(); }
             );
             profileApp.AddTo(this);
             await profileApp.RunAsync<ProfileScreen>();
