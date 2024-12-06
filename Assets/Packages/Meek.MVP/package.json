@@ -1,13 +1,13 @@
 {
   "name": "jp.amatech.meek.mvp",
   "displayName": "Meek.MVP(Model-View-Presenter)",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "unity": "2021.3",
   "license": "MIT",
   "dependencies": {
-    "jp.amatech.meek": "1.0.0",
-    "jp.amatech.meek.navigationstack": "1.0.3",
-    "jp.amatech.meek.ugui": "1.0.1"
+    "jp.amatech.meek": "1.1.0",
+    "jp.amatech.meek.navigationstack": "1.1.0",
+    "jp.amatech.meek.ugui": "1.1.0"
   },
   "author": {
     "name": "Hikaru Amano",
