@@ -12,11 +12,11 @@ public class VContainerServiceCollection : IContainerBuilder
     private ServiceCollection _serviceCollection = new();
 
     public IServiceCollection ServiceCollection => _serviceCollection;
-        
+
     public VContainerServiceCollection(IServiceProvider parentServiceProvider = null)
     {
         if (parentServiceProvider == null) return;
-            
+
         var vContainerServiceProvider = parentServiceProvider as VContainerServiceProvider;
         _parentObjectResolver = vContainerServiceProvider.ObjectResolver;
     }
@@ -26,16 +26,6 @@ public class VContainerServiceCollection : IContainerBuilder
         _serviceCollection.MakeReadOnly();
         Action<global::VContainer.IContainerBuilder> installer = containerBuilder =>
         {
-            // Instance
-            var instanceGroups = _serviceCollection
-                .Where(y => y.IsInstance())
-                .GroupBy(y => y.ImplementationInstance);
-            foreach (var group in instanceGroups)
-            {
-                var registrationBuilder = containerBuilder.RegisterInstance(group.Key);
-                foreach (var descriptor in group) registrationBuilder.As(descriptor.ServiceType);
-            }
-                    
             // Factory
             foreach (var d in _serviceCollection.Where(y => y.IsFactory()))
             {
@@ -50,13 +40,29 @@ public class VContainerServiceCollection : IContainerBuilder
                 var registrationBuilder = new FuncRegistrationBuilder(x =>
                 {
                     var serviceProvider = new VContainerServiceProvider(x);
-                    return d.ImplementationFactory(serviceProvider); 
+                    return d.ImplementationFactory(serviceProvider);
                 }, d.ServiceType, d.ImplementationType, lifetime);
                 containerBuilder.Register(registrationBuilder);
             }
-                    
-            foreach (var d in _serviceCollection.Where(y => !y.IsInstance() && !y.IsFactory()))
+
+            var instanceGroupList = _serviceCollection
+                .Where(y => y.IsInstance())
+                .GroupBy(y => y.ImplementationInstance)
+                .ToList();
+            foreach (var d in _serviceCollection.Where(y => !y.IsFactory()))
             {
+                if (d.IsInstance())
+                {
+                    var instanceGroup = instanceGroupList.FirstOrDefault(group => group.Key == d.ImplementationInstance);
+                    if (instanceGroup != null)
+                    {
+                        var instanceRegisterBuilder = containerBuilder.RegisterInstance(instanceGroup.Key);
+                        foreach (var descriptor in instanceGroup) instanceRegisterBuilder.As(descriptor.ServiceType);
+                        instanceGroupList.Remove(instanceGroup);
+                        continue;
+                    }
+                }
+
                 var lifetime = d.LifeTime switch
                 {
                     ServiceLifeTime.Singleton => Lifetime.Singleton,

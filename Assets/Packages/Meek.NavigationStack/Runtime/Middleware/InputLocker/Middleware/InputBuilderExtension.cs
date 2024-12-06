@@ -4,18 +4,14 @@ namespace Meek.NavigationStack
 {
     public static class InputBuilderExtension
     {
-        public static IServiceCollection AddInputLocker(this IServiceCollection self, Action<InputLockerOption> configure)
+        public static IServiceCollection AddInputLocker(this IServiceCollection self, IInputLocker inputLocker)
         {
-            var option = new InputLockerOption();
-            configure.Invoke(option);
-
-            self.AddSingleton(option);
-            self.AddSingleton(option.InputLocker);
+            self.AddSingleton(inputLocker);
             self.AddSingleton<InputLockerMiddleware>();
-            
+
             return self;
         }
-        
+
         public static INavigatorBuilder UseInputLocker(this INavigatorBuilder app)
         {
             return app.UseMiddleware<InputLockerMiddleware>();

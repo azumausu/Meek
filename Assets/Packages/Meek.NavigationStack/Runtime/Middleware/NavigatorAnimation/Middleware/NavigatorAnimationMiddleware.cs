@@ -8,35 +8,36 @@ namespace Meek.NavigationStack
 {
     public class NavigatorAnimationMiddleware : IMiddleware
     {
-        private readonly NavigatorAnimationOption _option;
         private readonly IScreenContainer _screenContainer;
         private readonly ICoroutineRunner _coroutineRunner;
-        
-        private List<INavigatorAnimationStrategy> _transitionAnimationModules;
-        
+
+        private readonly List<INavigatorAnimationStrategy> _transitionAnimationModules = new();
+
         [Preserve]
-        public NavigatorAnimationMiddleware(NavigatorAnimationOption option, IScreenContainer screenContainer, ICoroutineRunner coroutineRunner)
+        public NavigatorAnimationMiddleware(
+            IScreenContainer screenContainer,
+            ICoroutineRunner coroutineRunner,
+            PushNavigatorAnimationStrategy pushNavigatorAnimationStrategy,
+            PopNavigatorAnimationStrategy popNavigatorAnimationStrategy,
+            RemoveNavigatorAnimationStrategy removeNavigatorAnimationStrategy,
+            InsertNavigatorAnimationStrategy insertNavigatorAnimationStrategy
+        )
         {
-            _option = option;
             _screenContainer = screenContainer;
             _coroutineRunner = coroutineRunner;
+
+            _transitionAnimationModules.Add(pushNavigatorAnimationStrategy);
+            _transitionAnimationModules.Add(popNavigatorAnimationStrategy);
+            _transitionAnimationModules.Add(removeNavigatorAnimationStrategy);
+            _transitionAnimationModules.Add(insertNavigatorAnimationStrategy);
         }
-        
+
         public async ValueTask InvokeAsync(NavigationContext context, NavigationDelegate next)
         {
             var stackContext = context.ToStackNavigationContext();
-            
-            // InterceptorPipelineBuilder.cs as a Metaphor.
-            if (_transitionAnimationModules == null)
-            {
-                _transitionAnimationModules = new List<INavigatorAnimationStrategy>();
-                _transitionAnimationModules.AddRange(_option.Strategies
-                    .Select(x => context.AppServices.GetService(x))
-                    .Select(x => x as INavigatorAnimationStrategy));
-            }
-            
+
             await next(context);
-            
+
             // ScreenUIWillClose
             if (stackContext.NavigatingSourceType == StackNavigationSourceType.Pop)
             {
@@ -44,6 +45,7 @@ namespace Meek.NavigationStack
                 fromUIScreen.ScreenEventInvoker.Invoke(NavigatorAnimationScreenEvent.ViewWillClose);
                 await fromUIScreen.ScreenEventInvoker.InvokeAsync(NavigatorAnimationScreenEvent.ViewWillClose);
             }
+
             if (stackContext.NavigatingSourceType == StackNavigationSourceType.Remove)
             {
                 var removeScreen = context.GetFeatureValue<IScreen>(StackNavigationContextFeatureDefine.RemoveScreen);
@@ -51,23 +53,25 @@ namespace Meek.NavigationStack
                 removeUIScreen.ScreenEventInvoker.Invoke(NavigatorAnimationScreenEvent.ViewWillClose);
                 await removeUIScreen.ScreenEventInvoker.InvokeAsync(NavigatorAnimationScreenEvent.ViewWillClose);
             }
-            
+
             // ScreenUIWillOpen
             if (stackContext.NavigatingSourceType == StackNavigationSourceType.Push)
             {
-                if (context.ToScreen is not StackScreen toUIScreen) throw new InvalidOperationException(); 
-                toUIScreen.ScreenEventInvoker.Invoke(NavigatorAnimationScreenEvent.ViewWillOpen); 
+                if (context.ToScreen is not StackScreen toUIScreen) throw new InvalidOperationException();
+                toUIScreen.ScreenEventInvoker.Invoke(NavigatorAnimationScreenEvent.ViewWillOpen);
                 await toUIScreen.ScreenEventInvoker.InvokeAsync(NavigatorAnimationScreenEvent.ViewWillOpen);
             }
+
             if (stackContext.NavigatingSourceType == StackNavigationSourceType.Insert)
             {
-                if (context.ToScreen is not StackScreen toUIScreen) throw new InvalidOperationException(); 
-                toUIScreen.ScreenEventInvoker.Invoke(NavigatorAnimationScreenEvent.ViewWillOpen); 
-                await toUIScreen.ScreenEventInvoker.InvokeAsync(NavigatorAnimationScreenEvent.ViewWillOpen); 
+                if (context.ToScreen is not StackScreen toUIScreen) throw new InvalidOperationException();
+                toUIScreen.ScreenEventInvoker.Invoke(NavigatorAnimationScreenEvent.ViewWillOpen);
+                await toUIScreen.ScreenEventInvoker.InvokeAsync(NavigatorAnimationScreenEvent.ViewWillOpen);
             }
-            
+
             // 遷移Animation
-            var strategy = _transitionAnimationModules.FirstOrDefault(x => x.IsValid(stackContext));
+            // -- DIに最後に登録されたものから探す
+            var strategy = _transitionAnimationModules.LastOrDefault(x => x.IsValid(stackContext));
             if (strategy != null)
             {
                 var tcs = new TaskCompletionSource<bool>();
@@ -79,16 +83,18 @@ namespace Meek.NavigationStack
             // ScreenUIDidOpen
             if (stackContext.NavigatingSourceType == StackNavigationSourceType.Push)
             {
-                if (context.ToScreen is not StackScreen toUIScreen) throw new InvalidOperationException(); 
-                toUIScreen.ScreenEventInvoker.Invoke(NavigatorAnimationScreenEvent.ViewDidOpen); 
+                if (context.ToScreen is not StackScreen toUIScreen) throw new InvalidOperationException();
+                toUIScreen.ScreenEventInvoker.Invoke(NavigatorAnimationScreenEvent.ViewDidOpen);
                 await toUIScreen.ScreenEventInvoker.InvokeAsync(NavigatorAnimationScreenEvent.ViewDidOpen);
             }
+
             if (stackContext.NavigatingSourceType == StackNavigationSourceType.Insert)
             {
-                if (context.ToScreen is not StackScreen toUIScreen) throw new InvalidOperationException(); 
-                toUIScreen.ScreenEventInvoker.Invoke(NavigatorAnimationScreenEvent.ViewDidOpen); 
-                await toUIScreen.ScreenEventInvoker.InvokeAsync(NavigatorAnimationScreenEvent.ViewDidOpen); 
+                if (context.ToScreen is not StackScreen toUIScreen) throw new InvalidOperationException();
+                toUIScreen.ScreenEventInvoker.Invoke(NavigatorAnimationScreenEvent.ViewDidOpen);
+                await toUIScreen.ScreenEventInvoker.InvokeAsync(NavigatorAnimationScreenEvent.ViewDidOpen);
             }
+
             // ScreenUIDidClose
             if (stackContext.NavigatingSourceType == StackNavigationSourceType.Pop)
             {
@@ -96,6 +102,7 @@ namespace Meek.NavigationStack
                 fromUIScreen.ScreenEventInvoker.Invoke(NavigatorAnimationScreenEvent.ViewDidClose);
                 await fromUIScreen.ScreenEventInvoker.InvokeAsync(NavigatorAnimationScreenEvent.ViewDidClose);
             }
+
             if (stackContext.NavigatingSourceType == StackNavigationSourceType.Remove)
             {
                 var removeScreen = context.GetFeatureValue<IScreen>(StackNavigationContextFeatureDefine.RemoveScreen);

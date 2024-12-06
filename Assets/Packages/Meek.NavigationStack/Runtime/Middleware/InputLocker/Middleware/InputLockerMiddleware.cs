@@ -4,17 +4,17 @@ namespace Meek.NavigationStack
 {
     public class InputLockerMiddleware : IMiddleware
     {
-        private readonly InputLockerOption _option;
-        
-        public InputLockerMiddleware(InputLockerOption option)
+        private readonly IInputLocker _inputLocker;
+
+        public InputLockerMiddleware(IInputLocker inputLocker)
         {
-            _option = option;
+            _inputLocker = inputLocker;
         }
-        
+
         public async ValueTask InvokeAsync(NavigationContext context, NavigationDelegate next)
         {
-            using var locker = _option.InputLocker.LockInput();
-            
+            using var locker = _inputLocker.LockInput();
+
             await next(context);
         }
     }

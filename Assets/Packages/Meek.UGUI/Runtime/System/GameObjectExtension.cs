@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Demo
+namespace Meek.UGUI
 {
     internal static class GameObjectExtension
     {

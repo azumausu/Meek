@@ -1,20 +1,19 @@
 using System;
 using System.Linq;
-using Meek;
 using Meek.NavigationStack;
-using Meek.UGUI;
 using UnityEngine;
 
-namespace Demo
+namespace Meek.UGUI
 {
-    public class PrefabViewManager : MonoBehaviour, IPrefabViewManager
+    public class DefaultPrefabViewManager : MonoBehaviour, IPrefabViewManager
     {
         [SerializeField] private Transform _rootNode;
-        
+
         void IPrefabViewManager.AddInHierarchy(PrefabViewHandler handler)
         {
             handler.RootNode.gameObject.SetLayerRecursively(_rootNode.gameObject.layer);
             handler.RootNode.SetParent(_rootNode);
+            (handler.RootNode.transform as RectTransform)!.anchoredPosition3D = Vector3.zero;
         }
 
         void IPrefabViewManager.SortOrderInHierarchy(NavigationContext navigationContext)
@@ -24,7 +23,9 @@ namespace Demo
             foreach (var ui in uis)
             {
                 foreach (var prefabView in ui.ViewHandlers.Reverse().OfType<PrefabViewHandler>())
+                {
                     prefabView.RootNode.SetAsFirstSibling();
+                }
             }
         }
     }

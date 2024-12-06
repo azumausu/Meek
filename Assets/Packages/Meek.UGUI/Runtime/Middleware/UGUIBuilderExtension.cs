@@ -4,18 +4,14 @@ namespace Meek.UGUI
 {
     public static class UGUIBuilderExtension
     {
-        public static IServiceCollection AddUGUI(this IServiceCollection self, Action<UGUIOption> configure)
+        public static IServiceCollection AddUGUI(this IServiceCollection self, IPrefabViewManager prefabViewManager)
         {
-            var option = new UGUIOption();
-            configure(option);
-
-            self.AddSingleton(option);
-            self.AddSingleton<IPrefabViewManager>(option.PrefabViewManager);
+            self.AddSingleton(prefabViewManager);
             self.AddSingleton<UGUIMiddleware>();
 
             return self;
         }
-        
+
         public static INavigatorBuilder UseUGUI(this INavigatorBuilder navigatorBuilder)
         {
             navigatorBuilder.UseMiddleware<UGUIMiddleware>();
