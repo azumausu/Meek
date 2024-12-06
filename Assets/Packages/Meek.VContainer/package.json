@@ -1,11 +1,11 @@
 {
   "name": "jp.amatech.meek.vcontainer",
   "displayName": "Meek.VContainer",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "unity": "2021.3",
   "license": "MIT",
   "dependencies": {
-    "jp.amatech.meek": "1.0.0",
+    "jp.amatech.meek": "1.1.0",
     "jp.hadashikick.vcontainer": "1.13.1"
   },
   "author": {

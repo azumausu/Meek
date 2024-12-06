@@ -11,18 +11,25 @@ namespace Meek.NavigationStack
         private readonly IScreenContainer _screenContainer;
         private readonly ICoroutineRunner _coroutineRunner;
 
-        private List<INavigatorAnimationStrategy> _transitionAnimationModules;
+        private readonly List<INavigatorAnimationStrategy> _transitionAnimationModules = new();
 
         [Preserve]
         public NavigatorAnimationMiddleware(
-            IEnumerable<INavigatorAnimationStrategy> navigatorAnimationStrategies,
             IScreenContainer screenContainer,
-            ICoroutineRunner coroutineRunner
+            ICoroutineRunner coroutineRunner,
+            PushNavigatorAnimationStrategy pushNavigatorAnimationStrategy,
+            PopNavigatorAnimationStrategy popNavigatorAnimationStrategy,
+            RemoveNavigatorAnimationStrategy removeNavigatorAnimationStrategy,
+            InsertNavigatorAnimationStrategy insertNavigatorAnimationStrategy
         )
         {
-            _transitionAnimationModules = new List<INavigatorAnimationStrategy>(navigatorAnimationStrategies);
             _screenContainer = screenContainer;
             _coroutineRunner = coroutineRunner;
+
+            _transitionAnimationModules.Add(pushNavigatorAnimationStrategy);
+            _transitionAnimationModules.Add(popNavigatorAnimationStrategy);
+            _transitionAnimationModules.Add(removeNavigatorAnimationStrategy);
+            _transitionAnimationModules.Add(insertNavigatorAnimationStrategy);
         }
 
         public async ValueTask InvokeAsync(NavigationContext context, NavigationDelegate next)

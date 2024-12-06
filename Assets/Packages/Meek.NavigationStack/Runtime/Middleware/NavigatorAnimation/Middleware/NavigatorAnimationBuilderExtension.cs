@@ -7,10 +7,10 @@ namespace Meek.NavigationStack
         public static IServiceCollection AddNavigatorAnimation(this IServiceCollection self)
         {
             self.AddSingleton<NavigatorAnimationMiddleware>();
-            self.AddScope<INavigatorAnimationStrategy, PushNavigatorAnimationStrategy>();
-            self.AddScope<INavigatorAnimationStrategy, PopNavigatorAnimationStrategy>();
-            self.AddScope<INavigatorAnimationStrategy, RemoveNavigatorAnimationStrategy>();
-            self.AddScope<INavigatorAnimationStrategy, InsertNavigatorAnimationStrategy>();
+            self.AddTransient<PushNavigatorAnimationStrategy>();
+            self.AddTransient<PopNavigatorAnimationStrategy>();
+            self.AddTransient<RemoveNavigatorAnimationStrategy>();
+            self.AddTransient<InsertNavigatorAnimationStrategy>();
             return self;
         }
 
