@@ -1,12 +1,12 @@
 {
   "name": "jp.amatech.meek.vcontainer",
   "displayName": "Meek.VContainer",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "unity": "2021.3",
   "license": "MIT",
   "dependencies": {
     "jp.amatech.meek": "1.1.0",
-    "jp.hadashikick.vcontainer": "1.13.1"
+    "jp.hadashikick.vcontainer": "1.16.6"
   },
   "author": {
     "name": "Hikaru Amano",

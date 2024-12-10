@@ -18,6 +18,11 @@ public class VContainerServiceCollection : IContainerBuilder
         if (parentServiceProvider == null) return;
 
         var vContainerServiceProvider = parentServiceProvider as VContainerServiceProvider;
+        if (vContainerServiceProvider == null)
+        {
+            throw new ArgumentException("parentServiceProvider is not VContainerServiceProvider");
+        }
+
         _parentObjectResolver = vContainerServiceProvider.ObjectResolver;
     }
 
@@ -26,31 +31,33 @@ public class VContainerServiceCollection : IContainerBuilder
         _serviceCollection.MakeReadOnly();
         Action<global::VContainer.IContainerBuilder> installer = containerBuilder =>
         {
-            // Factory
-            foreach (var d in _serviceCollection.Where(y => y.IsFactory()))
-            {
-                var lifetime = d.LifeTime switch
-                {
-                    ServiceLifeTime.Singleton => Lifetime.Singleton,
-                    ServiceLifeTime.Scoped => Lifetime.Scoped,
-                    ServiceLifeTime.Transient => Lifetime.Transient,
-                    _ => throw new ArgumentOutOfRangeException()
-                };
-
-                var registrationBuilder = new FuncRegistrationBuilder(x =>
-                {
-                    var serviceProvider = new VContainerServiceProvider(x);
-                    return d.ImplementationFactory(serviceProvider);
-                }, d.ServiceType, d.ImplementationType, lifetime);
-                containerBuilder.Register(registrationBuilder);
-            }
-
             var instanceGroupList = _serviceCollection
                 .Where(y => y.IsInstance())
                 .GroupBy(y => y.ImplementationInstance)
                 .ToList();
-            foreach (var d in _serviceCollection.Where(y => !y.IsFactory()))
+            foreach (var d in _serviceCollection)
             {
+                // Factory
+                if (d.IsFactory())
+                {
+                    var lifetime = d.LifeTime switch
+                    {
+                        ServiceLifeTime.Singleton => Lifetime.Singleton,
+                        ServiceLifeTime.Scoped => Lifetime.Scoped,
+                        ServiceLifeTime.Transient => Lifetime.Transient,
+                        _ => throw new ArgumentOutOfRangeException()
+                    };
+
+                    var registrationBuilder = new FuncRegistrationBuilder(x =>
+                    {
+                        var serviceProvider = new VContainerServiceProvider(x);
+                        return d.ImplementationFactory!(serviceProvider);
+                    }, d.ServiceType, d.ImplementationType, lifetime);
+                    containerBuilder.Register(registrationBuilder);
+                    continue;
+                }
+
+                // Instance
                 if (d.IsInstance())
                 {
                     var instanceGroup = instanceGroupList.FirstOrDefault(group => group.Key == d.ImplementationInstance);
@@ -63,16 +70,19 @@ public class VContainerServiceCollection : IContainerBuilder
                     }
                 }
 
-                var lifetime = d.LifeTime switch
+                // Implementation
                 {
-                    ServiceLifeTime.Singleton => Lifetime.Singleton,
-                    ServiceLifeTime.Scoped => Lifetime.Scoped,
-                    ServiceLifeTime.Transient => Lifetime.Transient,
-                    _ => throw new ArgumentOutOfRangeException()
-                };
-                var registrationBuilder = d.IsImplementationType()
-                    ? containerBuilder.Register(d.ImplementationType, lifetime).As(d.ServiceType)
-                    : containerBuilder.Register(d.ServiceType, lifetime);
+                    var lifetime = d.LifeTime switch
+                    {
+                        ServiceLifeTime.Singleton => Lifetime.Singleton,
+                        ServiceLifeTime.Scoped => Lifetime.Scoped,
+                        ServiceLifeTime.Transient => Lifetime.Transient,
+                        _ => throw new ArgumentOutOfRangeException()
+                    };
+                    var registrationBuilder = d.IsImplementationType()
+                        ? containerBuilder.Register(d.ImplementationType, lifetime).As(d.ServiceType)
+                        : containerBuilder.Register(d.ServiceType, lifetime);
+                }
             }
         };
 
