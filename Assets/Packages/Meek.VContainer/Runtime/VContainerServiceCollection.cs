@@ -1,3 +1,4 @@
+#if MEEK_ENABLE_VCONTAINER
 using System;
 using System.Linq;
 using Meek;
@@ -97,3 +98,4 @@ public class VContainerServiceCollection : IContainerBuilder
         return new VContainerServiceProvider(scopedObjectResolver);
     }
 }
+#endif

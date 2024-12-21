@@ -1,3 +1,4 @@
+#if MEEK_ENABLE_VCONTAINER
 using System;
 using System.Collections.Generic;
 using VContainer;
@@ -28,3 +29,4 @@ public class FuncRegistrationBuilder : RegistrationBuilder
         return new Registration(_implementationType, _lifetime, new List<Type>(){_serviceType}, spawner);
     }
 }
+#endif

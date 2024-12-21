@@ -15,12 +15,21 @@ namespace Meek.NavigationStack
             _stackNavigationService = stackNavigationService;
         }
 
+        [Obsolete("Please use ChangeWithPushForget<TRemoveScreen, TScreen>")]
         public void ChangeWithPush<TRemoveScreen, TScreen>()
             where TRemoveScreen : IScreen
             where TScreen : IScreen
         {
             ChangeWithPushAsync<TRemoveScreen, TScreen>().Forget();
         }
+
+        public void ChangeWithPushForget<TRemoveScreen, TScreen>()
+            where TRemoveScreen : IScreen
+            where TScreen : IScreen
+        {
+            ChangeWithPushAsync<TRemoveScreen, TScreen>().Forget();
+        }
+
 
         public Task ChangeWithPushAsync<TRemoveScreen, TScreen>()
             where TRemoveScreen : IScreen

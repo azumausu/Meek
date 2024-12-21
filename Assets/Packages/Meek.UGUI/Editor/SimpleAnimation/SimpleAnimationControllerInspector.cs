@@ -1,3 +1,4 @@
+#if MEEK_ENABLE_UGUI
 using UnityEditor;
 using UnityEngine;
 
@@ -76,3 +77,4 @@ namespace Meek.UGUI.Editor
         }
     }
 }
+#endif

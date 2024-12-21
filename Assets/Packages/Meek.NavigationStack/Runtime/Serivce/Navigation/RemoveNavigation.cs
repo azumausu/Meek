@@ -13,7 +13,13 @@ namespace Meek.NavigationStack
             _stackNavigationService = stackNavigationService;
         }
 
+        [Obsolete("Please use RemoveForget<TScreen>")]
         public void Remove<TScreen>() where TScreen : IScreen
+        {
+            RemoveAsync<TScreen>().Forget();
+        }
+
+        public void RemoveForget<TScreen>() where TScreen : IScreen
         {
             RemoveAsync<TScreen>().Forget();
         }

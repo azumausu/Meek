@@ -1,3 +1,4 @@
+#if MEEK_ENABLE_UGUI
 using System;
 using System.Linq;
 using Meek.NavigationStack;
@@ -30,3 +31,4 @@ namespace Meek.UGUI
         }
     }
 }
+#endif

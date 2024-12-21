@@ -1,3 +1,4 @@
+#if MEEK_ENABLE_UGUI
 namespace Meek.UGUI
 {
     public interface IVisibilitySwitcher
@@ -7,3 +8,4 @@ namespace Meek.UGUI
         void Hide();
     }
 }
+#endif

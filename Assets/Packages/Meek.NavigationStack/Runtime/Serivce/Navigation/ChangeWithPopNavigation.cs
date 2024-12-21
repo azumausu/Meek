@@ -15,7 +15,15 @@ namespace Meek.NavigationStack
             _backToNavigation = backToNavigation;
         }
 
+        [Obsolete("Please use ChangeWithPopForget<TRemoveScreen, TScreen>")]
         public void ChangeWithPop<TRemoveScreen, TScreen>()
+            where TRemoveScreen : IScreen
+            where TScreen : IScreen
+        {
+            ChangeWithPopAsync<TRemoveScreen, TScreen>().Forget();
+        }
+
+        public void ChangeWithPopForget<TRemoveScreen, TScreen>()
             where TRemoveScreen : IScreen
             where TScreen : IScreen
         {

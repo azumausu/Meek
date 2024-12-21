@@ -1,3 +1,4 @@
+#if MEEK_ENABLE_UGUI
 using System;
 using System.Collections;
 using UnityEngine;
@@ -199,3 +200,4 @@ namespace Meek.UGUI
         }
     }
 }
+#endif

@@ -1,3 +1,4 @@
+#if MEEK_ENABLE_VCONTAINER
 using System;
 using System.Threading;
 using UnityEngine;
@@ -37,3 +38,4 @@ public class VContainerServiceProvider : IServiceProvider, IDisposable
         ObjectResolver?.Dispose();
     }
 }
+#endif

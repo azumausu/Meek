@@ -11,14 +11,20 @@ namespace Meek.NavigationStack
         private readonly StackNavigationService _stackNavigationService;
 
         private bool _isCrossFade = false;
-        private bool _skipAnimation = true;
+        private bool _skipAnimation = false;
 
         public BackToNavigation(StackNavigationService stackNavigationService)
         {
             _stackNavigationService = stackNavigationService;
         }
 
+        [Obsolete("Please use BackToForget<TBackScreen>")]
         public void BackTo<TBackScreen>() where TBackScreen : IScreen
+        {
+            BackToAsync<TBackScreen>().Forget();
+        }
+
+        public void BackToForget<TBackScreen>() where TBackScreen : IScreen
         {
             BackToAsync<TBackScreen>().Forget();
         }

@@ -1,3 +1,4 @@
+#if MEEK_ENABLE_VCONTAINER
 using System;
 using System.Runtime.CompilerServices;
 using VContainer;
@@ -14,3 +15,4 @@ public class FuncInstanceProvider : IInstanceProvider
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public object SpawnInstance(IObjectResolver resolver) => implementationProvider(resolver); 
 }
+#endif

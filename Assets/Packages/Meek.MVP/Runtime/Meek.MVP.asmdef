@@ -1,19 +1,25 @@
 {
-    "name": "Meek.MVP",
-    "rootNamespace": "",
-    "references": [
-        "GUID:604a20abbe3ac48a891e244f8282b1d7",
-        "GUID:6668457fe8c574f918b0cea2464835a6",
-        "GUID:b710629fdb48a470f9c03c4bb976ba7b",
-        "GUID:90848f74d54d4434b9d11df46355c439"
-    ],
-    "includePlatforms": [],
-    "excludePlatforms": [],
-    "allowUnsafeCode": false,
-    "overrideReferences": false,
-    "precompiledReferences": [],
-    "autoReferenced": true,
-    "defineConstraints": [],
-    "versionDefines": [],
-    "noEngineReferences": false
+  "name": "Meek.MVP",
+  "rootNamespace": "",
+  "references": [
+    "GUID:604a20abbe3ac48a891e244f8282b1d7",
+    "GUID:6668457fe8c574f918b0cea2464835a6",
+    "GUID:b710629fdb48a470f9c03c4bb976ba7b",
+    "GUID:90848f74d54d4434b9d11df46355c439"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [
+    {
+      "name": "com.unity.ugui",
+      "expression": "",
+      "define": "MEEK_ENABLE_UGUI"
+    }
+  ],
+  "noEngineReferences": false
 }

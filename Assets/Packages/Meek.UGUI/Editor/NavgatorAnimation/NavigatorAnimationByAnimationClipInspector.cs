@@ -1,3 +1,4 @@
+#if MEEK_ENABLE_UGUI
 using System;
 using System.Linq;
 using UnityEditor;
@@ -107,3 +108,4 @@ namespace Meek.UGUI.Editor
         #endregion
     }
 }
+#endif

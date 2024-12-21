@@ -1,3 +1,4 @@
+#if MEEK_ENABLE_UGUI
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,12 +11,11 @@ namespace Meek.UGUI
         , IAnimationClipSource
 #endif
     {
-
-        [SerializeField]
-        SimpleAnimationEntry[] m_Entries;
+        [SerializeField] SimpleAnimationEntry[] m_Entries;
         public SimpleAnimationEntry[] Entries { get { return m_Entries; } }
 
         SimpleAnimationPlayer _player;
+
         public SimpleAnimationPlayer Player
         {
             get
@@ -24,6 +24,7 @@ namespace Meek.UGUI
                 {
                     _player = GetComponent<SimpleAnimationPlayer>();
                 }
+
                 return _player;
             }
         }
@@ -80,7 +81,8 @@ namespace Meek.UGUI
             if (currentClip == null) return false;
             if (string.IsNullOrEmpty(name)) name = _currentEntry.name;
             foreach (var e in m_Entries)
-                if (e.name == name) return currentClip == e.clip;
+                if (e.name == name)
+                    return currentClip == e.clip;
             return false;
         }
 
@@ -95,6 +97,7 @@ namespace Meek.UGUI
                     return true;
                 }
             }
+
             return false;
         }
 
@@ -125,10 +128,9 @@ namespace Meek.UGUI
     {
         public float FadeTime = 0f;
 
-        [Range(-5f, 5f)]
-        public float PlaySpeed = 1f;
+        [Range(-5f, 5f)] public float PlaySpeed = 1f;
 
-        [Range(0f, 1f)]
-        public float StartPosition = 0f;
+        [Range(0f, 1f)] public float StartPosition = 0f;
     }
 }
+#endif

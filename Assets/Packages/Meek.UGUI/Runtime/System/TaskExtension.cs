@@ -1,3 +1,4 @@
+#if MEEK_ENABLE_UGUI
 using System.Threading.Tasks;
 using UnityEngine;
 
@@ -17,3 +18,4 @@ namespace Meek.UGUI
         }
     }
 }
+#endif

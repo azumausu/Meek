@@ -1,3 +1,4 @@
+#if MEEK_ENABLE_UGUI
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -44,3 +45,4 @@ namespace Meek.UGUI
         }
     }
 }
+#endif

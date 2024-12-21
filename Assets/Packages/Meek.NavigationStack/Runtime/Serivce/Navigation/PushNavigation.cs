@@ -13,7 +13,13 @@ namespace Meek.NavigationStack
             _stackNavigationService = stackNavigationService;
         }
 
+        [Obsolete("Please use PushForget<TScreen>")]
         public void Push<TScreen>() where TScreen : IScreen
+        {
+            PushAsync<TScreen>().Forget();
+        }
+
+        public void PushForget<TScreen>() where TScreen : IScreen
         {
             PushAsync<TScreen>().Forget();
         }

@@ -13,7 +13,15 @@ namespace Meek.NavigationStack
             _stackNavigationService = stackNavigationService;
         }
 
+        [Obsolete("Please use InsertScreenBeforeForget<TBeforeScreen, TInsertionScreen>")]
         public void InsertScreenBefore<TBeforeScreen, TInsertionScreen>()
+            where TBeforeScreen : IScreen
+            where TInsertionScreen : IScreen
+        {
+            InsertScreenBeforeAsync<TBeforeScreen, TInsertionScreen>().Forget();
+        }
+
+        public void InsertScreenBeforeForget<TBeforeScreen, TInsertionScreen>()
             where TBeforeScreen : IScreen
             where TInsertionScreen : IScreen
         {

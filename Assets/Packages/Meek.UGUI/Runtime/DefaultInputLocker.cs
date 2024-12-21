@@ -1,3 +1,4 @@
+#if MEEK_ENABLE_UGUI
 using System;
 using Meek.NavigationStack;
 using UnityEngine;
@@ -18,3 +19,4 @@ namespace Meek.UGUI
         public bool IsInputLocking => _inputBlocker.enabled;
     }
 }
+#endif

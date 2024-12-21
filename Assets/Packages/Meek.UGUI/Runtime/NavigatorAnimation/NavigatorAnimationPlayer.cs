@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if MEEK_ENABLE_UGUI
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -157,3 +158,4 @@ namespace Meek.UGUI
         #endregion
     }
 }
+#endif

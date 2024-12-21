@@ -1,3 +1,4 @@
+#if MEEK_ENABLE_UGUI
 namespace Meek.UGUI
 {
     public interface IInputSwitcher
@@ -7,3 +8,4 @@ namespace Meek.UGUI
         void Disable();
     }
 }
+#endif
