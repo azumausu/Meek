@@ -19,8 +19,8 @@ Package Managerを開いて`Add Package from git URL...`から下記のパッケ
 https://github.com/azumausu/Meek.git?path=Assets/Packages
 ```
 
-* [NavigationStack](./Assets/Packages/Meek.NavigationStack/README_JA.md) - 画面遷移 + 画面管理機能 を使用したい場合
-* [Meek MVP](./Assets/Packages/Meek.MVP/README_JA.md) - 画面遷移 + 画面管理機能 + MVPアーキテクチャ を使用したい場合
+* [NavigationStack](./Assets/Packages/Meek.NavigationStack/README_JA.md) - 画面遷移 + 画面管理機能
+* [Meek MVP](./Assets/Packages/Meek.MVP/README_JA.md) - MVPアーキテクチャ
 
 
 ## License
