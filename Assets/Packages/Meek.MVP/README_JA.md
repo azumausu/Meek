@@ -5,23 +5,6 @@ Meekの画面遷移・管理機能を用いてMVPアーキテクチャで実装�
 
 [NavigationStack](../Meek.NavigationStack/README_JA.md) を合わせて読むことで、より深く使い方を理解できます。
 
-### Install Package
-以下をpackage.jsonに追加してください。  
-デフォルトでは、DIコンテナとして[VContainer](https://github.com/hadashiA/VContainer)を使用しています。
-```json
-{
-  "dependencies": {
-    "jp.amatech.meek": "https://github.com/azumausu/Meek.git?path=Assets/Packages/Meek",
-    "jp.amatech.meek.navigationstack": "https://github.com/azumausu/Meek.git?path=Assets/Packages/Meek.NavigationStack",
-    "jp.amatech.meek.ugui": "https://github.com/azumausu/Meek.git?path=Assets/Packages/Meek.UGUI",
-    "jp.amatech.meek.vcontainer": "https://github.com/azumausu/Meek.git?path=Assets/Packages/Meek.VContainer",
-    "jp.amatech.meek.mvp": "https://github.com/azumausu/Meek.git?path=Assets/Packages/Meek.MVP",
-    "jp.hadashikick.vcontainer": "https://github.com/hadashiA/VContainer.git?path=VContainer/Assets/VContainer"
-  }
-}
-```
-また、MVPパターンでの実装を行う場合は、[UniRx](https://github.com/neuecc/UniRx) を使用することをお勧めします。
-
 ## Entry Point
 ```csharp
 using Meek;
