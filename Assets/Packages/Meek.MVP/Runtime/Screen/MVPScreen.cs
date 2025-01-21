@@ -84,15 +84,13 @@ namespace Meek.MVP
             return LoadPresenterAsync<TPresenter>(typeof(TPresenter).Name);
         }
 
-        protected PushNavigation PushNavigation => AppServices.GetService<PushNavigation>();
-        protected PopNavigation PopNavigation => AppServices.GetService<PopNavigation>();
-        protected RemoveNavigation RemoveNavigation => AppServices.GetService<RemoveNavigation>();
-        protected InsertNavigation InsertNavigation => AppServices.GetService<InsertNavigation>();
-        protected BackToNavigation BackToNavigation => AppServices.GetService<BackToNavigation>();
-        protected ChangeWithPopNavigation ChangeWithPopNavigation => AppServices.GetService<ChangeWithPopNavigation>();
-        protected ChangeWithPushNavigation ChangeWithPushNavigation => AppServices.GetService<ChangeWithPushNavigation>();
+        protected virtual PushNavigation PushNavigation => AppServices.GetService<PushNavigation>().SetSender(this);
+        protected virtual PopNavigation PopNavigation => AppServices.GetService<PopNavigation>().SetSender(this);
+        protected virtual RemoveNavigation RemoveNavigation => AppServices.GetService<RemoveNavigation>().SetSender(this);
+        protected virtual InsertNavigation InsertNavigation => AppServices.GetService<InsertNavigation>().SetSender(this);
+        protected virtual BackToNavigation BackToNavigation => AppServices.GetService<BackToNavigation>().SetSender(this);
 
-        protected void Dispatch<TParam>(TParam param) => AppServices.GetService<StackNavigationService>().Dispatch(param);
+        protected virtual void Dispatch<TParam>(TParam param) => AppServices.GetService<StackNavigationService>().Dispatch(param);
 
         #endregion
     }

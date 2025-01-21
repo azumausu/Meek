@@ -1,54 +1,63 @@
 using System;
 using System.Threading.Tasks;
 
+#nullable enable
+
 namespace Meek.NavigationStack
 {
     public class PushNavigation
     {
-        private readonly StackNavigationService _stackNavigationService;
-        private readonly PushContext _pushContext = new();
+        protected readonly StackNavigationService StackNavigationService;
+        protected readonly PushContext PushContext = new();
+        protected object? Sender;
 
         public PushNavigation(StackNavigationService stackNavigationService)
         {
-            _stackNavigationService = stackNavigationService;
+            StackNavigationService = stackNavigationService;
         }
 
         [Obsolete("Please use PushForget<TScreen>")]
-        public void Push<TScreen>() where TScreen : IScreen
+        public virtual void Push<TScreen>() where TScreen : IScreen
         {
             PushAsync<TScreen>().Forget();
         }
 
-        public void PushForget<TScreen>() where TScreen : IScreen
+        public virtual void PushForget<TScreen>() where TScreen : IScreen
         {
             PushAsync<TScreen>().Forget();
         }
 
-        public Task PushAsync<TScreen>() where TScreen : IScreen
+        public virtual Task PushAsync<TScreen>() where TScreen : IScreen
         {
             return PushAsync(typeof(TScreen));
         }
 
-        public Task PushAsync(Type screenClassType)
+        public virtual Task PushAsync(Type screenClassType)
         {
-            return _stackNavigationService.PushAsync(screenClassType, _pushContext);
+            return StackNavigationService.PushAsync(screenClassType, PushContext);
         }
 
         public PushNavigation NextScreenParameter(object nextScreenParameter)
         {
-            _pushContext.NextScreenParameter = nextScreenParameter;
+            PushContext.NextScreenParameter = nextScreenParameter;
             return this;
         }
 
         public PushNavigation IsCrossFade(bool isCrossFade)
         {
-            _pushContext.IsCrossFade = isCrossFade;
+            PushContext.IsCrossFade = isCrossFade;
             return this;
         }
 
         public PushNavigation SkipAnimation(bool skipAnimation)
         {
-            _pushContext.SkipAnimation = skipAnimation;
+            PushContext.SkipAnimation = skipAnimation;
+            return this;
+        }
+
+        public PushNavigation SetSender(object sender)
+        {
+            Sender = sender;
             return this;
         }
     }

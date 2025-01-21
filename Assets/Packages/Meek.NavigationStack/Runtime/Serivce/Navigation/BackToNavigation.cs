@@ -4,42 +4,45 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Pool;
 
+#nullable enable
+
 namespace Meek.NavigationStack
 {
     public class BackToNavigation
     {
-        private readonly StackNavigationService _stackNavigationService;
+        protected readonly StackNavigationService StackNavigationService;
 
-        private bool _isCrossFade = false;
-        private bool _skipAnimation = false;
+        protected bool CrossFade = false;
+        protected bool SkipAnimation = false;
+        protected object? Sender;
 
         public BackToNavigation(StackNavigationService stackNavigationService)
         {
-            _stackNavigationService = stackNavigationService;
+            StackNavigationService = stackNavigationService;
         }
 
         [Obsolete("Please use BackToForget<TBackScreen>")]
-        public void BackTo<TBackScreen>() where TBackScreen : IScreen
+        public virtual void BackTo<TBackScreen>() where TBackScreen : IScreen
         {
             BackToAsync<TBackScreen>().Forget();
         }
 
-        public void BackToForget<TBackScreen>() where TBackScreen : IScreen
+        public virtual void BackToForget<TBackScreen>() where TBackScreen : IScreen
         {
             BackToAsync<TBackScreen>().Forget();
         }
 
-        public Task BackToAsync<TBackScreen>() where TBackScreen : IScreen
+        public virtual Task BackToAsync<TBackScreen>() where TBackScreen : IScreen
         {
             return BackToAsync(typeof(TBackScreen));
         }
 
-        public async Task BackToAsync(Type backScreen)
+        public virtual async Task BackToAsync(Type backScreen)
         {
             ListPool<IScreen>.Get(out var removeScreenList);
 
             bool existBackToScreen = false;
-            foreach (var screen in _stackNavigationService.ScreenContainer.Screens)
+            foreach (var screen in StackNavigationService.ScreenContainer.Screens)
             {
                 if (backScreen == screen.GetType())
                 {
@@ -54,20 +57,20 @@ namespace Meek.NavigationStack
 
             if (removeScreenList.Count == 1)
             {
-                await _stackNavigationService.PopAsync(new PopContext()
+                await StackNavigationService.PopAsync(new PopContext()
                 {
-                    IsCrossFade = _isCrossFade,
-                    SkipAnimation = _skipAnimation,
+                    IsCrossFade = CrossFade,
+                    SkipAnimation = SkipAnimation,
                 });
             }
             else if (removeScreenList.Count > 1)
             {
                 foreach (var screen in removeScreenList.Skip(1))
-                    await _stackNavigationService.RemoveAsync(screen.GetType(), new RemoveContext());
-                await _stackNavigationService.PopAsync(new PopContext()
+                    await StackNavigationService.RemoveAsync(screen.GetType(), new RemoveContext());
+                await StackNavigationService.PopAsync(new PopContext()
                 {
-                    IsCrossFade = _isCrossFade,
-                    SkipAnimation = _skipAnimation,
+                    IsCrossFade = CrossFade,
+                    SkipAnimation = SkipAnimation,
                 });
             }
 
@@ -77,13 +80,19 @@ namespace Meek.NavigationStack
 
         public BackToNavigation IsCrossFade(bool isCrossFade)
         {
-            _isCrossFade = isCrossFade;
+            CrossFade = isCrossFade;
             return this;
         }
 
         public BackToNavigation UpdateSkipAnimation(bool skipAnimation)
         {
-            _skipAnimation = skipAnimation;
+            SkipAnimation = skipAnimation;
+            return this;
+        }
+
+        public BackToNavigation SetSender(object sender)
+        {
+            Sender = sender;
             return this;
         }
     }

@@ -1,48 +1,57 @@
 using System;
 using System.Threading.Tasks;
 
+#nullable enable
+
 namespace Meek.NavigationStack
 {
     public class RemoveNavigation
     {
-        private readonly StackNavigationService _stackNavigationService;
-        private readonly RemoveContext _removeContext = new();
+        protected readonly StackNavigationService StackNavigationService;
+        protected readonly RemoveContext RemoveContext = new();
+        protected object? Sender;
 
         public RemoveNavigation(StackNavigationService stackNavigationService)
         {
-            _stackNavigationService = stackNavigationService;
+            StackNavigationService = stackNavigationService;
         }
 
         [Obsolete("Please use RemoveForget<TScreen>")]
-        public void Remove<TScreen>() where TScreen : IScreen
+        public virtual void Remove<TScreen>() where TScreen : IScreen
         {
             RemoveAsync<TScreen>().Forget();
         }
 
-        public void RemoveForget<TScreen>() where TScreen : IScreen
+        public virtual void RemoveForget<TScreen>() where TScreen : IScreen
         {
             RemoveAsync<TScreen>().Forget();
         }
 
-        public Task RemoveAsync<TScreen>() where TScreen : IScreen
+        public virtual Task RemoveAsync<TScreen>() where TScreen : IScreen
         {
             return RemoveAsync(typeof(TScreen));
         }
 
-        public Task RemoveAsync(Type screenClassType)
+        public virtual Task RemoveAsync(Type screenClassType)
         {
-            return _stackNavigationService.RemoveAsync(screenClassType, _removeContext);
+            return StackNavigationService.RemoveAsync(screenClassType, RemoveContext);
         }
 
         public RemoveNavigation IsCrossFade(bool isCrossFade)
         {
-            _removeContext.IsCrossFade = isCrossFade;
+            RemoveContext.IsCrossFade = isCrossFade;
             return this;
         }
 
         public RemoveNavigation SkipAnimation(bool skipAnimation)
         {
-            _removeContext.SkipAnimation = skipAnimation;
+            RemoveContext.SkipAnimation = skipAnimation;
+            return this;
+        }
+
+        public RemoveNavigation SetSender(object sender)
+        {
+            Sender = sender;
             return this;
         }
     }

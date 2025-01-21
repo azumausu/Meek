@@ -1,42 +1,45 @@
 using System.Threading.Tasks;
 
+#nullable enable
+
 namespace Meek.NavigationStack
 {
     public class PopNavigation
     {
-        private readonly StackNavigationService _stackNavigationService;
-        private readonly PopContext _context = new();
+        protected readonly StackNavigationService StackNavigationService;
+        protected readonly PopContext Context = new();
+        protected object? Sender;
 
         public PopNavigation(StackNavigationService stackNavigationService)
         {
-            _stackNavigationService = stackNavigationService;
+            StackNavigationService = stackNavigationService;
         }
 
         [System.Obsolete("Please use PopForget")]
-        public void Pop()
+        public virtual void Pop()
         {
-            _stackNavigationService.PopAsync(_context).Forget();
+            StackNavigationService.PopAsync(Context).Forget();
         }
 
-        public void PopForget()
+        public virtual void PopForget()
         {
-            _stackNavigationService.PopAsync(_context).Forget();
+            StackNavigationService.PopAsync(Context).Forget();
         }
 
-        public Task PopAsync()
+        public virtual Task PopAsync()
         {
-            return _stackNavigationService.PopAsync(_context);
+            return StackNavigationService.PopAsync(Context);
         }
 
-        public PopNavigation IsCrossFade(bool isCrossFade)
+        public virtual PopNavigation IsCrossFade(bool isCrossFade)
         {
-            _context.IsCrossFade = isCrossFade;
+            Context.IsCrossFade = isCrossFade;
             return this;
         }
 
-        public PopNavigation SkipAnimation(bool skipAnimation)
+        public virtual PopNavigation SkipAnimation(bool skipAnimation)
         {
-            _context.SkipAnimation = skipAnimation;
+            Context.SkipAnimation = skipAnimation;
             return this;
         }
 
@@ -45,7 +48,13 @@ namespace Meek.NavigationStack
         /// </summary>
         public PopNavigation OnlyWhen(IScreen screen)
         {
-            _context.OnlyWhenScreen = screen;
+            Context.OnlyWhenScreen = screen;
+            return this;
+        }
+
+        public PopNavigation SetSender(object sender)
+        {
+            Sender = sender;
             return this;
         }
     }

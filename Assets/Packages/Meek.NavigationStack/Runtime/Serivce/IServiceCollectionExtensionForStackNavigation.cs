@@ -11,8 +11,6 @@ namespace Meek.NavigationStack
             self.AddTransient<RemoveNavigation>();
             self.AddTransient<InsertNavigation>();
             self.AddTransient<BackToNavigation>();
-            self.AddTransient<ChangeWithPopNavigation>();
-            self.AddTransient<ChangeWithPushNavigation>();
             self.AddSingleton(x =>
             {
                 var stackNavigatorService = x.GetService<INavigator>();
