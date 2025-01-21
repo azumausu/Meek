@@ -6,18 +6,6 @@ Meek の画面遷移機能を提供するパッケージです。
 既存のアーキテクチャを使用したい場合は、以下のページを参照してください。
 * [Meek MVP (Model-View-Presenter)](../Meek.MVP/README_JA.md) 
 
-### Install Package
-
-以下をPackages/manifest.jsonに追加する必要があります。
-```json
-{
-  "dependencies": {
-    "jp.amatech.meek": "https://github.com/azumausu/Meek.git?path=Assets/Packages/Meek",
-    "jp.amatech.meek.navigationstack": "https://github.com/azumausu/Meek.git?path=Assets/Packages/Meek.NavigationStack"
-  }
-}
-```
-
 ## Key Concepts
 Navigatorは以下の要素から構成されています。  
 また、DIコンテナを用いてこれらを実装しています。
