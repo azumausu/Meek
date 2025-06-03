@@ -32,6 +32,11 @@ namespace Meek.NavigationStack
             return RemoveAsync(typeof(TScreen));
         }
 
+        public virtual Task RemoveAsync(IScreen screen)
+        {
+            return StackNavigationService.RemoveAsync(screen, RemoveContext);
+        }
+
         public virtual Task RemoveAsync(Type screenClassType)
         {
             return StackNavigationService.RemoveAsync(screenClassType, RemoveContext);
