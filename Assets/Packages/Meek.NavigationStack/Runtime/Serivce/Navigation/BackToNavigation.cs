@@ -14,6 +14,7 @@ namespace Meek.NavigationStack
 
         protected bool CrossFade = false;
         protected bool SkipAnimation = false;
+        protected bool RemoveScreenSkipAnimation = true;
         protected object? Sender;
 
         public BackToNavigation(StackNavigationService stackNavigationService)
@@ -66,7 +67,13 @@ namespace Meek.NavigationStack
             else if (removeScreenList.Count > 1)
             {
                 foreach (var screen in removeScreenList.Skip(1))
-                    await StackNavigationService.RemoveAsync(screen.GetType(), new RemoveContext());
+                {
+                    await StackNavigationService.RemoveAsync(screen, new RemoveContext()
+                    {
+                        SkipAnimation = RemoveScreenSkipAnimation,
+                    });
+                }
+
                 await StackNavigationService.PopAsync(new PopContext()
                 {
                     IsCrossFade = CrossFade,
@@ -87,6 +94,12 @@ namespace Meek.NavigationStack
         public BackToNavigation UpdateSkipAnimation(bool skipAnimation)
         {
             SkipAnimation = skipAnimation;
+            return this;
+        }
+
+        public BackToNavigation UpdateRemoveScreenSkipAnimation(bool removeScreenSkipAnimation)
+        {
+            RemoveScreenSkipAnimation = removeScreenSkipAnimation;
             return this;
         }
 

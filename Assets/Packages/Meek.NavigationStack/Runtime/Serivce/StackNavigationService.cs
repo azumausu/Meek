@@ -99,6 +99,9 @@ namespace Meek.NavigationStack
             }
         }
 
+        /// <summary>
+        ///  If two or more screens of the same type exist, the one at the top of the stack will be selected.
+        /// </summary>
         public Task InsertScreenBeforeAsync<TBeforeScreen, TInsertionScreen>(InsertContext insertionContext)
             where TBeforeScreen : IScreen
             where TInsertionScreen : IScreen
@@ -106,10 +109,22 @@ namespace Meek.NavigationStack
             return InsertScreenBeforeAsync(typeof(TBeforeScreen), typeof(TInsertionScreen), insertionContext);
         }
 
-        public async Task InsertScreenBeforeAsync(Type beforeScreenClassType, Type insertionScreenClassType, InsertContext insertionContext)
+        /// <summary>
+        ///  If two or more screens of the same type exist, the one at the top of the stack will be selected.
+        /// </summary>
+        public Task InsertScreenBeforeAsync(Type beforeScreenClassType, Type insertionScreenClassType, InsertContext insertionContext)
+        {
+            return InsertScreenBeforeAsync(
+                _stackNavigator.ScreenContainer.GetScreen(beforeScreenClassType),
+                insertionScreenClassType,
+                insertionContext
+            );
+        }
+
+        public async Task InsertScreenBeforeAsync(IScreen beforeScreen, Type insertionScreenClassType, InsertContext insertionContext)
         {
             var fromScreen = _stackNavigator.ScreenContainer.GetPeekScreen();
-            if (fromScreen?.GetType() == beforeScreenClassType)
+            if (fromScreen == beforeScreen)
             {
                 Debug.LogWarning("Trying to insert into peek screen. You can convert \"Invert\" to \"Push\"");
                 var pushContext = new PushContext()
@@ -130,7 +145,7 @@ namespace Meek.NavigationStack
                 var insertionScreen = _serviceProvider.GetService(insertionScreenClassType) as IScreen
                                       ?? throw new ArgumentException();
 
-                features.Add(StackNavigationContextFeatureDefine.InsertionBeforeScreenType, beforeScreenClassType);
+                features.Add(StackNavigationContextFeatureDefine.InsertionBeforeScreen, beforeScreen);
                 features.Add(StackNavigationContextFeatureDefine.InsertionScreen, insertionScreen);
                 features.Add(StackNavigationContextFeatureDefine.NextScreenParameter, insertionContext.NextScreenParameter);
 
@@ -155,15 +170,28 @@ namespace Meek.NavigationStack
             }
         }
 
+        /// <summary>
+        /// Removes the specified screen type from the navigation stack.
+        /// If two or more screens of the same type exist, the one at the top of the stack will be selected.
+        /// </summary>
         public Task RemoveAsync<TScreen>(RemoveContext removeContext) where TScreen : IScreen
         {
             return RemoveAsync(typeof(TScreen), removeContext);
         }
 
-        public async Task RemoveAsync(Type removeScreenClassType, RemoveContext removeContext)
+        /// <summary>
+        /// Removes the specified screen type from the navigation stack.
+        /// If two or more screens of the same type exist, the one at the top of the stack will be selected.
+        /// </summary>
+        public Task RemoveAsync(Type removeScreenClassType, RemoveContext removeContext)
+        {
+            return RemoveAsync(_stackNavigator.ScreenContainer.GetScreen(removeScreenClassType), removeContext);
+        }
+
+        public async Task RemoveAsync(IScreen removeScreen, RemoveContext removeContext)
         {
             var fromScreen = _stackNavigator.ScreenContainer.GetPeekScreen();
-            if (fromScreen?.GetType() == removeScreenClassType)
+            if (fromScreen == removeScreen)
             {
                 Debug.LogWarning("Trying to remove into peek screen. You can convert \"Remove\" to \"Pop\"");
                 var popContext = new PopContext()
@@ -179,10 +207,9 @@ namespace Meek.NavigationStack
             try
             {
                 DictionaryPool<string, object>.Get(out var features);
-                var removeScreen = _stackNavigator.ScreenContainer.GetScreen(removeScreenClassType);
                 var beforeScreen = _stackNavigator.ScreenContainer.GetScreenBefore(removeScreen);
                 var afterScreen = _stackNavigator.ScreenContainer.GetScreenAfter(removeScreen);
-                features.Add(StackNavigationContextFeatureDefine.RemoveScreenType, removeScreenClassType);
+                features.Add(StackNavigationContextFeatureDefine.RemoveScreenType, removeScreen.GetType());
                 features.Add(StackNavigationContextFeatureDefine.RemoveScreen, removeScreen);
                 features.Add(StackNavigationContextFeatureDefine.RemoveBeforeScreen, beforeScreen);
                 features.Add(StackNavigationContextFeatureDefine.RemoveAfterScreen, afterScreen);

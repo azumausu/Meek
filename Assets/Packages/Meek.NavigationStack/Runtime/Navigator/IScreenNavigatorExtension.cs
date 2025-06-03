@@ -42,14 +42,19 @@ namespace Meek.NavigationStack
         [CanBeNull]
         public static IScreen GetScreen(this IScreenContainer self, Type targetScreenType)
         {
-            return self.Screens.FirstOrDefault(x => x.GetType() == targetScreenType)
-                   ?? throw new InvalidOperationException($"{targetScreenType.Name} does not exist.");
+            foreach (var screen in self.Screens)
+            {
+                if (screen.GetType() == targetScreenType) return screen;
+            }
+
+            throw new Exception($"Can't find screen type of {targetScreenType.Name}");
         }
 
         [CanBeNull]
         public static IScreen GetPeekScreen(this IScreenContainer self)
         {
-            return self.Screens.FirstOrDefault();
+            if (self.Screens.Count == 0) return null;
+            return self.Screens.First();
         }
     }
 }

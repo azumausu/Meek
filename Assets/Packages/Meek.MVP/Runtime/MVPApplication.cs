@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Meek.NavigationStack;
+using Meek.NavigationStack.Debugs;
 using Meek.UGUI;
 
 namespace Meek.MVP
@@ -41,6 +42,7 @@ namespace Meek.MVP
                     serviceCollection.AddSingleton<IScreenContainer, StackScreenContainer>();
                     serviceCollection.AddSingleton<IPresenterLoaderFactory, PresenterLoaderFactoryFromResources>();
 
+                    serviceCollection.AddDebug(new NavigationStackDebugOption() { DisplayName = "Meek Debugger", });
                     serviceCollection.AddScreenNavigatorEvent();
                     serviceCollection.AddInputLocker(option.InputLocker);
                     serviceCollection.AddScreenUI();
@@ -49,6 +51,7 @@ namespace Meek.MVP
                     serviceCollection.AddScreenLifecycleEvent();
                 }).Configure(app =>
                 {
+                    app.UseDebug();
                     app.UseScreenNavigatorEvent();
                     app.UseInputLocker();
                     app.UseScreenUI();

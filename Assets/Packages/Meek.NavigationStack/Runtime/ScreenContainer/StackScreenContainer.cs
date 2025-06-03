@@ -28,17 +28,19 @@ namespace Meek.NavigationStack
                     _screenStack.Pop();
                     break;
                 case StackNavigationSourceType.Insert:
-                    var insertionBeforeScreenType = context.GetFeatureValue<Type>(StackNavigationContextFeatureDefine.InsertionBeforeScreenType); 
-                    while (_screenStack.Peek().GetType() != insertionBeforeScreenType)
+                    var insertionBeforeScreen = context.GetFeatureValue<IScreen>(StackNavigationContextFeatureDefine.InsertionBeforeScreen);
+                    while (_screenStack.Peek() != insertionBeforeScreen)
+                    {
                         _insertOrRemoveCacheStack.Push(_screenStack.Pop());
-                    
+                    }
+
                     // Insert
                     var insertionScreen = context.GetFeatureValue<IScreen>(StackNavigationContextFeatureDefine.InsertionScreen);
                     _screenStack.Push(insertionScreen);
-                    
+
                     foreach (var screen in _insertOrRemoveCacheStack) _screenStack.Push(screen);
                     _insertOrRemoveCacheStack.Clear();
-                    
+
                     break;
                 case StackNavigationSourceType.Remove:
                     var removeScreenType = context.GetFeatureValue<Type>(StackNavigationContextFeatureDefine.RemoveScreenType);
@@ -47,16 +49,16 @@ namespace Meek.NavigationStack
 
                     // Remove
                     _screenStack.Pop();
-                    
+
                     foreach (var screen in _insertOrRemoveCacheStack) _screenStack.Push(screen);
                     _insertOrRemoveCacheStack.Clear();
-                    
+
                     break;
             }
 
             return default;
         }
-        
+
         public void Dispose()
         {
             foreach (var screen in _screenStack.OfType<IDisposable>()) screen.Dispose();
