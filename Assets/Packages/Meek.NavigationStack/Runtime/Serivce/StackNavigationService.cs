@@ -209,7 +209,6 @@ namespace Meek.NavigationStack
                 DictionaryPool<string, object>.Get(out var features);
                 var beforeScreen = _stackNavigator.ScreenContainer.GetScreenBefore(removeScreen);
                 var afterScreen = _stackNavigator.ScreenContainer.GetScreenAfter(removeScreen);
-                features.Add(StackNavigationContextFeatureDefine.RemoveScreenType, removeScreen.GetType());
                 features.Add(StackNavigationContextFeatureDefine.RemoveScreen, removeScreen);
                 features.Add(StackNavigationContextFeatureDefine.RemoveBeforeScreen, beforeScreen);
                 features.Add(StackNavigationContextFeatureDefine.RemoveAfterScreen, afterScreen);

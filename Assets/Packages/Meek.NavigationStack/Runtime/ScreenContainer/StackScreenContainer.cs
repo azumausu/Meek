@@ -43,9 +43,11 @@ namespace Meek.NavigationStack
 
                     break;
                 case StackNavigationSourceType.Remove:
-                    var removeScreenType = context.GetFeatureValue<Type>(StackNavigationContextFeatureDefine.RemoveScreenType);
-                    while (_screenStack.Peek().GetType() != removeScreenType)
+                    var removeScreen = context.GetFeatureValue<IScreen>(StackNavigationContextFeatureDefine.RemoveScreen);
+                    while (_screenStack.Peek() == removeScreen)
+                    {
                         _insertOrRemoveCacheStack.Push(_screenStack.Pop());
+                    }
 
                     // Remove
                     _screenStack.Pop();
