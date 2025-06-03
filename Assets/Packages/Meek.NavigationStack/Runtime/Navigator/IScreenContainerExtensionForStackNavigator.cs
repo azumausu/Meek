@@ -16,11 +16,11 @@ namespace Meek.NavigationStack
             return false;
         }
 
-        public static void SetVisibleBetweenTargetScreenToBeforeFullScreen(this IScreenContainer self, Type targetScreenType, bool visible)
+        public static void SetVisibleBetweenTargetScreenToBeforeFullScreen(this IScreenContainer self, IScreen targetScreen, bool visible)
         {
             var targetScreenIndex = self.Screens
                 .Select((screen, index) => new { Screen = screen, Index = index, })
-                .FirstOrDefault(x => x.Screen.GetType() == targetScreenType)?.Index ?? 0;
+                .FirstOrDefault(x => x.Screen == targetScreen)?.Index ?? 0;
             foreach (var screen in self.Screens.OfType<StackScreen>().Skip(targetScreenIndex))
             {
                 screen.UI.SetVisible(visible);

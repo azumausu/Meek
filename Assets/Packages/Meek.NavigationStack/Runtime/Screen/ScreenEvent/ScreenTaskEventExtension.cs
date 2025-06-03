@@ -1,14 +1,16 @@
 using System.Collections.Generic;
-using System.Linq;
 
 namespace Meek.NavigationStack
 {
     public static class ScreenTaskEventExtension
     {
-        public static async global::System.Threading.Tasks.Task InvokeAsync(this IEnumerable<ScreenTaskEvent> self, string eventName)
+        public static async global::System.Threading.Tasks.Task InvokeAsync(this IList<ScreenTaskEvent> self, string eventName)
         {
-            foreach (var entry in self.Where(x => x.EventName == eventName))
+            foreach (var entry in self)
+            {
+                if (entry.EventName != eventName) continue;
                 await entry.Function.Invoke();
+            }
         }
     }
 }

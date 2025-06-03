@@ -7,18 +7,12 @@ namespace Meek.NavigationStack
     public static class IScreenNavigatorExtension
     {
         [CanBeNull]
-        public static IScreen GetScreenBefore<TScreen>(this IScreenContainer self)
-        {
-            return self.GetScreenBefore(typeof(TScreen));
-        }
-        
-        [CanBeNull]
-        public static IScreen GetScreenBefore(this IScreenContainer self, Type beforeScreenType)
+        public static IScreen GetScreenBefore(this IScreenContainer self, IScreen beforeScreen)
         {
             IScreen targetScreen = null;
             foreach (var screen in self.Screens)
             {
-                if (beforeScreenType == screen.GetType()) return targetScreen;
+                if (beforeScreen == screen) return targetScreen;
                 targetScreen = screen;
             }
 
@@ -26,24 +20,18 @@ namespace Meek.NavigationStack
         }
 
         [CanBeNull]
-        public static IScreen GetScreenAfter<TScreen>(this IScreenContainer self)
-        {
-            return self.GetScreenAfter(typeof(TScreen));
-        }
-        
-        [CanBeNull]
-        public static IScreen GetScreenAfter(this IScreenContainer self, Type afterScreenType)
+        public static IScreen GetScreenAfter(this IScreenContainer self, IScreen afterScreen)
         {
             var exist = false;
             foreach (var screen in self.Screens)
             {
                 if (exist) return screen;
-                exist = afterScreenType == screen.GetType();
+                exist = afterScreen == screen;
             }
 
             return null;
         }
-        
+
         [CanBeNull]
         public static IScreen GetScreen<TScreen>(this IScreenContainer self)
         {
@@ -55,7 +43,7 @@ namespace Meek.NavigationStack
         public static IScreen GetScreen(this IScreenContainer self, Type targetScreenType)
         {
             return self.Screens.FirstOrDefault(x => x.GetType() == targetScreenType)
-                ?? throw new InvalidOperationException($"{targetScreenType.Name} does not exist.");
+                   ?? throw new InvalidOperationException($"{targetScreenType.Name} does not exist.");
         }
 
         [CanBeNull]

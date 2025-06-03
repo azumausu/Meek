@@ -160,10 +160,10 @@ namespace Meek.NavigationStack
             return RemoveAsync(typeof(TScreen), removeContext);
         }
 
-        public async Task RemoveAsync(Type screenClassType, RemoveContext removeContext)
+        public async Task RemoveAsync(Type removeScreenClassType, RemoveContext removeContext)
         {
             var fromScreen = _stackNavigator.ScreenContainer.GetPeekScreen();
-            if (fromScreen?.GetType() == screenClassType)
+            if (fromScreen?.GetType() == removeScreenClassType)
             {
                 Debug.LogWarning("Trying to remove into peek screen. You can convert \"Remove\" to \"Pop\"");
                 var popContext = new PopContext()
@@ -179,14 +179,13 @@ namespace Meek.NavigationStack
             try
             {
                 DictionaryPool<string, object>.Get(out var features);
-
-                features.Add(StackNavigationContextFeatureDefine.RemoveScreenType, screenClassType);
-                features.Add(StackNavigationContextFeatureDefine.RemoveScreen,
-                    _stackNavigator.ScreenContainer.GetScreen(screenClassType) as IScreen);
-                features.Add(StackNavigationContextFeatureDefine.RemoveBeforeScreen,
-                    _stackNavigator.ScreenContainer.GetScreenBefore(screenClassType));
-                features.Add(StackNavigationContextFeatureDefine.RemoveAfterScreen,
-                    _stackNavigator.ScreenContainer.GetScreenAfter(screenClassType));
+                var removeScreen = _stackNavigator.ScreenContainer.GetScreen(removeScreenClassType);
+                var beforeScreen = _stackNavigator.ScreenContainer.GetScreenBefore(removeScreen);
+                var afterScreen = _stackNavigator.ScreenContainer.GetScreenAfter(removeScreen);
+                features.Add(StackNavigationContextFeatureDefine.RemoveScreenType, removeScreenClassType);
+                features.Add(StackNavigationContextFeatureDefine.RemoveScreen, removeScreen);
+                features.Add(StackNavigationContextFeatureDefine.RemoveBeforeScreen, beforeScreen);
+                features.Add(StackNavigationContextFeatureDefine.RemoveAfterScreen, afterScreen);
 
                 var context = new StackNavigationContext()
                 {
@@ -211,36 +210,52 @@ namespace Meek.NavigationStack
 
         public void Dispatch<T>(T args)
         {
-            DispatchAsync(typeof(T).FullName, args).Forget();
+            DispatchInternal(typeof(T).FullName, args);
         }
 
         public void Dispatch(string eventName, object parameter)
         {
-            DispatchAsync(eventName, parameter).Forget();
+            DispatchInternal(eventName, parameter);
         }
 
-        private async Task DispatchAsync(string eventName, object parameter)
+        public Task DispatchAsync<T>(T args)
         {
-            await _semaphoreSlim.WaitAsync();
-            try
-            {
-                DispatchInternal(eventName, parameter);
-            }
-            finally
-            {
-                _semaphoreSlim.Release();
-            }
+            return DispatchInternalAsync(typeof(T).FullName, args);
+        }
+
+        public Task DispatchAsync(string eventName, object parameter)
+        {
+            return DispatchInternalAsync(eventName, parameter);
         }
 
         private bool DispatchInternal(string eventValue, object param = null)
         {
-            foreach (var screen in _stackNavigator.ScreenContainer.Screens.OfType<StackScreen>())
+            foreach (var screen in _stackNavigator.ScreenContainer.Screens)
             {
+                if (screen is not StackScreen stackScreen) continue;
+
                 // まだ存在してないタイミングにDispatchが呼ばれたら無視する。
-                if (screen.ScreenEventInvoker == null) continue;
+                if (stackScreen.ScreenEventInvoker == null) continue;
 
                 // trueが返されたら終了
-                if (screen.ScreenEventInvoker.Dispatch(eventValue, param)) return true;
+                if (stackScreen.ScreenEventInvoker.Dispatch(eventValue, param)) return true;
+            }
+
+            return false;
+        }
+
+        private async Task<bool> DispatchInternalAsync(string eventValue, object param = null)
+        {
+            foreach (var screen in _stackNavigator.ScreenContainer.Screens)
+            {
+                if (screen is not StackScreen stackScreen) continue;
+
+                // まだ存在してないタイミングにDispatchが呼ばれたら無視する。
+                if (stackScreen.ScreenEventInvoker == null) continue;
+
+                // trueが返されたら終了
+                var result = await stackScreen.ScreenEventInvoker.DispatchAsync(eventValue, param);
+                if (result) return true;
             }
 
             return false;

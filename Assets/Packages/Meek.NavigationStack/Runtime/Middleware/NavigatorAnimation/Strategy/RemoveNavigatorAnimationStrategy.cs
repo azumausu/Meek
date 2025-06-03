@@ -12,18 +12,18 @@ namespace Meek.NavigationStack
         {
             _screenContainer = screenContainer;
         }
-        
+
         bool INavigatorAnimationStrategy.IsValid(StackNavigationContext context)
         {
             return context.NavigatingSourceType == StackNavigationSourceType.Remove;
         }
-        
+
         IEnumerator INavigatorAnimationStrategy.PlayAnimationRoutine(StackNavigationContext context)
         {
             // Animationの再生
-            return PlayRemoveAnimationRoutine(context); 
+            return PlayRemoveAnimationRoutine(context);
         }
-        
+
         private IEnumerator PlayRemoveAnimationRoutine(NavigationContext context)
         {
             var removeScreen = context.GetFeatureValue<StackScreen>(StackNavigationContextFeatureDefine.RemoveScreen);
@@ -36,7 +36,9 @@ namespace Meek.NavigationStack
             {
                 yield return afterScreen.UI.HideRoutine(afterScreenType, beforeScreenType, true);
                 if (removeScreen.ScreenUIType == ScreenUIType.FullScreen)
-                    _screenContainer.SetVisibleBetweenTargetScreenToBeforeFullScreen(afterScreenType, true);
+                {
+                    _screenContainer.SetVisibleBetweenTargetScreenToBeforeFullScreen(afterScreen, true);
+                }
             }
         }
     }

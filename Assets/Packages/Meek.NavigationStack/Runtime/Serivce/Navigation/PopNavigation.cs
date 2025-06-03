@@ -18,12 +18,12 @@ namespace Meek.NavigationStack
         [System.Obsolete("Please use PopForget")]
         public virtual void Pop()
         {
-            StackNavigationService.PopAsync(Context).Forget();
+            PopAsync().Forget();
         }
 
         public virtual void PopForget()
         {
-            StackNavigationService.PopAsync(Context).Forget();
+            PopAsync().Forget();
         }
 
         public virtual Task PopAsync()

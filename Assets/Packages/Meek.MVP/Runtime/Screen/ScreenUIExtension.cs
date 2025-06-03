@@ -1,4 +1,5 @@
 using System.Linq;
+using JetBrains.Annotations;
 using Meek.NavigationStack;
 using Meek.UGUI;
 using UnityEngine;
@@ -10,13 +11,18 @@ namespace Meek.MVP
         /// <summary>
         ///     このSceneが持っているUIPrefabからT型のPresenterを取得します。
         /// </summary>
+        [CanBeNull]
         public static T FindPresenter<T>(this ScreenUI self) where T : MonoBehaviour, IPresenter
         {
-            return self.ViewHandlers
-                .OfType<PrefabViewHandler>()
-                .Select(ui => ui.Instance.GetComponent<T>())
-                .FirstOrDefault(target => target != null);
-        }
+            foreach (var handler in self.ViewHandlers)
+            {
+                if (handler is not PrefabViewHandler prefabViewHandler) continue;
 
+                var presenter = prefabViewHandler.Instance.GetComponent<T>();
+                if (presenter != null) return presenter;
+            }
+
+            return null;
+        }
     }
 }

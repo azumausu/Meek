@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 
 namespace Meek.NavigationStack
 {
@@ -7,8 +6,12 @@ namespace Meek.NavigationStack
     {
         public static void Invoke(this IEnumerable<ScreenActionEvent> self, string eventName)
         {
-            foreach (var entry in self.Where(x => x.EventName == eventName))
+            foreach (var entry in self)
+            {
+                if (entry.EventName != eventName) continue;
+
                 entry.Action.Invoke();
+            }
         }
     }
 }
