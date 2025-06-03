@@ -2,7 +2,7 @@
   "name": "jp.amatech.meek",
   "displayName": "Meek",
   "version": "1.3.2",
-  "unity": "6000.0.32",
+  "unity": "6000.0",
   "license": "MIT",
   "dependencies": {
   },
