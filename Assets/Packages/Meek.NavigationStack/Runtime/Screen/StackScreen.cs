@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using UnityEngine;
 
 namespace Meek.NavigationStack
@@ -18,6 +19,16 @@ namespace Meek.NavigationStack
 
         public ScreenUI UI { get; private set; }
         public IScreenEventInvoker ScreenEventInvoker { get; private set; }
+
+        protected virtual PushNavigation PushNavigation => AppServices.GetService<PushNavigation>().SetSender(this);
+        protected virtual PopNavigation PopNavigation => AppServices.GetService<PopNavigation>().SetSender(this);
+        protected virtual RemoveNavigation RemoveNavigation => AppServices.GetService<RemoveNavigation>().SetSender(this);
+        protected virtual InsertNavigation InsertNavigation => AppServices.GetService<InsertNavigation>().SetSender(this);
+        protected virtual BackToNavigation BackToNavigation => AppServices.GetService<BackToNavigation>().SetSender(this);
+
+        protected virtual void Dispatch<TParam>(TParam param) => AppServices.GetService<StackNavigationService>().Dispatch(param);
+        protected virtual Task DispatchAsync<TParam>(TParam param) => AppServices.GetService<StackNavigationService>().DispatchAsync(param);
+        public StackNavigationService NavigationService => AppServices.GetService<StackNavigationService>();
 
         /// <summary>
         ///     StateType
@@ -156,6 +167,22 @@ namespace Meek.NavigationStack
         {
             var stackContext = context.ToStackNavigationContext();
             StateDidNavigate(stackContext);
+        }
+
+        [CanBeNull]
+        public TScreen TryGetScreen<TScreen>() where TScreen : class, IScreen
+        {
+            var navigationService = NavigationService;
+
+            foreach (var screen in navigationService.ScreenContainer.Screens)
+            {
+                if (screen is TScreen tScreen)
+                {
+                    return tScreen;
+                }
+            }
+
+            return null;
         }
 
         public virtual void Dispose()
