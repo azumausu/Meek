@@ -77,19 +77,17 @@ namespace Meek.NavigationStack
             foreach (var instance in _viewHandlers) instance.SetVisibility(visible);
         }
 
-        internal void SetLayer(NavigationContext context)
+        internal void SetOpenAniationStartTime(NavigationContext context)
         {
-            // もしここで呼び出す場合も不都合あるならSetupCoroutine()のSetLayer版を作成する
-            // Layerの設定はSetup前に行う
-            foreach (var viewHandler in _viewHandlers) viewHandler.SetLayer();
-
             foreach (var viewController in _viewHandlers)
+            {
                 viewController.EvaluateNavigateAnimation(
                     NavigatorAnimationType.Open,
                     context.FromScreen?.GetType(),
                     context.ToScreen.GetType(),
                     0.0f
                 );
+            }
         }
 
         internal void Setup(NavigationContext context)

@@ -5,8 +5,6 @@ namespace Meek.NavigationStack
 {
     public interface IViewHandler : IDisposable, IAsyncDisposable
     {
-        void SetLayer();
-
         void Setup();
 
         void SetInteractable(bool interactable);

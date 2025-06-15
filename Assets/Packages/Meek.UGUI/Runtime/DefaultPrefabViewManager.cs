@@ -8,14 +8,10 @@ namespace Meek.UGUI
 {
     public class DefaultPrefabViewManager : MonoBehaviour, IPrefabViewManager
     {
-        [SerializeField] private Transform _rootNode;
+        [SerializeField] private RectTransform _rootNode;
 
-        void IPrefabViewManager.AddInHierarchy(PrefabViewHandler handler)
-        {
-            handler.RootNode.gameObject.SetLayerRecursively(_rootNode.gameObject.layer);
-            handler.RootNode.SetParent(_rootNode);
-            (handler.RootNode.transform as RectTransform)!.anchoredPosition3D = Vector3.zero;
-        }
+        public Transform PrefabRootNode => _rootNode;
+
 
         void IPrefabViewManager.SortOrderInHierarchy(NavigationContext navigationContext)
         {

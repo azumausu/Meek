@@ -17,18 +17,22 @@ namespace Meek.UGUI
         protected readonly Canvas Canvas;
         protected readonly NavigatorAnimationPlayer NavigatorAnimationPlayer;
 
-        protected readonly HashSet<GraphicRaycaster> GraphicRaycasters = new HashSet<GraphicRaycaster>();
-        protected readonly HashSet<IVisibilitySwitcher> VisibilitySwitchers = new HashSet<IVisibilitySwitcher>();
-        protected readonly HashSet<IInputSwitcher> InputSwitchers = new HashSet<IInputSwitcher>();
+        public readonly HashSet<GraphicRaycaster> GraphicRaycasters = new HashSet<GraphicRaycaster>();
+        public readonly HashSet<IVisibilitySwitcher> VisibilitySwitchers = new HashSet<IVisibilitySwitcher>();
+        public readonly HashSet<IInputSwitcher> InputSwitchers = new HashSet<IInputSwitcher>();
 
         public GameObject Instance { get; private set; }
         public Transform RootNode { get; private set; }
 
-        public PrefabViewHandler(GameObject prefab)
+        public PrefabViewHandler(IPrefabViewManager prefabViewManager, GameObject prefab)
         {
-            var rootNode = new GameObject(prefab.name);
-            Object.DontDestroyOnLoad(rootNode);
+            var rootNode = new GameObject(prefab.name) { transform = { parent = prefabViewManager.PrefabRootNode } };
             var rootNodeRectTransform = rootNode.AddComponent<RectTransform>();
+            rootNodeRectTransform.anchoredPosition3D = Vector3.zero;
+            rootNodeRectTransform.anchorMin = Vector2.zero;
+            rootNodeRectTransform.anchorMax = Vector2.one;
+            rootNodeRectTransform.sizeDelta = Vector2.zero;
+            rootNodeRectTransform.localScale = Vector3.one;
             var rootNodeCanvas = rootNode.AddComponent<Canvas>();
             rootNodeCanvas.overrideSorting = false;
             var rootNodeCanvasGroup = rootNode.AddComponent<CanvasGroup>();
@@ -36,6 +40,8 @@ namespace Meek.UGUI
 
             var instance = GameObject.Instantiate(prefab, rootNode.transform);
             instance.transform.SetParent(rootNode.transform);
+
+            rootNode.SetLayerRecursively(prefabViewManager.PrefabRootNode.gameObject.layer);
 
             Instance = instance;
             RootNode = rootNode.transform;
@@ -72,15 +78,6 @@ namespace Meek.UGUI
             }
         }
 
-        protected virtual void SetLayer()
-        {
-            RectTransform.anchoredPosition = Vector2.zero;
-            RectTransform.anchorMin = Vector2.zero;
-            RectTransform.anchorMax = Vector2.one;
-            RectTransform.sizeDelta = Vector2.zero;
-            RectTransform.localScale = Vector3.one;
-        }
-
         protected virtual void Setup()
         {
         }
@@ -93,11 +90,6 @@ namespace Meek.UGUI
         void IViewHandler.SetVisibility(bool visible)
         {
             SetVisibility(visible);
-        }
-
-        void IViewHandler.SetLayer()
-        {
-            SetLayer();
         }
 
         void IViewHandler.Setup()

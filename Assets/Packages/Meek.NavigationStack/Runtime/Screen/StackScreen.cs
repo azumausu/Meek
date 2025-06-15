@@ -74,7 +74,7 @@ namespace Meek.NavigationStack
 
             await tcs.Task;
 
-            UI.SetLayer(context);
+            UI.SetOpenAniationStartTime(context);
             ScreenEventInvoker.Invoke(ScreenViewEvent.ViewWillSetup);
             UI.Setup(context);
             ScreenEventInvoker.Invoke(ScreenViewEvent.ViewDidSetup);
