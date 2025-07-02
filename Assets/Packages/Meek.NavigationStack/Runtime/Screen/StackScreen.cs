@@ -194,11 +194,7 @@ namespace Meek.NavigationStack
         public virtual async ValueTask DisposeAsync()
         {
             await UI.DisposeAsync();
-            foreach (var disposable in AsyncDisposables)
-            {
-                await disposable.DisposeAsync();
-            }
-
+            await AsyncDisposables.DisposeAllAsync();
             AsyncDisposables.Clear();
         }
     }

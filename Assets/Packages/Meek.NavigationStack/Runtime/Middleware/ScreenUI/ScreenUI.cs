@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using UnityEngine;
 using UnityEngine.Pool;
 
 namespace Meek.NavigationStack
@@ -181,15 +182,9 @@ namespace Meek.NavigationStack
 
         public async ValueTask DisposeAsync()
         {
-            foreach (var d in _viewHandlers)
-            {
-                await d.DisposeAsync();
-            }
-
-            foreach (var d in _viewHandlers)
-            {
-                d.Dispose();
-            }
+            await _viewHandlers.DisposeAllAsync();
+            _viewHandlers.DisposeAll();
+            _viewHandlers.Clear();
         }
     }
 }

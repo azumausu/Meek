@@ -24,7 +24,7 @@ namespace Meek.MVP
         {
             OnDeinit(_model);
             foreach (var handler in _presenterEventHandlers) handler.PresenterDidDeinit(this, _model);
-            _disposables.ForEach(x => x.Dispose());
+            _disposables.DisposeAll();
         }
 
         private void Bind()
