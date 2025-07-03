@@ -62,7 +62,10 @@ namespace Meek.NavigationStack
             else
             {
                 if (fromScreen != null)
+                {
                     yield return fromScreen.UI.HideRoutine(fromScreenType, toScreenType, skipAnimation);
+                }
+
                 toScreen!.UI.SetVisible(true);
                 yield return toScreen.UI.OpenRoutine(fromScreenType, toScreenType, skipAnimation);
             }

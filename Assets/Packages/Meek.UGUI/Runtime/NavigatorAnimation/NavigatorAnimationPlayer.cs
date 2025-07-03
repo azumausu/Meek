@@ -109,6 +109,7 @@ namespace Meek.UGUI
 
             // 遷移前のScreenの条件が一致してる遷移アニメーションを再生
             var fromScreenMatchHandlers = handlers
+                .Where(x => string.IsNullOrEmpty(x.ToScreenName))
                 .MatchFromScreenClassType(fromScreenClassType)
                 .ToArray();
             if (fromScreenMatchHandlers.Length > 0)
@@ -119,6 +120,7 @@ namespace Meek.UGUI
 
             // 遷移先のScreenの条件が一致している遷移アニメーションを再生
             var toScreenMatchHandlers = handlers
+                .Where(x => string.IsNullOrEmpty(x.FromScreenName))
                 .MatchToScreenClassType(toScreenClassType)
                 .ToArray();
             if (toScreenMatchHandlers.Length > 0)

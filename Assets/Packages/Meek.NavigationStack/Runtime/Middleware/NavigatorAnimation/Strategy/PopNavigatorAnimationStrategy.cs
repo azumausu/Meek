@@ -61,7 +61,10 @@ namespace Meek.NavigationStack
 
                 coroutines.Add(fromScreen.UI.CloseRoutine(fromScreenClassType, toScreenClassType, skipAnimation));
                 if (toScreen != null)
+                {
                     coroutines.Add(toScreen.UI.ShowRoutine(fromScreenClassType, toScreenClassType, skipAnimation));
+                }
+
                 yield return _coroutineRunner.StartParallelCoroutine(coroutines);
 
                 ListPool<IEnumerator>.Release(coroutines);
@@ -72,7 +75,9 @@ namespace Meek.NavigationStack
                     fromScreen.UI.CloseRoutine(fromScreenClassType, toScreenClassType, skipAnimation)
                 );
                 if (toScreen != null)
+                {
                     yield return toScreen.UI.ShowRoutine(fromScreenClassType, toScreenClassType, skipAnimation);
+                }
             }
         }
     }

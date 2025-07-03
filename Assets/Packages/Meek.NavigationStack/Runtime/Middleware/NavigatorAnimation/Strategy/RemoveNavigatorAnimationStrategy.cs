@@ -1,4 +1,6 @@
 using System.Collections;
+using System.Linq;
+using UnityEngine;
 using UnityEngine.Scripting;
 
 namespace Meek.NavigationStack
@@ -20,7 +22,6 @@ namespace Meek.NavigationStack
 
         IEnumerator INavigatorAnimationStrategy.PlayAnimationRoutine(StackNavigationContext context)
         {
-            // Animationの再生
             return PlayRemoveAnimationRoutine(context);
         }
 
@@ -29,17 +30,15 @@ namespace Meek.NavigationStack
             var removeScreen = context.GetFeatureValue<StackScreen>(StackNavigationContextFeatureDefine.RemoveScreen);
             var beforeScreen = context.GetFeatureNullableValue<StackScreen>(StackNavigationContextFeatureDefine.RemoveBeforeScreen);
             var afterScreen = context.GetFeatureNullableValue<StackScreen>(StackNavigationContextFeatureDefine.RemoveAfterScreen);
-            var beforeScreenType = beforeScreen?.GetType();
-            var afterScreenType = afterScreen?.GetType();
-
-            if (afterScreenType != null)
+            
+            if (afterScreen != null)
             {
-                yield return afterScreen.UI.HideRoutine(afterScreenType, beforeScreenType, true);
                 if (removeScreen.ScreenUIType == ScreenUIType.FullScreen)
                 {
                     _screenContainer.SetVisibleBetweenTargetScreenToBeforeFullScreen(afterScreen, true);
                 }
             }
+            yield break;
         }
     }
 }
