@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using Meek.NavigationStack;
 using Meek.UGUI;
 using UnityEngine;
@@ -9,20 +10,22 @@ namespace Meek.MVP
 {
     public class PresenterLoaderFromResources<TModel> : IViewHandlerLoader
     {
+        private readonly IScreen _ownerScreen;
         private readonly TModel _model;
         private readonly IPrefabViewManager _prefabViewManager;
         private readonly string _prefabPath;
 
         public bool IsLoaded { get; private set; } = false;
 
-        public PresenterLoaderFromResources(TModel model, IPrefabViewManager prefabViewManager, string prefabPath)
+        public PresenterLoaderFromResources(IScreen ownerScreen, TModel model, IPrefabViewManager prefabViewManager, string prefabPath)
         {
+            _ownerScreen = ownerScreen;
             _model = model;
             _prefabViewManager = prefabViewManager;
             _prefabPath = prefabPath;
         }
 
-        async Task<IViewHandler> IViewHandlerLoader.LoadAsync()
+        async Task<IViewHandler> IViewHandlerLoader.LoadAsync([CanBeNull] object param)
         {
             // Prefabのロード
             var tcs = new TaskCompletionSource<GameObject>();
@@ -37,15 +40,30 @@ namespace Meek.MVP
             }
 
             // Viewの作成
-            var viewHandler = await CreateAsync(prefab);
+            var viewHandler = await CreateAsync(prefab, param);
             IsLoaded = true;
             return viewHandler;
         }
 
-        private async ValueTask<PresenterHandler> CreateAsync(GameObject prefab)
+        private async ValueTask<PresenterHandler> CreateAsync(GameObject prefab, [CanBeNull] object param)
         {
-            var presenterHandler = new PresenterHandler(_prefabViewManager, prefab);
+            var parent = _prefabViewManager.GetRootNode(_ownerScreen, param);
+            var rootNode = new GameObject(prefab.name) { layer = parent.gameObject.layer, transform = { parent = parent } };
+            var rootNodeRectTransform = rootNode.AddComponent<RectTransform>();
+            rootNodeRectTransform.anchoredPosition3D = Vector3.zero;
+            rootNodeRectTransform.anchorMin = Vector2.zero;
+            rootNodeRectTransform.anchorMax = Vector2.one;
+            rootNodeRectTransform.sizeDelta = Vector2.zero;
+            rootNodeRectTransform.localScale = Vector3.one;
 
+            var rootNodeCanvas = rootNode.AddComponent<Canvas>();
+            rootNodeCanvas.overrideSorting = false;
+            rootNode.AddComponent<CanvasGroup>();
+            rootNode.AddComponent<GraphicRaycaster>();
+
+            var instance = GameObject.Instantiate(prefab, rootNode.transform);
+
+            var presenterHandler = new PresenterHandler(rootNode.transform, instance);
             presenterHandler.SetInteractable(false);
             presenterHandler.SetVisibility(false);
 

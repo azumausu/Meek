@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.Pool;
 
@@ -45,10 +46,10 @@ namespace Meek.NavigationStack
 
         #region Methods
 
-        public async Task<IViewHandler> LoadViewHandlerAsync(IViewHandlerLoader viewHandlerLoader)
+        public async Task<IViewHandler> LoadViewHandlerAsync(IViewHandlerLoader viewHandlerLoader, [CanBeNull] object param = null)
         {
             _viewHandlerLoaders.Add(viewHandlerLoader);
-            var viewHandler = await viewHandlerLoader.LoadAsync();
+            var viewHandler = await viewHandlerLoader.LoadAsync(param);
             _viewHandlers.Add(viewHandler);
 
             return viewHandler;

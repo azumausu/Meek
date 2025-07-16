@@ -24,32 +24,20 @@ namespace Meek.UGUI
         public GameObject Instance { get; private set; }
         public Transform RootNode { get; private set; }
 
-        public PrefabViewHandler(IPrefabViewManager prefabViewManager, GameObject prefab)
+        public PrefabViewHandler(Transform instanceRootNode, GameObject instance)
         {
-            var rootNode = new GameObject(prefab.name) { transform = { parent = prefabViewManager.PrefabRootNode } };
-            var rootNodeRectTransform = rootNode.AddComponent<RectTransform>();
-            rootNodeRectTransform.anchoredPosition3D = Vector3.zero;
-            rootNodeRectTransform.anchorMin = Vector2.zero;
-            rootNodeRectTransform.anchorMax = Vector2.one;
-            rootNodeRectTransform.sizeDelta = Vector2.zero;
-            rootNodeRectTransform.localScale = Vector3.one;
-            var rootNodeCanvas = rootNode.AddComponent<Canvas>();
-            rootNodeCanvas.overrideSorting = false;
-            var rootNodeCanvasGroup = rootNode.AddComponent<CanvasGroup>();
-            var rootNodeRaycaster = rootNode.AddComponent<GraphicRaycaster>();
-
-            var instance = GameObject.Instantiate(prefab, rootNode.transform);
-            instance.transform.SetParent(rootNode.transform);
-
-            rootNode.SetLayerRecursively(prefabViewManager.PrefabRootNode.gameObject.layer);
-
             Instance = instance;
-            RootNode = rootNode.transform;
-            RectTransform = rootNodeRectTransform;
-            Canvas = rootNodeCanvas;
-            CanvasGroup = rootNodeCanvasGroup;
+            RootNode = instanceRootNode;
+            RectTransform = instanceRootNode.GetComponent<RectTransform>();
+            Canvas = instanceRootNode.GetComponent<Canvas>();
+            CanvasGroup = instanceRootNode.GetComponent<CanvasGroup>();
             NavigatorAnimationPlayer = instance.GetComponent<NavigatorAnimationPlayer>();
-            GraphicRaycasters.Add(rootNodeRaycaster);
+
+            var graphicRaycaster = instanceRootNode.GetComponent<GraphicRaycaster>();
+            if (graphicRaycaster != null)
+            {
+                GraphicRaycasters.Add(graphicRaycaster);
+            }
         }
 
         public virtual void SetInteractable(bool interactable)

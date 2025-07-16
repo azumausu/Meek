@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using Meek.NavigationStack;
 using Meek.UGUI;
 
@@ -66,19 +67,19 @@ namespace Meek.MVP
             await base.StartingImplAsync(context);
         }
 
-        protected async Task<TPresenter> LoadPresenterAsync<TPresenter>(string prefabName)
+        protected async Task<TPresenter> LoadPresenterAsync<TPresenter>(IViewHandlerLoader loader, [CanBeNull] object param = null)
             where TPresenter : class, IPresenter<TModel>
         {
-            var factory = AppServices.GetService<IPresenterLoaderFactory>();
-            var loader = factory.CreateLoader(Model, prefabName);
-            var viewHandler = await UI.LoadViewHandlerAsync(loader) as PrefabViewHandler;
+            var viewHandler = await UI.LoadViewHandlerAsync(loader, param) as PrefabViewHandler;
             return viewHandler.Instance.GetComponent<TPresenter>();
         }
 
-        protected Task<TPresenter> LoadPresenterAsync<TPresenter>()
+        protected async Task<TPresenter> LoadPresenterAsync<TPresenter>([CanBeNull] object param = null)
             where TPresenter : class, IPresenter<TModel>
         {
-            return LoadPresenterAsync<TPresenter>(typeof(TPresenter).Name);
+            var factory = AppServices.GetService<IPresenterLoaderFactory>();
+            var loader = factory.CreateLoader(this, Model, typeof(TPresenter).Name, param);
+            return await LoadPresenterAsync<TPresenter>(loader, param);
         }
 
         #endregion

@@ -9,16 +9,16 @@ namespace Meek.NavigationStack
     public abstract class StackScreen : IScreen, IDisposable, IAsyncDisposable, IScreenLifecycleEventHandler, IScreenNavigatorEventHandler
     {
         private readonly Stack<IDisposable> _interactableLocks = new Stack<IDisposable>();
+        private ICoroutineRunner _coroutineRunner;
 
         protected readonly List<IDisposable> Disposables = new List<IDisposable>();
         protected readonly List<IAsyncDisposable> AsyncDisposables = new List<IAsyncDisposable>();
-
         protected IServiceProvider AppServices;
 
-        private ICoroutineRunner _coroutineRunner;
 
         public ScreenUI UI { get; private set; }
         public IScreenEventInvoker ScreenEventInvoker { get; private set; }
+        public StackNavigationService NavigationService => AppServices.GetService<StackNavigationService>();
 
         protected virtual PushNavigation PushNavigation => AppServices.GetService<PushNavigation>().SetSender(this);
         protected virtual PopNavigation PopNavigation => AppServices.GetService<PopNavigation>().SetSender(this);
@@ -28,42 +28,26 @@ namespace Meek.NavigationStack
 
         protected virtual void Dispatch<TParam>(TParam param) => AppServices.GetService<StackNavigationService>().Dispatch(param);
         protected virtual Task DispatchAsync<TParam>(TParam param) => AppServices.GetService<StackNavigationService>().DispatchAsync(param);
-        public StackNavigationService NavigationService => AppServices.GetService<StackNavigationService>();
 
         /// <summary>
-        ///     StateType
+        /// When set to true, it will automatically call _interactableLocks.Dispose() when the Screen is destroyed.
+        /// However, since the lock is briefly released during destruction, there is a risk that input may become temporarily enabled.
         /// </summary>
+        protected virtual bool AutoDisposeLockerOnDestroy => false;
+
         public virtual ScreenUIType ScreenUIType => ScreenUIType.FullScreen;
 
         protected abstract void RegisterEventsInternal(EventHolder eventHolder);
 
-        protected virtual void StateWillNavigate(StackNavigationContext context)
-        {
-            if (context.NavigatingSourceType is StackNavigationSourceType.Insert or StackNavigationSourceType.Remove)
-                return;
-
-            if (context.NavigatingSourceType == StackNavigationSourceType.Pop)
-                ScreenEventInvoker.Invoke(ScreenLifecycleEvent.ScreenWillDestroy);
-
-            if (context.NavigatingSourceType == StackNavigationSourceType.Push)
-            {
-                ScreenEventInvoker.Invoke(ScreenLifecycleEvent.ScreenWillPause);
-                _interactableLocks.Push(UI.LockInteractable());
-            }
-        }
-
         protected virtual async ValueTask StartingImplAsync(StackNavigationContext context)
         {
-            // 初期化
             ScreenEventInvoker = CreateEventInvoker();
 
-            // lockをかける
             _interactableLocks.Push(UI.LockInteractable());
 
             ScreenEventInvoker.Invoke(ScreenLifecycleEvent.ScreenWillStart);
             await ScreenEventInvoker.InvokeAsync(ScreenLifecycleEvent.ScreenWillStart);
 
-            // Load完了を待ってSetup処理の実行
             var tcs = new TaskCompletionSource<bool>();
             if (UI.IsLoaded) tcs.SetResult(true);
             else
@@ -96,16 +80,36 @@ namespace Meek.NavigationStack
         {
             ScreenEventInvoker.Invoke(ScreenLifecycleEvent.ScreenDidDestroy);
             await ScreenEventInvoker.InvokeAsync(ScreenLifecycleEvent.ScreenDidDestroy);
-            _interactableLocks?.DisposeAll();
+
+            if (AutoDisposeLockerOnDestroy)
+            {
+                _interactableLocks?.DisposeAll();
+            }
+
             _interactableLocks?.Clear();
         }
 
-        protected virtual void StateDidNavigate(StackNavigationContext context)
+        protected virtual void ScreenWillNavigate(StackNavigationContext context)
         {
             if (context.NavigatingSourceType is StackNavigationSourceType.Insert or StackNavigationSourceType.Remove)
                 return;
 
-            // 一致している場合はStateDidStartかStateDidResumeになる
+            if (context.NavigatingSourceType == StackNavigationSourceType.Pop)
+                ScreenEventInvoker.Invoke(ScreenLifecycleEvent.ScreenWillDestroy);
+
+            if (context.NavigatingSourceType == StackNavigationSourceType.Push)
+            {
+                ScreenEventInvoker.Invoke(ScreenLifecycleEvent.ScreenWillPause);
+                _interactableLocks.Push(UI.LockInteractable());
+            }
+        }
+
+        protected virtual void ScreenDidNavigate(StackNavigationContext context)
+        {
+            if (context.NavigatingSourceType is StackNavigationSourceType.Insert or StackNavigationSourceType.Remove)
+                return;
+
+            // 一致している場合はScreenDidStartかScreenDidResumeになる
             var stateEvent = context.NavigatingSourceType switch
             {
                 StackNavigationSourceType.Push => ScreenLifecycleEvent.ScreenDidStart,
@@ -160,13 +164,13 @@ namespace Meek.NavigationStack
         void IScreenNavigatorEventHandler.ScreenWillNavigate(NavigationContext context)
         {
             var stackContext = context.ToStackNavigationContext();
-            StateWillNavigate(stackContext);
+            ScreenWillNavigate(stackContext);
         }
 
         void IScreenNavigatorEventHandler.ScreenDidNavigate(NavigationContext context)
         {
             var stackContext = context.ToStackNavigationContext();
-            StateDidNavigate(stackContext);
+            ScreenDidNavigate(stackContext);
         }
 
         [CanBeNull]

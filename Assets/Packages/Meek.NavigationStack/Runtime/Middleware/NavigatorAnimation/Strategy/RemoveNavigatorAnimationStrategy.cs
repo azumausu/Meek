@@ -30,14 +30,15 @@ namespace Meek.NavigationStack
             var removeScreen = context.GetFeatureValue<StackScreen>(StackNavigationContextFeatureDefine.RemoveScreen);
             var beforeScreen = context.GetFeatureNullableValue<StackScreen>(StackNavigationContextFeatureDefine.RemoveBeforeScreen);
             var afterScreen = context.GetFeatureNullableValue<StackScreen>(StackNavigationContextFeatureDefine.RemoveAfterScreen);
-            
-            if (afterScreen != null)
+
+            if (afterScreen != null && beforeScreen == null)
             {
                 if (removeScreen.ScreenUIType == ScreenUIType.FullScreen)
                 {
                     _screenContainer.SetVisibleBetweenTargetScreenToBeforeFullScreen(afterScreen, true);
                 }
             }
+
             yield break;
         }
     }

@@ -7,23 +7,23 @@ namespace Meek.MVP
 {
     public class PresenterHandler : PrefabViewHandler
     {
-        private readonly IPresenter _presenter;
+        protected readonly IPresenter Presenter;
 
-        public PresenterHandler(IPrefabViewManager serviceProvider, GameObject prefab) : base(serviceProvider, prefab)
+        public PresenterHandler(Transform parent, GameObject instance) : base(parent, instance)
         {
-            _presenter = Instance.GetComponent<IPresenter>();
+            Presenter = Instance.GetComponent<IPresenter>();
         }
 
         protected override void Setup()
         {
-            _presenter.Setup();
+            Presenter.Setup();
         }
 
         public override async ValueTask DisposeAsync()
         {
             await base.DisposeAsync();
 
-            if (_presenter is IAsyncDisposable asyncDisposable)
+            if (Presenter is IAsyncDisposable asyncDisposable)
             {
                 await asyncDisposable.DisposeAsync();
             }

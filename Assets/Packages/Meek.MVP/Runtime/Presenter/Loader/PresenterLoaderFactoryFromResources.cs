@@ -1,4 +1,5 @@
 using System;
+using JetBrains.Annotations;
 using Meek.NavigationStack;
 using Meek.UGUI;
 
@@ -13,9 +14,9 @@ namespace Meek.MVP
             _prefabViewManager = serviceProvider;
         }
 
-        public IViewHandlerLoader CreateLoader<TModel>(TModel model, string prefabName)
+        public IViewHandlerLoader CreateLoader<TModel>(IScreen ownerScreen, TModel model, string prefabName, [CanBeNull] object param)
         {
-            return new PresenterLoaderFromResources<TModel>(model, _prefabViewManager, $"UI/{prefabName}");
+            return new PresenterLoaderFromResources<TModel>(ownerScreen, model, _prefabViewManager, $"UI/{prefabName}");
         }
     }
 }
