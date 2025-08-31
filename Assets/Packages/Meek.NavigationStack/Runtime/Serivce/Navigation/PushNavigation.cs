@@ -7,13 +7,15 @@ namespace Meek.NavigationStack
 {
     public class PushNavigation
     {
+        protected readonly NavigationSharedSemaphore SharedSemaphore;
         protected readonly StackNavigationService StackNavigationService;
         protected readonly PushContext PushContext = new();
         protected object? Sender;
 
-        public PushNavigation(StackNavigationService stackNavigationService)
+        public PushNavigation(StackNavigationService stackNavigationService, NavigationSharedSemaphore sharedSemaphore)
         {
             StackNavigationService = stackNavigationService;
+            SharedSemaphore = sharedSemaphore;
         }
 
         [Obsolete("Please use PushForget<TScreen>")]
@@ -32,9 +34,17 @@ namespace Meek.NavigationStack
             return PushAsync(typeof(TScreen));
         }
 
-        public virtual Task PushAsync(Type screenClassType)
+        public virtual async Task PushAsync(Type screenClassType)
         {
-            return StackNavigationService.PushAsync(screenClassType, PushContext);
+            await SharedSemaphore.NavigationSemaphore.WaitAsync();
+            try
+            {
+                await StackNavigationService.PushAsync(screenClassType, PushContext);
+            }
+            finally
+            {
+                SharedSemaphore.NavigationSemaphore.Release();
+            }
         }
 
         public PushNavigation NextScreenParameter(object nextScreenParameter)

@@ -10,6 +10,7 @@ namespace Meek.NavigationStack
 {
     public class BackToNavigation
     {
+        protected readonly NavigationSharedSemaphore SharedSemaphore;
         protected readonly StackNavigationService StackNavigationService;
 
         protected bool CrossFade = false;
@@ -17,8 +18,9 @@ namespace Meek.NavigationStack
         protected bool RemoveScreenSkipAnimation = true;
         protected object? Sender;
 
-        public BackToNavigation(StackNavigationService stackNavigationService)
+        public BackToNavigation(StackNavigationService stackNavigationService, NavigationSharedSemaphore sharedSemaphore)
         {
+            SharedSemaphore = sharedSemaphore;
             StackNavigationService = stackNavigationService;
         }
 
@@ -40,48 +42,58 @@ namespace Meek.NavigationStack
 
         public virtual async Task BackToAsync(Type backScreen)
         {
-            ListPool<IScreen>.Get(out var removeScreenList);
-
-            bool existBackToScreen = false;
-            foreach (var screen in StackNavigationService.ScreenContainer.Screens)
+            await SharedSemaphore.NavigationSemaphore.WaitAsync();
+            try
             {
-                if (backScreen == screen.GetType())
+                using var disposable = ListPool<IScreen>.Get(out var removeScreenList);
+
+                bool existBackToScreen = false;
+                foreach (var screen in StackNavigationService.ScreenContainer.Screens)
                 {
-                    existBackToScreen = true;
-                    break;
+                    if (backScreen == screen.GetType())
+                    {
+                        existBackToScreen = true;
+                        break;
+                    }
+
+                    removeScreenList.Add(screen);
                 }
 
-                removeScreenList.Add(screen);
-            }
-
-            if (!existBackToScreen) return;
-
-            if (removeScreenList.Count == 1)
-            {
-                await StackNavigationService.PopAsync(new PopContext()
+                if (!existBackToScreen) return;
+                if (removeScreenList.Count == 0)
                 {
-                    IsCrossFade = CrossFade,
-                    SkipAnimation = SkipAnimation,
-                });
-            }
-            else if (removeScreenList.Count > 1)
-            {
-                foreach (var screen in removeScreenList.Skip(1))
+                    return;
+                }
+                else if (removeScreenList.Count == 1)
                 {
-                    await StackNavigationService.RemoveAsync(screen, new RemoveContext()
+                    await StackNavigationService.PopAsync(new PopContext()
                     {
-                        SkipAnimation = RemoveScreenSkipAnimation,
+                        OnlyWhenScreen = removeScreenList[0],
+                        IsCrossFade = CrossFade,
+                        SkipAnimation = SkipAnimation,
                     });
                 }
-
-                await StackNavigationService.PopAsync(new PopContext()
+                else if (removeScreenList.Count > 1)
                 {
-                    IsCrossFade = CrossFade,
-                    SkipAnimation = SkipAnimation,
-                });
-            }
+                    foreach (var screen in removeScreenList.Skip(1))
+                    {
+                        await StackNavigationService.RemoveAsync(screen, new RemoveContext()
+                        {
+                            SkipAnimation = RemoveScreenSkipAnimation,
+                        });
+                    }
 
-            ListPool<IScreen>.Release(removeScreenList);
+                    await StackNavigationService.PopAsync(new PopContext()
+                    {
+                        IsCrossFade = CrossFade,
+                        SkipAnimation = SkipAnimation,
+                    });
+                }
+            }
+            finally
+            {
+                SharedSemaphore.NavigationSemaphore.Release();
+            }
         }
 
 

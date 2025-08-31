@@ -11,6 +11,7 @@ namespace Meek.NavigationStack
             self.AddTransient<RemoveNavigation>();
             self.AddTransient<InsertNavigation>();
             self.AddTransient<BackToNavigation>();
+            self.AddSingleton<NavigationSharedSemaphore>();
             self.AddSingleton(x =>
             {
                 var stackNavigatorService = x.GetService<INavigator>();

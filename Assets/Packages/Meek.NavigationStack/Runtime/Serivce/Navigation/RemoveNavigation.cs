@@ -7,13 +7,15 @@ namespace Meek.NavigationStack
 {
     public class RemoveNavigation
     {
+        protected readonly NavigationSharedSemaphore SharedSemaphore;
         protected readonly StackNavigationService StackNavigationService;
         protected readonly RemoveContext RemoveContext = new();
         protected object? Sender;
 
-        public RemoveNavigation(StackNavigationService stackNavigationService)
+        public RemoveNavigation(StackNavigationService stackNavigationService, NavigationSharedSemaphore sharedSemaphore)
         {
             StackNavigationService = stackNavigationService;
+            SharedSemaphore = sharedSemaphore;
         }
 
         [Obsolete("Please use RemoveForget<TScreen>")]
@@ -37,9 +39,17 @@ namespace Meek.NavigationStack
             return StackNavigationService.RemoveAsync(screen, RemoveContext);
         }
 
-        public virtual Task RemoveAsync(Type screenClassType)
+        public virtual async Task RemoveAsync(Type screenClassType)
         {
-            return StackNavigationService.RemoveAsync(screenClassType, RemoveContext);
+            await SharedSemaphore.NavigationSemaphore.WaitAsync();
+            try
+            {
+                await StackNavigationService.RemoveAsync(screenClassType, RemoveContext);
+            }
+            finally
+            {
+                SharedSemaphore.NavigationSemaphore.Release();
+            }
         }
 
         public RemoveNavigation IsCrossFade(bool isCrossFade)

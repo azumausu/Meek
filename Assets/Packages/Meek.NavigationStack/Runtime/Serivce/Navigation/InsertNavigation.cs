@@ -7,13 +7,15 @@ namespace Meek.NavigationStack
 {
     public class InsertNavigation
     {
+        protected readonly NavigationSharedSemaphore SharedSemaphore;
         protected readonly StackNavigationService StackNavigationService;
         protected readonly InsertContext Context = new();
         protected object? Sender;
 
-        public InsertNavigation(StackNavigationService stackNavigationService)
+        public InsertNavigation(StackNavigationService stackNavigationService, NavigationSharedSemaphore sharedSemaphore)
         {
             StackNavigationService = stackNavigationService;
+            SharedSemaphore = sharedSemaphore;
         }
 
         [Obsolete("Please use InsertScreenBeforeForget<TBeforeScreen, TInsertionScreen>")]
@@ -38,10 +40,17 @@ namespace Meek.NavigationStack
             return InsertScreenBeforeAsync(typeof(TBeforeScreen), typeof(TInsertionScreen));
         }
 
-        public virtual Task InsertScreenBeforeAsync(Type beforeScreenClassType, Type insertionScreenClassType)
+        public virtual async Task InsertScreenBeforeAsync(Type beforeScreenClassType, Type insertionScreenClassType)
         {
-            return StackNavigationService.InsertScreenBeforeAsync(beforeScreenClassType, insertionScreenClassType,
-                this.Context);
+            await SharedSemaphore.NavigationSemaphore.WaitAsync();
+            try
+            {
+                await StackNavigationService.InsertScreenBeforeAsync(beforeScreenClassType, insertionScreenClassType, this.Context);
+            }
+            finally
+            {
+                SharedSemaphore.NavigationSemaphore.Release();
+            }
         }
 
         public InsertNavigation NextScreenParameter(object nextScreenParameter)
