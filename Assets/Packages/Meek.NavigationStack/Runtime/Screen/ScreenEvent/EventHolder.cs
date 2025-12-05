@@ -69,9 +69,11 @@ namespace Meek.NavigationStack
 
         #region Interface Implementations
 
-        void IScreenEventInvoker.Invoke(string eventName) => _screenActionEvents.Invoke(eventName);
+        void IScreenEventInvoker.Invoke(string eventName, bool suppressException) =>
+            _screenActionEvents.Invoke(eventName, suppressException: suppressException);
 
-        void IScreenEventInvoker.Invoke<TEnum>(TEnum eventName) => _screenActionEvents.Invoke(eventName.ToString());
+        void IScreenEventInvoker.Invoke<TEnum>(TEnum eventName, bool suppressException) =>
+            _screenActionEvents.Invoke(eventName.ToString(), suppressException: suppressException);
 
         global::System.Threading.Tasks.Task IScreenEventInvoker.InvokeAsync(string eventName) => _screenTaskEvents.InvokeAsync(eventName);
 

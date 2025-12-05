@@ -9,24 +9,33 @@ namespace Meek.NavigationStack
     public class ScreenNavigatorEventMiddleware : IMiddleware
     {
         private readonly SemaphoreSlim _navigationLock = new SemaphoreSlim(1, 1);
-        
+
         public async ValueTask InvokeAsync(NavigationContext context, NavigationDelegate next)
         {
             await _navigationLock.WaitAsync();
 
             try
             {
-                // 遷移処理開始
-                if (context.FromScreen is IScreenNavigatorEventHandler fromScreenEventHandler)
-                    fromScreenEventHandler.ScreenWillNavigate(context);
+                var fromScreenEventHandler = context.FromScreen as IScreenNavigatorEventHandler;
+                var toScreenEventHandler = context.ToScreen as IScreenNavigatorEventHandler;
 
-                await next(context);
+                fromScreenEventHandler?.ScreenWillNavigate(context);
+                toScreenEventHandler?.ScreenWillNavigate(context);
 
-                // 遷移処理完了
-                if (context.ToScreen is IScreenNavigatorEventHandler toScreenEventHandler)
-                    toScreenEventHandler.ScreenDidNavigate(context);
+                try
+                {
+                    await next(context);
+                }
+                finally
+                {
+                    toScreenEventHandler?.ScreenDidNavigate(context);
+                    fromScreenEventHandler?.ScreenDidNavigate(context);
+                }
             }
-            finally { _navigationLock.Release(); }
+            finally
+            {
+                _navigationLock.Release();
+            }
         }
     }
 }

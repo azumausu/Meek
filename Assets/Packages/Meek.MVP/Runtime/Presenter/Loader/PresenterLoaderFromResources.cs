@@ -49,50 +49,62 @@ namespace Meek.MVP
         {
             var parent = _prefabViewManager.GetRootNode(_ownerScreen, param);
             var rootNode = new GameObject(prefab.name) { layer = parent.gameObject.layer, transform = { parent = parent } };
-            var rootNodeRectTransform = rootNode.AddComponent<RectTransform>();
-            rootNodeRectTransform.anchoredPosition3D = Vector3.zero;
-            rootNodeRectTransform.anchorMin = Vector2.zero;
-            rootNodeRectTransform.anchorMax = Vector2.one;
-            rootNodeRectTransform.sizeDelta = Vector2.zero;
-            rootNodeRectTransform.localScale = Vector3.one;
-
-            var rootNodeCanvas = rootNode.AddComponent<Canvas>();
-            rootNodeCanvas.overrideSorting = false;
-            rootNode.AddComponent<CanvasGroup>();
-            rootNode.AddComponent<GraphicRaycaster>();
-
-            var instance = GameObject.Instantiate(prefab, rootNode.transform);
-
-            var presenterHandler = new PresenterHandler(rootNode.transform, instance);
-            presenterHandler.SetInteractable(false);
-            presenterHandler.SetVisibility(false);
-
-            // Presenter初期化
-            var presenter = presenterHandler.Instance.GetComponent<IPresenter<TModel>>();
-            if (presenter == null)
+            try
             {
-                Debug.LogError($"PresenterがRootNodeについていません。Instance名: {presenterHandler.Instance.name}");
-                return null;
+                var rootNodeRectTransform = rootNode.AddComponent<RectTransform>();
+                rootNodeRectTransform.anchoredPosition3D = Vector3.zero;
+                rootNodeRectTransform.anchorMin = Vector2.zero;
+                rootNodeRectTransform.anchorMax = Vector2.one;
+                rootNodeRectTransform.sizeDelta = Vector2.zero;
+                rootNodeRectTransform.localScale = Vector3.one;
+
+                var rootNodeCanvas = rootNode.AddComponent<Canvas>();
+                rootNodeCanvas.overrideSorting = false;
+                rootNode.AddComponent<CanvasGroup>();
+                rootNode.AddComponent<GraphicRaycaster>();
+
+                var instance = GameObject.Instantiate(prefab, rootNode.transform);
+
+                var presenterHandler = new PresenterHandler(rootNode.transform, instance);
+                presenterHandler.SetInteractable(false);
+                presenterHandler.SetVisibility(false);
+
+                // Presenter初期化
+                var presenter = presenterHandler.Instance.GetComponent<IPresenter<TModel>>();
+                if (presenter == null)
+                {
+                    Debug.LogError($"PresenterがRootNodeについていません。Instance名: {presenterHandler.Instance.name}");
+                    return null;
+                }
+
+                await presenter.LoadAsync(_model);
+
+                var graphicRaycasters = presenterHandler.Instance.GetComponentsInChildren<GraphicRaycaster>(true);
+                var visibilitySwitchers = presenterHandler.Instance.GetComponentsInChildren<IVisibilitySwitcher>(true);
+                var inputSwitchers = presenterHandler.Instance.GetComponentsInChildren<IInputSwitcher>(true);
+
+                // 新たに取得できたものをfalse状態にする
+                foreach (var switcher in inputSwitchers) switcher.Disable();
+                foreach (var switcher in visibilitySwitchers) switcher.Hide();
+
+                foreach (var graphicRaycaster in graphicRaycasters)
+                    presenterHandler.GraphicRaycasters.Add(graphicRaycaster);
+                foreach (var visibilitySwitcher in visibilitySwitchers)
+                    presenterHandler.VisibilitySwitchers.Add(visibilitySwitcher);
+                foreach (var inputSwitcher in inputSwitchers)
+                    presenterHandler.InputSwitchers.Add(inputSwitcher);
+
+                return presenterHandler;
             }
+            catch (Exception e)
+            {
+                if (rootNode != null)
+                {
+                    GameObject.Destroy(rootNode);
+                }
 
-            await presenter.LoadAsync(_model);
-
-            var graphicRaycasters = presenterHandler.Instance.GetComponentsInChildren<GraphicRaycaster>(true);
-            var visibilitySwitchers = presenterHandler.Instance.GetComponentsInChildren<IVisibilitySwitcher>(true);
-            var inputSwitchers = presenterHandler.Instance.GetComponentsInChildren<IInputSwitcher>(true);
-
-            // 新たに取得できたものをfalse状態にする
-            foreach (var switcher in inputSwitchers) switcher.Disable();
-            foreach (var switcher in visibilitySwitchers) switcher.Hide();
-
-            foreach (var graphicRaycaster in graphicRaycasters)
-                presenterHandler.GraphicRaycasters.Add(graphicRaycaster);
-            foreach (var visibilitySwitcher in visibilitySwitchers)
-                presenterHandler.VisibilitySwitchers.Add(visibilitySwitcher);
-            foreach (var inputSwitcher in inputSwitchers)
-                presenterHandler.InputSwitchers.Add(inputSwitcher);
-
-            return presenterHandler;
+                throw;
+            }
         }
     }
 }

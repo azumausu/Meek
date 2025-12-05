@@ -32,7 +32,7 @@ namespace Meek.NavigationStack
             await _semaphoreSlim.WaitAsync();
             try
             {
-                DictionaryPool<string, object>.Get(out var features);
+                using var poolDisposable = DictionaryPool<string, object>.Get(out var features);
 
                 features.Add(StackNavigationContextFeatureDefine.NextScreenParameter, pushContext.NextScreenParameter);
 
@@ -51,9 +51,16 @@ namespace Meek.NavigationStack
                     AppServices = _serviceProvider,
                 };
 
-                await _stackNavigator.NavigateAsync(context);
-
-                DictionaryPool<string, object>.Release(features);
+                try
+                {
+                    await _stackNavigator.NavigateAsync(context);
+                }
+                catch
+                {
+                    if (toScreen is IDisposable disposable) disposable.Dispose();
+                    if (toScreen is IAsyncDisposable asyncDisposable) await asyncDisposable.DisposeAsync();
+                    throw;
+                }
             }
             finally
             {
@@ -66,7 +73,7 @@ namespace Meek.NavigationStack
             await _semaphoreSlim.WaitAsync();
             try
             {
-                DictionaryPool<string, object>.Get(out var features);
+                using var poolDisposable = DictionaryPool<string, object>.Get(out var features);
 
                 var fromScreen = _stackNavigator.ScreenContainer.GetPeekScreen();
                 var toScreen = _stackNavigator.ScreenContainer.Screens.Skip(1).FirstOrDefault();
@@ -88,9 +95,6 @@ namespace Meek.NavigationStack
                 };
 
                 await _stackNavigator.NavigateAsync(context);
-
-                DictionaryPool<string, object>.Release(features);
-
                 return true;
             }
             finally
@@ -140,7 +144,7 @@ namespace Meek.NavigationStack
             await _semaphoreSlim.WaitAsync();
             try
             {
-                DictionaryPool<string, object>.Get(out var features);
+                using var poolDisposable = DictionaryPool<string, object>.Get(out var features);
 
                 var insertionScreen = _serviceProvider.GetService(insertionScreenClassType) as IScreen
                                       ?? throw new ArgumentException();
@@ -156,13 +160,21 @@ namespace Meek.NavigationStack
                     SkipAnimation = insertionContext.SkipAnimation,
                     Features = features,
                     FromScreen = fromScreen,
+                    // insertionの時は
                     ToScreen = fromScreen,
                     AppServices = _serviceProvider,
                 };
 
-                await _stackNavigator.NavigateAsync(context);
-
-                DictionaryPool<string, object>.Release(features);
+                try
+                {
+                    await _stackNavigator.NavigateAsync(context);
+                }
+                catch
+                {
+                    if (insertionScreen is IDisposable disposable) disposable.Dispose();
+                    if (insertionScreen is IAsyncDisposable asyncDisposable) await asyncDisposable.DisposeAsync();
+                    throw;
+                }
             }
             finally
             {
@@ -206,7 +218,7 @@ namespace Meek.NavigationStack
             await _semaphoreSlim.WaitAsync();
             try
             {
-                DictionaryPool<string, object>.Get(out var features);
+                using var poolDisposable = DictionaryPool<string, object>.Get(out var features);
                 var beforeScreen = _stackNavigator.ScreenContainer.GetScreenBefore(removeScreen);
                 var afterScreen = _stackNavigator.ScreenContainer.GetScreenAfter(removeScreen);
                 features.Add(StackNavigationContextFeatureDefine.RemoveScreen, removeScreen);
@@ -225,8 +237,6 @@ namespace Meek.NavigationStack
                 };
 
                 await _stackNavigator.NavigateAsync(context);
-
-                DictionaryPool<string, object>.Release(features);
             }
             finally
             {

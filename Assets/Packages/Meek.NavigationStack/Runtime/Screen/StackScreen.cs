@@ -83,7 +83,7 @@ namespace Meek.NavigationStack
 
             if (AutoDisposeLockerOnDestroy)
             {
-                _interactableLocks?.DisposeAll();
+                ForceUnlockInteractable();
             }
 
             _interactableLocks?.Clear();
@@ -92,12 +92,16 @@ namespace Meek.NavigationStack
         protected virtual void ScreenWillNavigate(StackNavigationContext context)
         {
             if (context.NavigatingSourceType is StackNavigationSourceType.Insert or StackNavigationSourceType.Remove)
+            {
                 return;
+            }
 
-            if (context.NavigatingSourceType == StackNavigationSourceType.Pop)
+            if (context.FromScreen == this && context.NavigatingSourceType == StackNavigationSourceType.Pop)
+            {
                 ScreenEventInvoker.Invoke(ScreenLifecycleEvent.ScreenWillDestroy);
+            }
 
-            if (context.NavigatingSourceType == StackNavigationSourceType.Push)
+            if (context.FromScreen == this && context.NavigatingSourceType == StackNavigationSourceType.Push)
             {
                 ScreenEventInvoker.Invoke(ScreenLifecycleEvent.ScreenWillPause);
                 _interactableLocks.Push(UI.LockInteractable());
@@ -107,18 +111,22 @@ namespace Meek.NavigationStack
         protected virtual void ScreenDidNavigate(StackNavigationContext context)
         {
             if (context.NavigatingSourceType is StackNavigationSourceType.Insert or StackNavigationSourceType.Remove)
-                return;
-
-            // 一致している場合はScreenDidStartかScreenDidResumeになる
-            var stateEvent = context.NavigatingSourceType switch
             {
-                StackNavigationSourceType.Push => ScreenLifecycleEvent.ScreenDidStart,
-                StackNavigationSourceType.Pop => ScreenLifecycleEvent.ScreenDidResume,
-                _ => throw new ArgumentOutOfRangeException()
-            };
+                return;
+            }
 
-            _interactableLocks.Pop().Dispose();
-            ScreenEventInvoker.Invoke(stateEvent);
+            if (context.ToScreen == this)
+            {
+                var stateEvent = context.NavigatingSourceType switch
+                {
+                    StackNavigationSourceType.Push => ScreenLifecycleEvent.ScreenDidStart,
+                    StackNavigationSourceType.Pop => ScreenLifecycleEvent.ScreenDidResume,
+                    _ => throw new ArgumentOutOfRangeException()
+                };
+
+                _interactableLocks.Pop().Dispose();
+                ScreenEventInvoker.Invoke(stateEvent);
+            }
         }
 
         private IScreenEventInvoker CreateEventInvoker()
@@ -187,6 +195,15 @@ namespace Meek.NavigationStack
             }
 
             return null;
+        }
+
+        public void ForceUnlockInteractable()
+        {
+            while (_interactableLocks.Count > 0)
+            {
+                var lockObj = _interactableLocks.Pop();
+                lockObj.Dispose();
+            }
         }
 
         public virtual void Dispose()

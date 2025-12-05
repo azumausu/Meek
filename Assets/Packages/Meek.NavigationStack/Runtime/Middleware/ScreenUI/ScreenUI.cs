@@ -49,10 +49,18 @@ namespace Meek.NavigationStack
         public async Task<IViewHandler> LoadViewHandlerAsync(IViewHandlerLoader viewHandlerLoader, [CanBeNull] object param = null)
         {
             _viewHandlerLoaders.Add(viewHandlerLoader);
-            var viewHandler = await viewHandlerLoader.LoadAsync(param);
-            _viewHandlers.Add(viewHandler);
+            try
+            {
+                var viewHandler = await viewHandlerLoader.LoadAsync(param);
+                _viewHandlers.Add(viewHandler);
 
-            return viewHandler;
+                return viewHandler;
+            }
+            catch
+            {
+                _viewHandlerLoaders.Remove(viewHandlerLoader);
+                throw;
+            }
         }
 
         public void DisposeViewHandler(IViewHandler viewHandler)

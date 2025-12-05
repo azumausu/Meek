@@ -22,9 +22,15 @@ namespace Meek.MVP
 
         private void OnDestroy()
         {
-            OnDeinit(_model);
-            foreach (var handler in _presenterEventHandlers) handler.PresenterDidDeinit(this, _model);
-            _disposables.DisposeAll();
+            try
+            {
+                foreach (var handler in _presenterEventHandlers) handler.PresenterDidDeinit(this, _model);
+                OnDeinit(_model);
+            }
+            finally
+            {
+                _disposables.DisposeAll();
+            }
         }
 
         private void Bind()

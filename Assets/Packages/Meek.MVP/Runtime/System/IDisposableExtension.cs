@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace Meek.MVP
 {
@@ -9,7 +10,17 @@ namespace Meek.MVP
 
         public static void DisposeAll(this IEnumerable<IDisposable> disposables)
         {
-            foreach (var disposable in disposables) disposable.Dispose();
+            foreach (var disposable in disposables)
+            {
+                try
+                {
+                    disposable.Dispose();
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError(e);
+                }
+            }
         }
 
         #endregion
