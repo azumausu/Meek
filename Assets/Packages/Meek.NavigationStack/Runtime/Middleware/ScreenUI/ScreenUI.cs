@@ -87,104 +87,71 @@ namespace Meek.NavigationStack
             foreach (var instance in _viewHandlers) instance.SetVisibility(visible);
         }
 
-        internal void SetOpenAniationStartTime(NavigationContext context)
+        internal void SetOpenAnimationStartTime(StackNavigationContext context)
         {
             foreach (var viewController in _viewHandlers)
             {
-                viewController.EvaluateNavigateAnimation(
-                    NavigatorAnimationType.Open,
-                    context.FromScreen?.GetType(),
-                    context.ToScreen.GetType(),
-                    0.0f
-                );
+                viewController.EvaluateNavigateAnimation(context, NavigatorAnimationType.Open, 0.0f);
             }
         }
 
-        internal void Setup(NavigationContext context)
+        internal void Setup(StackNavigationContext context)
         {
-            foreach (var viewHandler in _viewHandlers) viewHandler.Setup();
+            foreach (var viewHandler in _viewHandlers)
+            {
+                viewHandler.Setup(context);
+            }
         }
 
-        internal IEnumerator OpenRoutine(Type fromScreenClassType, Type toScreenClassType, bool isImmediate = false)
+        internal IEnumerator OpenRoutine(StackNavigationContext context, bool isImmediate = false)
         {
-            return PlayNavigateAnimationRoutine(
-                NavigatorAnimationType.Open,
-                fromScreenClassType,
-                toScreenClassType,
-                isImmediate
-            );
+            return PlayNavigateAnimationRoutine(context, NavigatorAnimationType.Open, isImmediate);
         }
 
-        internal IEnumerator CloseRoutine(Type fromScreenClassType, Type toScreenClassType, bool isImmediate = false)
+        internal IEnumerator CloseRoutine(StackNavigationContext context, bool isImmediate = false)
         {
-            return PlayNavigateAnimationRoutine(
-                NavigatorAnimationType.Close,
-                fromScreenClassType,
-                toScreenClassType,
-                isImmediate
-            );
+            return PlayNavigateAnimationRoutine(context, NavigatorAnimationType.Close, isImmediate);
         }
 
-        internal IEnumerator ShowRoutine(Type fromScreenClassType, Type toScreenClassType, bool isImmediate = false)
+        internal IEnumerator ShowRoutine(StackNavigationContext context, bool isImmediate = false)
         {
-            return PlayNavigateAnimationRoutine(
-                NavigatorAnimationType.Show,
-                fromScreenClassType,
-                toScreenClassType,
-                isImmediate
-            );
+            return PlayNavigateAnimationRoutine(context, NavigatorAnimationType.Show, isImmediate);
         }
 
-        internal IEnumerator HideRoutine(Type fromScreenClassType, Type toScreenClassType, bool isImmediate = false)
+        internal IEnumerator HideRoutine(StackNavigationContext context, bool isImmediate = false)
         {
-            return PlayNavigateAnimationRoutine(
-                NavigatorAnimationType.Hide,
-                fromScreenClassType,
-                toScreenClassType,
-                isImmediate
-            );
+            return PlayNavigateAnimationRoutine(context, NavigatorAnimationType.Hide, isImmediate);
         }
 
         private IEnumerator PlayNavigateAnimationRoutine(
+            StackNavigationContext context,
             NavigatorAnimationType navigatorAnimationType,
-            Type fromScreenClassType,
-            Type toScreenClassType,
             bool isImmediate
         )
         {
             if (isImmediate)
             {
                 foreach (var viewController in _viewHandlers)
-                    viewController.EvaluateNavigateAnimation(
-                        navigatorAnimationType,
-                        fromScreenClassType,
-                        toScreenClassType,
-                        1.0f
-                    );
+                {
+                    viewController.EvaluateNavigateAnimation(context, navigatorAnimationType, 1.0f);
+                }
 
                 yield break;
             }
 
             foreach (var viewController in _viewHandlers)
-                viewController.EvaluateNavigateAnimation(
-                    navigatorAnimationType,
-                    fromScreenClassType,
-                    toScreenClassType,
-                    0.0f
-                );
+            {
+                viewController.EvaluateNavigateAnimation(context, navigatorAnimationType, 0.0f);
+            }
 
-            var coroutines = ListPool<IEnumerator>.Get();
+            using var disposable = ListPool<IEnumerator>.Get(out var coroutines);
 
-            coroutines.AddRange(_viewHandlers
-                .Select(x => x.PlayNavigateAnimationRoutine(
-                    navigatorAnimationType,
-                    fromScreenClassType,
-                    toScreenClassType)
-                )
-            );
+            foreach (var handler in _viewHandlers)
+            {
+                coroutines.Add(handler.PlayNavigateAnimationRoutine(context, navigatorAnimationType));
+            }
+
             yield return _coroutineRunner.StartParallelCoroutine(coroutines);
-
-            ListPool<IEnumerator>.Release(coroutines);
         }
 
         #endregion

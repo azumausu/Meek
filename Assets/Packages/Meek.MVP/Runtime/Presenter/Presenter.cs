@@ -39,7 +39,7 @@ namespace Meek.MVP
             foreach (var handler in _presenterEventHandlers) handler.PresenterDidBind(this, _model);
         }
 
-        protected abstract IEnumerable<IDisposable> Bind(TModel model);
+        protected virtual IEnumerable<IDisposable> Bind(TModel model) { yield break; }
 
         protected virtual void OnInit() { }
 

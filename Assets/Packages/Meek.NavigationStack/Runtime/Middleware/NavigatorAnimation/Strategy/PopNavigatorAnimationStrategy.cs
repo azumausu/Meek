@@ -34,13 +34,11 @@ namespace Meek.NavigationStack
         }
 
 
-        private IEnumerator PlayPopAnimationRoutine(StackNavigationContext context)
+        protected virtual IEnumerator PlayPopAnimationRoutine(StackNavigationContext context)
         {
             // toScreenは存在しない可能性がある。
-            var fromScreen = (StackScreen)context.FromScreen;
+            var fromScreen = context.FromScreen as StackScreen ?? throw new System.InvalidOperationException();
             var toScreen = context.ToScreen as StackScreen;
-            var fromScreenClassType = fromScreen.GetType();
-            var toScreenClassType = toScreen?.GetType();
             var skipAnimation = context.SkipAnimation;
             var isCrossFade = context.IsCrossFade;
 
@@ -57,26 +55,22 @@ namespace Meek.NavigationStack
 
             if (isCrossFade)
             {
-                var coroutines = ListPool<IEnumerator>.Get();
+                using var disposable = ListPool<IEnumerator>.Get(out var coroutines);
 
-                coroutines.Add(fromScreen.UI.CloseRoutine(fromScreenClassType, toScreenClassType, skipAnimation));
+                coroutines.Add(fromScreen.UI.CloseRoutine(context, skipAnimation));
                 if (toScreen != null)
                 {
-                    coroutines.Add(toScreen.UI.ShowRoutine(fromScreenClassType, toScreenClassType, skipAnimation));
+                    coroutines.Add(toScreen.UI.ShowRoutine(context, skipAnimation));
                 }
 
                 yield return _coroutineRunner.StartParallelCoroutine(coroutines);
-
-                ListPool<IEnumerator>.Release(coroutines);
             }
             else
             {
-                yield return _coroutineRunner.StartCoroutine(
-                    fromScreen.UI.CloseRoutine(fromScreenClassType, toScreenClassType, skipAnimation)
-                );
+                yield return _coroutineRunner.StartCoroutine(fromScreen.UI.CloseRoutine(context, skipAnimation));
                 if (toScreen != null)
                 {
-                    yield return toScreen.UI.ShowRoutine(fromScreenClassType, toScreenClassType, skipAnimation);
+                    yield return toScreen.UI.ShowRoutine(context, skipAnimation);
                 }
             }
         }

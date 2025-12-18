@@ -16,8 +16,6 @@ namespace Meek.NavigationStack
         public ValueTask NavigateAsync(NavigationContext context)
         {
             var stackContext = context.ToStackNavigationContext();
-            var screenList = ListPool<IScreen>.Get();
-            screenList.AddRange(_screenStack);
 
             switch (stackContext.NavigatingSourceType)
             {
@@ -28,14 +26,14 @@ namespace Meek.NavigationStack
                     _screenStack.Pop();
                     break;
                 case StackNavigationSourceType.Insert:
-                    var insertionBeforeScreen = context.GetFeatureValue<IScreen>(StackNavigationContextFeatureDefine.InsertionBeforeScreen);
+                    var insertionBeforeScreen = stackContext.GetInsertionBeforeScreen();
                     while (_screenStack.Peek() != insertionBeforeScreen)
                     {
                         _insertOrRemoveCacheStack.Push(_screenStack.Pop());
                     }
 
                     // Insert
-                    var insertionScreen = context.GetFeatureValue<IScreen>(StackNavigationContextFeatureDefine.InsertionScreen);
+                    var insertionScreen = stackContext.GetInsertionScreen();
                     _screenStack.Push(insertionScreen);
 
                     foreach (var screen in _insertOrRemoveCacheStack) _screenStack.Push(screen);
@@ -43,7 +41,7 @@ namespace Meek.NavigationStack
 
                     break;
                 case StackNavigationSourceType.Remove:
-                    var removeScreen = context.GetFeatureValue<IScreen>(StackNavigationContextFeatureDefine.RemoveScreen);
+                    var removeScreen = stackContext.GetRemoveScreen();
                     while (_screenStack.Peek() != removeScreen)
                     {
                         _insertOrRemoveCacheStack.Push(_screenStack.Pop());

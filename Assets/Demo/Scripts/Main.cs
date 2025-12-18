@@ -12,28 +12,24 @@ namespace Demo
 
         public void Start()
         {
-            Application.targetFrameRate = Screen.currentResolution.refreshRate;
-            var app = MVPApplication.CreateApp(
-                new MVPApplicationOption()
-                {
-                    ContainerBuilderFactory = x => new VContainerServiceCollection(x),
-                    InputLocker = defaultInputLocker,
-                    PrefabViewManager = defaultPrefabViewManager,
-                },
-                x =>
-                {
-                    // App Services
-                    x.AddSingleton<GlobalStore>();
+            var container = new VContainerServiceCollection()
+                .AddMeekMvp(new MvpNavigatorOptions() { InputLocker = defaultInputLocker, PrefabViewManager = defaultPrefabViewManager });
 
-                    // Screen
-                    x.AddTransient<SplashScreen>();
-                    x.AddTransient<SignUpScreen>();
-                    x.AddTransient<LogInScreen>();
-                    x.AddTransient<TabScreen>();
-                    x.AddTransient<ReviewScreen>();
-                }
-            );
-            app.RunAsync<SplashScreen>().Forget();
+            // Global Store
+            container.ServiceCollection.AddSingleton<GlobalStore>();
+
+            // Screen
+            container.ServiceCollection.AddTransient<SplashScreen>();
+            container.ServiceCollection.AddTransient<SignUpScreen>();
+            container.ServiceCollection.AddTransient<LogInScreen>();
+            container.ServiceCollection.AddTransient<TabScreen>();
+            container.ServiceCollection.AddTransient<ReviewScreen>();
+            container.ServiceCollection.AddTransient<HomeScreen>();
+            container.ServiceCollection.AddTransient<SearchScreen>();
+            container.ServiceCollection.AddTransient<FavoritesScreen>();
+            container.ServiceCollection.AddTransient<ProfileScreen>();
+
+            container.BuildAndRunMeekMvpAsync<SplashScreen>().Forget();
         }
     }
 }

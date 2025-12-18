@@ -25,7 +25,7 @@ namespace Meek.MVP
         protected override async ValueTask StartingImplAsync(StackNavigationContext context)
         {
             // Parameterの代入を行う
-            _parameter = context.GetFeatureValue<TParam>(StackNavigationContextFeatureDefine.NextScreenParameter);
+            _parameter = context.GetNextScreenParameter<TParam>();
             // Parameter代入後にAppBaseScreen<TModel>のStartImplを呼び出す。
             await base.StartingImplAsync(context);
         }

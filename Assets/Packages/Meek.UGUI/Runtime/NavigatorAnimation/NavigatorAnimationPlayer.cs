@@ -2,9 +2,10 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
+using JetBrains.Annotations;
 using Meek.NavigationStack;
 using UnityEngine;
+using UnityEngine.Pool;
 
 namespace Meek.UGUI
 {
@@ -12,150 +13,229 @@ namespace Meek.UGUI
     {
         #region Fields
 
-        private INavigatorAnimation[] _animationHandlers = new INavigatorAnimation[0];
+        private static readonly Dictionary<Type, string> ScreenTypeToNameCache = new();
+        private INavigatorAnimation[] _animationHandlers;
 
         #endregion
 
         #region Methods
 
-        public IEnumerator OpenRoutine(Type fromScreenClassType, Type toScreenClassType) =>
-            PlayTransitionAnimation(
-                NavigatorAnimationType.Open,
-                fromScreenClassType,
-                toScreenClassType
-            );
+        public IEnumerator OpenRoutine(StackNavigationContext context)
+        {
+            return PlayTransitionAnimation(context, NavigatorAnimationType.Open);
+        }
 
-        public IEnumerator CloseRoutine(Type fromScreenClassType, Type toScreenClassType) =>
-            PlayTransitionAnimation(
-                NavigatorAnimationType.Close,
-                fromScreenClassType,
-                toScreenClassType
-            );
+        public IEnumerator CloseRoutine(StackNavigationContext context)
+        {
+            return PlayTransitionAnimation(context, NavigatorAnimationType.Close);
+        }
 
-        public IEnumerator ShowRoutine(Type fromScreenClassType, Type toScreenClassType) =>
-            PlayTransitionAnimation(
-                NavigatorAnimationType.Show,
-                fromScreenClassType,
-                toScreenClassType
-            );
+        public IEnumerator ShowRoutine(StackNavigationContext context)
+        {
+            return PlayTransitionAnimation(context, NavigatorAnimationType.Show);
+        }
 
-        public IEnumerator HideRoutine(Type fromScreenClassType, Type toScreenClassType) =>
-            PlayTransitionAnimation(
-                NavigatorAnimationType.Hide,
-                fromScreenClassType,
-                toScreenClassType
-            );
+        public IEnumerator HideRoutine(StackNavigationContext context)
+        {
+            return PlayTransitionAnimation(context, NavigatorAnimationType.Hide);
+        }
 
         /// <summary>
         /// 遷移アニメーションの開始状態に表示を変更する
         /// </summary>
-        public void Evaluate(NavigatorAnimationType navigatorAnimationType, Type fromScreenClassType, Type toScreenClassType, float t)
+        public void Evaluate(StackNavigationContext context, NavigatorAnimationType navigatorAnimationType, float t)
         {
-            var handlers = _animationHandlers
-                .MatchNavigatorAnimationType(navigatorAnimationType)
-                .ToArray();
+            using var disposable1 = ListPool<INavigatorAnimation>.Get(out var targetHandlers);
+            using var disposable2 = ListPool<INavigatorAnimation>.Get(out var conditionMatchHandlers);
 
-            var allConditionMatchHandlers = handlers
-                .MatchFromScreenClassType(fromScreenClassType)
-                .MatchToScreenClassType(toScreenClassType)
-                .ToArray();
-            if (allConditionMatchHandlers.Length > 0)
+            var fromScreenName = GetScreenTypeName(context.FromScreen);
+            var toScreenName = GetScreenTypeName(context.ToScreen);
+
+            foreach (var handler in _animationHandlers)
             {
-                Evaluate(allConditionMatchHandlers, t);
+                if (handler.IsMatchNavigatorAnimationType(navigatorAnimationType))
+                {
+                    targetHandlers.Add(handler);
+                }
+            }
+
+            // === 条件に完全一致するハンドラを探す ===
+            foreach (var handler in targetHandlers)
+            {
+                if (handler.IsMatchFromScreenName(fromScreenName) && handler.IsMatchToScreenName(toScreenName))
+                {
+                    conditionMatchHandlers.Add(handler);
+                }
+            }
+
+            if (conditionMatchHandlers.Count > 0)
+            {
+                Evaluate(conditionMatchHandlers, t);
                 return;
             }
 
-            var fromScreenMatchHandlers = handlers
-                .MatchFromScreenClassType(fromScreenClassType)
-                .ToArray();
-            if (fromScreenMatchHandlers.Length > 0)
+            // === 遷移元のScreen名に一致するハンドラを探す ===
+            foreach (var handler in targetHandlers)
             {
-                Evaluate(fromScreenMatchHandlers, t);
+                if (handler.IsMatchFromScreenName(fromScreenName) && string.IsNullOrEmpty(handler.ToScreenName))
+                {
+                    conditionMatchHandlers.Add(handler);
+                }
+            }
+
+            if (conditionMatchHandlers.Count > 0)
+            {
+                Evaluate(conditionMatchHandlers, t);
                 return;
             }
 
-            var toScreenMatchHandlers = handlers
-                .MatchToScreenClassType(toScreenClassType)
-                .ToArray();
-            if (toScreenMatchHandlers.Length > 0)
+            // === 遷移先のScreen名に一致するハンドラを探す ===
+            foreach (var handler in targetHandlers)
             {
-                Evaluate(toScreenMatchHandlers, t);
+                if (handler.IsMatchToScreenName(toScreenName) && string.IsNullOrEmpty(handler.FromScreenName))
+                {
+                    conditionMatchHandlers.Add(handler);
+                }
+            }
+
+            if (conditionMatchHandlers.Count > 0)
+            {
+                Evaluate(conditionMatchHandlers, t);
                 return;
             }
-            
-            var defaultHandlers = handlers
-                .Where(x => string.IsNullOrEmpty(x.FromScreenName))
-                .Where(x => string.IsNullOrEmpty(x.ToScreenName))
-                .ToArray();
-            if (defaultHandlers.Length > 0) Evaluate(defaultHandlers, t);
+
+            // === デフォルトハンドラを探す ===
+            foreach (var handler in targetHandlers)
+            {
+                if (string.IsNullOrEmpty(handler.FromScreenName) && string.IsNullOrEmpty(handler.ToScreenName))
+                {
+                    conditionMatchHandlers.Add(handler);
+                }
+            }
+
+            if (conditionMatchHandlers.Count > 0)
+            {
+                Evaluate(conditionMatchHandlers, t);
+            }
         }
 
-        private IEnumerator PlayTransitionAnimation(NavigatorAnimationType transitionType, Type fromScreenClassType, Type toScreenClassType)
+        private IEnumerator PlayTransitionAnimation(StackNavigationContext context, NavigatorAnimationType navigatorAnimationType)
         {
-            var handlers = _animationHandlers
-                .MatchNavigatorAnimationType(transitionType)
-                .ToArray();
+            using var disposable1 = ListPool<INavigatorAnimation>.Get(out var targetHandlers);
+            using var disposable2 = ListPool<INavigatorAnimation>.Get(out var conditionMatchHandlers);
 
-            // 全ての条件に一致しているものがある場合はその遷移アニメーションを再生
-            var allConditionMatchHandlers = handlers
-                .MatchFromScreenClassType(fromScreenClassType)
-                .MatchToScreenClassType(toScreenClassType)
-                .ToArray();
-            if (allConditionMatchHandlers.Length > 0)
+            var fromScreenName = GetScreenTypeName(context.FromScreen);
+            var toScreenName = GetScreenTypeName(context.ToScreen);
+
+            foreach (var handler in _animationHandlers)
             {
-                yield return PlayAnimation(allConditionMatchHandlers);
+                if (handler.IsMatchNavigatorAnimationType(navigatorAnimationType))
+                {
+                    targetHandlers.Add(handler);
+                }
+            }
+
+            // === 条件に完全一致するハンドラを探す ===
+            foreach (var handler in targetHandlers)
+            {
+                if (handler.IsMatchFromScreenName(fromScreenName) && handler.IsMatchToScreenName(toScreenName))
+                {
+                    conditionMatchHandlers.Add(handler);
+                }
+            }
+
+            if (conditionMatchHandlers.Count > 0)
+            {
+                yield return PlayAnimation(conditionMatchHandlers);
                 yield break;
             }
 
-            // 遷移前のScreenの条件が一致してる遷移アニメーションを再生
-            var fromScreenMatchHandlers = handlers
-                .Where(x => string.IsNullOrEmpty(x.ToScreenName))
-                .MatchFromScreenClassType(fromScreenClassType)
-                .ToArray();
-            if (fromScreenMatchHandlers.Length > 0)
+            // === 遷移元のScreen名に一致するハンドラを探す ===
+            foreach (var handler in targetHandlers)
             {
-                yield return PlayAnimation(fromScreenMatchHandlers);
+                if (handler.IsMatchFromScreenName(fromScreenName) && string.IsNullOrEmpty(handler.ToScreenName))
+                {
+                    conditionMatchHandlers.Add(handler);
+                }
+            }
+
+            if (conditionMatchHandlers.Count > 0)
+            {
+                yield return PlayAnimation(conditionMatchHandlers);
                 yield break;
             }
 
-            // 遷移先のScreenの条件が一致している遷移アニメーションを再生
-            var toScreenMatchHandlers = handlers
-                .Where(x => string.IsNullOrEmpty(x.FromScreenName))
-                .MatchToScreenClassType(toScreenClassType)
-                .ToArray();
-            if (toScreenMatchHandlers.Length > 0)
+            // === 遷移先のScreen名に一致するハンドラを探す ===
+            foreach (var handler in targetHandlers)
             {
-                yield return PlayAnimation(toScreenMatchHandlers);
+                if (handler.IsMatchToScreenName(toScreenName) && string.IsNullOrEmpty(handler.FromScreenName))
+                {
+                    conditionMatchHandlers.Add(handler);
+                }
+            }
+
+            if (conditionMatchHandlers.Count > 0)
+            {
+                yield return PlayAnimation(conditionMatchHandlers);
                 yield break;
             }
-            
-            // 条件なしの遷移アニメーションの再生
-            var defaultHandlers = handlers
-                .Where(x => string.IsNullOrEmpty(x.FromScreenName))
-                .Where(x => string.IsNullOrEmpty(x.ToScreenName))
-                .ToArray();
-            if (defaultHandlers.Length > 0) yield return PlayAnimation(defaultHandlers);
+
+            // === デフォルトハンドラを探す ===
+            foreach (var handler in targetHandlers)
+            {
+                if (string.IsNullOrEmpty(handler.FromScreenName) && string.IsNullOrEmpty(handler.ToScreenName))
+                {
+                    conditionMatchHandlers.Add(handler);
+                }
+            }
+
+            if (conditionMatchHandlers.Count > 0)
+            {
+                yield return PlayAnimation(conditionMatchHandlers);
+                yield break;
+            }
         }
 
-        private IEnumerator PlayAnimation(INavigatorAnimation[] handlers)
+        private IEnumerator PlayAnimation(List<INavigatorAnimation> handlers)
         {
-            var count = handlers.Length;
+            var count = handlers.Count;
             foreach (var handler in handlers) handler.Play(() => count--);
 
-            yield return new WaitUntil(() => count == 0);
+            while (count != 0)
+            {
+                yield return null;
+            }
         }
-        
-        private void Evaluate(IEnumerable<INavigatorAnimation> handlers, float t)
+
+        private void Evaluate(List<INavigatorAnimation> handlers, float t)
         {
             foreach (var handler in handlers) handler.Evaluate(t);
+        }
+
+        [CanBeNull]
+        private string GetScreenTypeName([CanBeNull] IScreen screen)
+        {
+            if (screen == null) return null;
+
+            var type = screen.GetType();
+            if (ScreenTypeToNameCache.TryGetValue(type, out var screenName))
+            {
+                return screenName;
+            }
+
+            screenName = type.Name;
+            ScreenTypeToNameCache[type] = screenName;
+            return screenName;
         }
 
         #endregion
 
         #region Unity events
 
-        private void Awake() => _animationHandlers =
-            GetComponentsInChildren<INavigatorAnimation>();
+        private void Awake()
+        {
+            _animationHandlers = GetComponentsInChildren<INavigatorAnimation>();
+        }
 
         #endregion
     }

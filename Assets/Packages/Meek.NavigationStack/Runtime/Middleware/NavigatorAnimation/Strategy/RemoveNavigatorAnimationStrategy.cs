@@ -1,6 +1,4 @@
 using System.Collections;
-using System.Linq;
-using UnityEngine;
 using UnityEngine.Scripting;
 
 namespace Meek.NavigationStack
@@ -25,11 +23,11 @@ namespace Meek.NavigationStack
             return PlayRemoveAnimationRoutine(context);
         }
 
-        private IEnumerator PlayRemoveAnimationRoutine(NavigationContext context)
+        protected virtual IEnumerator PlayRemoveAnimationRoutine(StackNavigationContext context)
         {
-            var removeScreen = context.GetFeatureValue<StackScreen>(StackNavigationContextFeatureDefine.RemoveScreen);
-            var beforeScreen = context.GetFeatureNullableValue<StackScreen>(StackNavigationContextFeatureDefine.RemoveBeforeScreen);
-            var afterScreen = context.GetFeatureNullableValue<StackScreen>(StackNavigationContextFeatureDefine.RemoveAfterScreen);
+            var removeScreen = context.GetRemoveScreen();
+            var beforeScreen = context.GetRemoveBeforeScreen();
+            var afterScreen = context.GetRemoveAfterScreen();
 
             if (afterScreen != null && beforeScreen == null)
             {
