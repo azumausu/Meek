@@ -102,7 +102,6 @@ namespace Meek.MVP
         {
             var toScreen = context.ToScreen as StackScreen ?? throw new InvalidOperationException();
 
-
             // === ScreenUI Middleware ===
             context.ToScreen?.Initialize(context);
 
@@ -179,7 +178,7 @@ namespace Meek.MVP
 
         protected virtual async ValueTask RemoveAsync(StackNavigationContext context)
         {
-            var removeScreen = context.GetRemoveScreen() as StackScreen ?? throw new InvalidOperationException();
+            var removeScreen = context.GetRemoveScreen() ?? throw new InvalidOperationException();
 
 
             // === Screen Lifecycle Event ===
@@ -257,8 +256,7 @@ namespace Meek.MVP
             if (strategy != null)
             {
                 var tcs = new TaskCompletionSource<bool>();
-                _coroutineRunner.StartCoroutineWithCallback(strategy.PlayAnimationRoutine(context),
-                    () => tcs.SetResult(true));
+                _coroutineRunner.StartCoroutineWithCallback(strategy.PlayAnimationRoutine(context), () => tcs.SetResult(true));
                 await tcs.Task;
             }
         }

@@ -43,9 +43,8 @@ namespace Meek.NavigationStack
         {
             using var poolDisposable = DictionaryPool<string, object>.Get(out var features);
 
-            var fromScreen = _stackNavigator.ScreenContainer.Screens.FirstOrDefault();
-            var toScreen = _serviceProvider.GetService(screenClassType) as IScreen
-                           ?? throw new ArgumentException();
+            var fromScreen = _stackNavigator.ScreenContainer.Screens.FirstOrDefault() as StackScreen;
+            var toScreen = _serviceProvider.GetService(screenClassType) as StackScreen;
 
             var context = new StackNavigationContext()
             {
