@@ -7,75 +7,166 @@ namespace Meek.NavigationStack
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void ScreenWillStart(this EventHolder self, Action action) => self.RegisterActionEvent(
-            ScreenLifecycleEvent.ScreenWillStart.ToString(),
+            nameof(ScreenLifecycleEvent.ScreenWillStart),
             action
         );
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ScreenWillStart(this EventHolder self, Func<global::System.Threading.Tasks.Task> function) => self.RegisterTaskEvent(
-            ScreenLifecycleEvent.ScreenWillStart.ToString(),
-            function
+        public static void ScreenWillStart(this EventHolder self, Action<StackNavigationContext> action) => self.RegisterActionEvent(
+            nameof(ScreenLifecycleEvent.ScreenWillStart),
+            action
         );
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void ScreenWillStart(this EventHolder self, Func<global::System.Threading.Tasks.Task> function) =>
+            self.RegisterTaskEvent(
+                nameof(ScreenLifecycleEvent.ScreenWillStart),
+                function
+            );
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void ScreenWillStart(
+            this EventHolder self,
+            Func<StackNavigationContext, global::System.Threading.Tasks.Task> function
+        ) =>
+            self.RegisterTaskEvent(
+                nameof(ScreenLifecycleEvent.ScreenWillStart),
+                function
+            );
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void ScreenDidStart(this EventHolder self, Action action) => self.RegisterActionEvent(
-            ScreenLifecycleEvent.ScreenDidStart.ToString(),
+            nameof(ScreenLifecycleEvent.ScreenDidStart),
+            action
+        );
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void ScreenDidStart(this EventHolder self, Action<StackNavigationContext> action) => self.RegisterActionEvent(
+            nameof(ScreenLifecycleEvent.ScreenDidStart),
             action
         );
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void ScreenWillPause(this EventHolder self, Action action) => self.RegisterActionEvent(
-            ScreenLifecycleEvent.ScreenWillPause.ToString(),
+            nameof(ScreenLifecycleEvent.ScreenWillPause),
+            action
+        );
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void ScreenWillPause(this EventHolder self, Action<StackNavigationContext> action) => self.RegisterActionEvent(
+            nameof(ScreenLifecycleEvent.ScreenWillPause),
             action
         );
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void ScreenDidPause(this EventHolder self, Action action) => self.RegisterActionEvent(
-            ScreenLifecycleEvent.ScreenDidPause.ToString(),
+            nameof(ScreenLifecycleEvent.ScreenDidPause),
             action
         );
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ScreenDidPause(this EventHolder self, Func<global::System.Threading.Tasks.Task> function) => self.RegisterTaskEvent(
-            ScreenLifecycleEvent.ScreenDidPause.ToString(),
-            function
+        public static void ScreenDidPause(this EventHolder self, Action<StackNavigationContext> action) => self.RegisterActionEvent(
+            nameof(ScreenLifecycleEvent.ScreenDidPause),
+            action
         );
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void ScreenDidPause(this EventHolder self, Func<global::System.Threading.Tasks.Task> function) =>
+            self.RegisterTaskEvent(
+                nameof(ScreenLifecycleEvent.ScreenDidPause),
+                function
+            );
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void ScreenDidPause(
+            this EventHolder self,
+            Func<StackNavigationContext, global::System.Threading.Tasks.Task> function
+        ) =>
+            self.RegisterTaskEvent(
+                nameof(ScreenLifecycleEvent.ScreenDidPause),
+                function
+            );
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void ScreenWillResume(this EventHolder self, Action action) => self.RegisterActionEvent(
-            ScreenLifecycleEvent.ScreenWillResume.ToString(),
+            nameof(ScreenLifecycleEvent.ScreenWillResume),
             action
         );
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ScreenWillResume(this EventHolder self, Func<global::System.Threading.Tasks.Task> function) => self.RegisterTaskEvent(
-            ScreenLifecycleEvent.ScreenWillResume.ToString(),
-            function
+        public static void ScreenWillResume(this EventHolder self, Action<StackNavigationContext> action) => self.RegisterActionEvent(
+            nameof(ScreenLifecycleEvent.ScreenWillResume),
+            action
         );
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void ScreenWillResume(this EventHolder self, Func<global::System.Threading.Tasks.Task> function) =>
+            self.RegisterTaskEvent(
+                nameof(ScreenLifecycleEvent.ScreenWillResume),
+                function
+            );
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void ScreenWillResume(
+            this EventHolder self,
+            Func<StackNavigationContext, global::System.Threading.Tasks.Task> function
+        ) =>
+            self.RegisterTaskEvent(
+                nameof(ScreenLifecycleEvent.ScreenWillResume),
+                function
+            );
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void ScreenDidResume(this EventHolder self, Action action) => self.RegisterActionEvent(
-            ScreenLifecycleEvent.ScreenDidResume.ToString(),
+            nameof(ScreenLifecycleEvent.ScreenDidResume),
+            action
+        );
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void ScreenDidResume(this EventHolder self, Action<StackNavigationContext> action) => self.RegisterActionEvent(
+            nameof(ScreenLifecycleEvent.ScreenDidResume),
             action
         );
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void ScreenWillDestroy(this EventHolder self, Action action) => self.RegisterActionEvent(
-            ScreenLifecycleEvent.ScreenWillDestroy.ToString(), 
+            nameof(ScreenLifecycleEvent.ScreenWillDestroy),
+            action
+        );
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void ScreenWillDestroy(this EventHolder self, Action<StackNavigationContext> action) => self.RegisterActionEvent(
+            nameof(ScreenLifecycleEvent.ScreenWillDestroy),
             action
         );
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void ScreenDidDestroy(this EventHolder self, Action action) => self.RegisterActionEvent(
-            ScreenLifecycleEvent.ScreenDidDestroy.ToString(),
+            nameof(ScreenLifecycleEvent.ScreenDidDestroy),
             action
         );
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ScreenDidDestroy(this EventHolder self, Func<global::System.Threading.Tasks.Task> function) => self.RegisterTaskEvent(
-            ScreenLifecycleEvent.ScreenDidDestroy.ToString(),
-            function
+        public static void ScreenDidDestroy(this EventHolder self, Action<StackNavigationContext> action) => self.RegisterActionEvent(
+            nameof(ScreenLifecycleEvent.ScreenDidDestroy),
+            action
         );
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void ScreenDidDestroy(this EventHolder self, Func<global::System.Threading.Tasks.Task> function) =>
+            self.RegisterTaskEvent(
+                nameof(ScreenLifecycleEvent.ScreenDidDestroy),
+                function
+            );
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void ScreenDidDestroy(
+            this EventHolder self,
+            Func<StackNavigationContext, global::System.Threading.Tasks.Task> function
+        ) =>
+            self.RegisterTaskEvent(
+                nameof(ScreenLifecycleEvent.ScreenDidDestroy),
+                function
+            );
     }
 }

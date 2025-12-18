@@ -1,6 +1,5 @@
 using System;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Pool;
@@ -11,9 +10,22 @@ namespace Meek.NavigationStack
     {
         private readonly INavigator _stackNavigator;
         private readonly IServiceProvider _serviceProvider;
-        private readonly SemaphoreSlim _semaphoreSlim = new SemaphoreSlim(1, 1);
+        private event Func<StackNavigationContext, ValueTask> _willNavigate;
+        private event Func<StackNavigationContext, ValueTask> _didNavigate;
 
         public IScreenContainer ScreenContainer => _stackNavigator.ScreenContainer;
+
+        public event Func<StackNavigationContext, ValueTask> OnWillNavigate
+        {
+            add => _willNavigate += value;
+            remove => _willNavigate -= value;
+        }
+
+        public event Func<StackNavigationContext, ValueTask> OnDidNavigate
+        {
+            add => _didNavigate += value;
+            remove => _didNavigate -= value;
+        }
 
         public StackNavigationService(INavigator stackNavigator, IServiceProvider serviceProvider)
         {
@@ -29,78 +41,66 @@ namespace Meek.NavigationStack
 
         public async Task PushAsync(Type screenClassType, PushContext pushContext)
         {
-            await _semaphoreSlim.WaitAsync();
+            using var poolDisposable = DictionaryPool<string, object>.Get(out var features);
+
+            var fromScreen = _stackNavigator.ScreenContainer.Screens.FirstOrDefault();
+            var toScreen = _serviceProvider.GetService(screenClassType) as IScreen
+                           ?? throw new ArgumentException();
+
+            var context = new StackNavigationContext()
+            {
+                NavigatingSourceType = StackNavigationSourceType.Push,
+                IsCrossFade = pushContext.IsCrossFade,
+                SkipAnimation = pushContext.SkipAnimation,
+                Features = features,
+                FromScreen = fromScreen,
+                ToScreen = toScreen,
+                AppServices = _serviceProvider,
+            };
+            context.SetNextScreenParameter(pushContext.NextScreenParameter);
+
             try
             {
-                using var poolDisposable = DictionaryPool<string, object>.Get(out var features);
-
-                features.Add(StackNavigationContextFeatureDefine.NextScreenParameter, pushContext.NextScreenParameter);
-
-                var fromScreen = _stackNavigator.ScreenContainer.Screens.FirstOrDefault();
-                var toScreen = _serviceProvider.GetService(screenClassType) as IScreen
-                               ?? throw new ArgumentException();
-
-                var context = new StackNavigationContext()
-                {
-                    NavigatingSourceType = StackNavigationSourceType.Push,
-                    IsCrossFade = pushContext.IsCrossFade,
-                    SkipAnimation = pushContext.SkipAnimation,
-                    Features = features,
-                    FromScreen = fromScreen,
-                    ToScreen = toScreen,
-                    AppServices = _serviceProvider,
-                };
-
-                try
-                {
-                    await _stackNavigator.NavigateAsync(context);
-                }
-                catch
-                {
-                    if (toScreen is IDisposable disposable) disposable.Dispose();
-                    if (toScreen is IAsyncDisposable asyncDisposable) await asyncDisposable.DisposeAsync();
-                    throw;
-                }
+                await InvokeWillNavigateAsync(context);
+                await _stackNavigator.NavigateAsync(context);
+                await InvokeDidNavigateAsync(context);
             }
-            finally
+            catch
             {
-                _semaphoreSlim.Release();
+                if (toScreen is IDisposable disposable) disposable.Dispose();
+                if (toScreen is IAsyncDisposable asyncDisposable) await asyncDisposable.DisposeAsync();
+                throw;
             }
         }
 
         public async Task<bool> PopAsync(PopContext popContext)
         {
-            await _semaphoreSlim.WaitAsync();
-            try
+            using var poolDisposable = DictionaryPool<string, object>.Get(out var features);
+
+            var fromScreen = _stackNavigator.ScreenContainer.GetPeekScreen();
+            var toScreen = _stackNavigator.ScreenContainer.Screens.Skip(1).FirstOrDefault();
+
+            if (popContext.UseOnlyWhenScreen)
             {
-                using var poolDisposable = DictionaryPool<string, object>.Get(out var features);
-
-                var fromScreen = _stackNavigator.ScreenContainer.GetPeekScreen();
-                var toScreen = _stackNavigator.ScreenContainer.Screens.Skip(1).FirstOrDefault();
-
-                if (popContext.UseOnlyWhenScreen)
-                {
-                    if (popContext.OnlyWhenScreen != fromScreen) return false;
-                }
-
-                var context = new StackNavigationContext()
-                {
-                    NavigatingSourceType = StackNavigationSourceType.Pop,
-                    IsCrossFade = popContext.IsCrossFade,
-                    SkipAnimation = popContext.SkipAnimation,
-                    Features = features,
-                    FromScreen = fromScreen,
-                    ToScreen = toScreen,
-                    AppServices = _serviceProvider,
-                };
-
-                await _stackNavigator.NavigateAsync(context);
-                return true;
+                if (popContext.OnlyWhenScreen != fromScreen) return false;
             }
-            finally
+
+            var context = new StackNavigationContext()
             {
-                _semaphoreSlim.Release();
-            }
+                NavigatingSourceType = StackNavigationSourceType.Pop,
+                IsCrossFade = popContext.IsCrossFade,
+                SkipAnimation = popContext.SkipAnimation,
+                Features = features,
+                FromScreen = fromScreen,
+                ToScreen = toScreen,
+                AppServices = _serviceProvider,
+            };
+
+            await InvokeWillNavigateAsync(context);
+            await _stackNavigator.NavigateAsync(context);
+            await InvokeDidNavigateAsync(context);
+
+            return true;
         }
 
         /// <summary>
@@ -141,44 +141,37 @@ namespace Meek.NavigationStack
                 return;
             }
 
-            await _semaphoreSlim.WaitAsync();
+            using var poolDisposable = DictionaryPool<string, object>.Get(out var features);
+
+            var insertionScreen = _serviceProvider.GetService(insertionScreenClassType) as IScreen
+                                  ?? throw new ArgumentException();
+
+            var context = new StackNavigationContext()
+            {
+                NavigatingSourceType = StackNavigationSourceType.Insert,
+                IsCrossFade = insertionContext.IsCrossFade,
+                SkipAnimation = insertionContext.SkipAnimation,
+                Features = features,
+                FromScreen = fromScreen,
+                ToScreen = fromScreen,
+                AppServices = _serviceProvider,
+            };
+            context.SetNextScreenParameter(insertionContext.NextScreenParameter);
+            context.SetInsertionBeforeScreen((beforeScreen as StackScreen));
+            context.SetInsertionScreen((insertionScreen as StackScreen));
+
+
             try
             {
-                using var poolDisposable = DictionaryPool<string, object>.Get(out var features);
-
-                var insertionScreen = _serviceProvider.GetService(insertionScreenClassType) as IScreen
-                                      ?? throw new ArgumentException();
-
-                features.Add(StackNavigationContextFeatureDefine.InsertionBeforeScreen, beforeScreen);
-                features.Add(StackNavigationContextFeatureDefine.InsertionScreen, insertionScreen);
-                features.Add(StackNavigationContextFeatureDefine.NextScreenParameter, insertionContext.NextScreenParameter);
-
-                var context = new StackNavigationContext()
-                {
-                    NavigatingSourceType = StackNavigationSourceType.Insert,
-                    IsCrossFade = insertionContext.IsCrossFade,
-                    SkipAnimation = insertionContext.SkipAnimation,
-                    Features = features,
-                    FromScreen = fromScreen,
-                    // insertionの時は
-                    ToScreen = fromScreen,
-                    AppServices = _serviceProvider,
-                };
-
-                try
-                {
-                    await _stackNavigator.NavigateAsync(context);
-                }
-                catch
-                {
-                    if (insertionScreen is IDisposable disposable) disposable.Dispose();
-                    if (insertionScreen is IAsyncDisposable asyncDisposable) await asyncDisposable.DisposeAsync();
-                    throw;
-                }
+                await InvokeWillNavigateAsync(context);
+                await _stackNavigator.NavigateAsync(context);
+                await InvokeDidNavigateAsync(context);
             }
-            finally
+            catch
             {
-                _semaphoreSlim.Release();
+                if (insertionScreen is IDisposable disposable) disposable.Dispose();
+                if (insertionScreen is IAsyncDisposable asyncDisposable) await asyncDisposable.DisposeAsync();
+                throw;
             }
         }
 
@@ -215,33 +208,26 @@ namespace Meek.NavigationStack
                 return;
             }
 
-            await _semaphoreSlim.WaitAsync();
-            try
+            using var poolDisposable = DictionaryPool<string, object>.Get(out var features);
+            var beforeScreen = _stackNavigator.ScreenContainer.GetScreenBefore(removeScreen);
+            var afterScreen = _stackNavigator.ScreenContainer.GetScreenAfter(removeScreen);
+            var context = new StackNavigationContext()
             {
-                using var poolDisposable = DictionaryPool<string, object>.Get(out var features);
-                var beforeScreen = _stackNavigator.ScreenContainer.GetScreenBefore(removeScreen);
-                var afterScreen = _stackNavigator.ScreenContainer.GetScreenAfter(removeScreen);
-                features.Add(StackNavigationContextFeatureDefine.RemoveScreen, removeScreen);
-                features.Add(StackNavigationContextFeatureDefine.RemoveBeforeScreen, beforeScreen);
-                features.Add(StackNavigationContextFeatureDefine.RemoveAfterScreen, afterScreen);
+                NavigatingSourceType = StackNavigationSourceType.Remove,
+                IsCrossFade = false,
+                SkipAnimation = false,
+                Features = features,
+                FromScreen = fromScreen,
+                ToScreen = fromScreen,
+                AppServices = _serviceProvider,
+            };
+            context.SetRemoveScreen((removeScreen as StackScreen));
+            context.SetRemoveAfterScreen((afterScreen as StackScreen));
+            context.SetRemoveBeforeScreen((beforeScreen as StackScreen));
 
-                var context = new StackNavigationContext()
-                {
-                    NavigatingSourceType = StackNavigationSourceType.Remove,
-                    IsCrossFade = false,
-                    SkipAnimation = false,
-                    Features = features,
-                    FromScreen = fromScreen,
-                    ToScreen = fromScreen,
-                    AppServices = _serviceProvider,
-                };
-
-                await _stackNavigator.NavigateAsync(context);
-            }
-            finally
-            {
-                _semaphoreSlim.Release();
-            }
+            await InvokeWillNavigateAsync(context);
+            await _stackNavigator.NavigateAsync(context);
+            await InvokeDidNavigateAsync(context);
         }
 
         public void Dispatch<T>(T args)
@@ -301,6 +287,22 @@ namespace Meek.NavigationStack
         {
             var peekScreen = _stackNavigator.ScreenContainer.GetPeekScreen();
             return peekScreen == screen;
+        }
+
+        private async ValueTask InvokeWillNavigateAsync(StackNavigationContext context)
+        {
+            if (_willNavigate != null)
+            {
+                await _willNavigate.Invoke(context);
+            }
+        }
+
+        private async ValueTask InvokeDidNavigateAsync(StackNavigationContext context)
+        {
+            if (_didNavigate != null)
+            {
+                await _didNavigate.Invoke(context);
+            }
         }
     }
 }

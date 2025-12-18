@@ -23,9 +23,9 @@ namespace Meek.NavigationStack
             return PlayInsertAnimationRoutine(context);
         }
 
-        private IEnumerator PlayInsertAnimationRoutine(NavigationContext context)
+        protected virtual IEnumerator PlayInsertAnimationRoutine(StackNavigationContext context)
         {
-            var insertionScreen = context.GetFeatureValue<StackScreen>(StackNavigationContextFeatureDefine.InsertionScreen);
+            var insertionScreen = context.GetInsertionScreen();
             var beforeScreen = _screenContainer.GetScreenBefore(insertionScreen) as StackScreen;
 
             if (beforeScreen is { ScreenUIType: ScreenUIType.FullScreen }) insertionScreen.UI.SetVisible(false);

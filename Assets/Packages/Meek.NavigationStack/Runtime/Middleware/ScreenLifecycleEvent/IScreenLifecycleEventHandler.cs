@@ -4,12 +4,12 @@ namespace Meek.NavigationStack
 {
     public interface IScreenLifecycleEventHandler
     {
-        ValueTask StartingImplAsync(NavigationContext context);
+        ValueTask StartingImplAsync(StackNavigationContext context);
 
-        ValueTask ResumingImplAsync(NavigationContext context);
+        ValueTask ResumingImplAsync(StackNavigationContext context);
 
-        ValueTask PausingImplAsync(NavigationContext context);
-        
-        ValueTask DestroyingImplAsync(NavigationContext context); 
+        ValueTask PausingImplAsync(StackNavigationContext context);
+
+        ValueTask DestroyingImplAsync(StackNavigationContext context);
     }
 }

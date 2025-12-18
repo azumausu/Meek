@@ -16,11 +16,12 @@ namespace Meek.NavigationStack
 
             try
             {
+                var stackContext = context.ToStackNavigationContext();
                 var fromScreenEventHandler = context.FromScreen as IScreenNavigatorEventHandler;
                 var toScreenEventHandler = context.ToScreen as IScreenNavigatorEventHandler;
 
-                fromScreenEventHandler?.ScreenWillNavigate(context);
-                toScreenEventHandler?.ScreenWillNavigate(context);
+                fromScreenEventHandler?.ScreenWillNavigate(stackContext);
+                toScreenEventHandler?.ScreenWillNavigate(stackContext);
 
                 try
                 {
@@ -28,8 +29,8 @@ namespace Meek.NavigationStack
                 }
                 finally
                 {
-                    toScreenEventHandler?.ScreenDidNavigate(context);
-                    fromScreenEventHandler?.ScreenDidNavigate(context);
+                    toScreenEventHandler?.ScreenDidNavigate(stackContext);
+                    fromScreenEventHandler?.ScreenDidNavigate(stackContext);
                 }
             }
             finally

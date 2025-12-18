@@ -45,8 +45,8 @@ namespace Meek.NavigationStack
 
             _interactableLocks.Push(UI.LockInteractable());
 
-            ScreenEventInvoker.Invoke(ScreenLifecycleEvent.ScreenWillStart);
-            await ScreenEventInvoker.InvokeAsync(ScreenLifecycleEvent.ScreenWillStart);
+            ScreenEventInvoker.Invoke(ScreenLifecycleEvent.ScreenWillStart, context);
+            await ScreenEventInvoker.InvokeAsync(ScreenLifecycleEvent.ScreenWillStart, context);
 
             var tcs = new TaskCompletionSource<bool>();
             if (UI.IsLoaded) tcs.SetResult(true);
@@ -59,27 +59,27 @@ namespace Meek.NavigationStack
             await tcs.Task;
 
             UI.SetOpenAniationStartTime(context);
-            ScreenEventInvoker.Invoke(ScreenViewEvent.ViewWillSetup);
+            ScreenEventInvoker.Invoke(ScreenViewEvent.ViewWillSetup, context);
             UI.Setup(context);
-            ScreenEventInvoker.Invoke(ScreenViewEvent.ViewDidSetup);
+            ScreenEventInvoker.Invoke(ScreenViewEvent.ViewDidSetup, context);
         }
 
         protected virtual async ValueTask ResumingImplAsync(StackNavigationContext context)
         {
-            ScreenEventInvoker.Invoke(ScreenLifecycleEvent.ScreenWillResume);
-            await ScreenEventInvoker.InvokeAsync(ScreenLifecycleEvent.ScreenWillResume);
+            ScreenEventInvoker.Invoke(ScreenLifecycleEvent.ScreenWillResume, context);
+            await ScreenEventInvoker.InvokeAsync(ScreenLifecycleEvent.ScreenWillResume, context);
         }
 
         protected virtual async ValueTask PausingImplAsync(StackNavigationContext context)
         {
-            ScreenEventInvoker.Invoke(ScreenLifecycleEvent.ScreenDidPause);
-            await ScreenEventInvoker.InvokeAsync(ScreenLifecycleEvent.ScreenDidPause);
+            ScreenEventInvoker.Invoke(ScreenLifecycleEvent.ScreenDidPause, context);
+            await ScreenEventInvoker.InvokeAsync(ScreenLifecycleEvent.ScreenDidPause, context);
         }
 
         protected virtual async ValueTask DestroyingImplAsync(StackNavigationContext context)
         {
-            ScreenEventInvoker.Invoke(ScreenLifecycleEvent.ScreenDidDestroy);
-            await ScreenEventInvoker.InvokeAsync(ScreenLifecycleEvent.ScreenDidDestroy);
+            ScreenEventInvoker.Invoke(ScreenLifecycleEvent.ScreenDidDestroy, context);
+            await ScreenEventInvoker.InvokeAsync(ScreenLifecycleEvent.ScreenDidDestroy, context);
 
             if (AutoDisposeLockerOnDestroy)
             {
@@ -98,12 +98,12 @@ namespace Meek.NavigationStack
 
             if (context.FromScreen == this && context.NavigatingSourceType == StackNavigationSourceType.Pop)
             {
-                ScreenEventInvoker.Invoke(ScreenLifecycleEvent.ScreenWillDestroy);
+                ScreenEventInvoker.Invoke(ScreenLifecycleEvent.ScreenWillDestroy, context);
             }
 
             if (context.FromScreen == this && context.NavigatingSourceType == StackNavigationSourceType.Push)
             {
-                ScreenEventInvoker.Invoke(ScreenLifecycleEvent.ScreenWillPause);
+                ScreenEventInvoker.Invoke(ScreenLifecycleEvent.ScreenWillPause, context);
                 _interactableLocks.Push(UI.LockInteractable());
             }
         }
@@ -125,7 +125,7 @@ namespace Meek.NavigationStack
                 };
 
                 _interactableLocks.Pop().Dispose();
-                ScreenEventInvoker.Invoke(stateEvent);
+                ScreenEventInvoker.Invoke(stateEvent, context);
             }
         }
 
@@ -145,40 +145,34 @@ namespace Meek.NavigationStack
             UI = stackContext.AppServices.GetService<ScreenUI>();
         }
 
-        ValueTask IScreenLifecycleEventHandler.StartingImplAsync(NavigationContext context)
+        ValueTask IScreenLifecycleEventHandler.StartingImplAsync(StackNavigationContext context)
         {
-            var stackContext = context.ToStackNavigationContext();
-            return StartingImplAsync(stackContext);
+            return StartingImplAsync(context);
         }
 
-        ValueTask IScreenLifecycleEventHandler.ResumingImplAsync(NavigationContext context)
+        ValueTask IScreenLifecycleEventHandler.ResumingImplAsync(StackNavigationContext context)
         {
-            var stackContext = context.ToStackNavigationContext();
-            return ResumingImplAsync(stackContext);
+            return ResumingImplAsync(context);
         }
 
-        ValueTask IScreenLifecycleEventHandler.PausingImplAsync(NavigationContext context)
+        ValueTask IScreenLifecycleEventHandler.PausingImplAsync(StackNavigationContext context)
         {
-            var stackContext = context.ToStackNavigationContext();
-            return PausingImplAsync(stackContext);
+            return PausingImplAsync(context);
         }
 
-        ValueTask IScreenLifecycleEventHandler.DestroyingImplAsync(NavigationContext context)
+        ValueTask IScreenLifecycleEventHandler.DestroyingImplAsync(StackNavigationContext context)
         {
-            var stackContext = context.ToStackNavigationContext();
-            return DestroyingImplAsync(stackContext);
+            return DestroyingImplAsync(context);
         }
 
-        void IScreenNavigatorEventHandler.ScreenWillNavigate(NavigationContext context)
+        void IScreenNavigatorEventHandler.ScreenWillNavigate(StackNavigationContext context)
         {
-            var stackContext = context.ToStackNavigationContext();
-            ScreenWillNavigate(stackContext);
+            ScreenWillNavigate(context);
         }
 
-        void IScreenNavigatorEventHandler.ScreenDidNavigate(NavigationContext context)
+        void IScreenNavigatorEventHandler.ScreenDidNavigate(StackNavigationContext context)
         {
-            var stackContext = context.ToStackNavigationContext();
-            ScreenDidNavigate(stackContext);
+            ScreenDidNavigate(context);
         }
 
         [CanBeNull]

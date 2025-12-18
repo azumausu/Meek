@@ -30,7 +30,7 @@ namespace Meek.NavigationStack
             return PushTransition(context);
         }
 
-        private IEnumerator PushTransition(StackNavigationContext context)
+        protected virtual IEnumerator PushTransition(StackNavigationContext context)
         {
             var toScreenType = context.ToScreen.GetType();
             var fromScreenType = context.FromScreen?.GetType();
@@ -38,10 +38,6 @@ namespace Meek.NavigationStack
             var fromScreen = context.FromScreen as StackScreen;
             var skipAnimation = context.SkipAnimation;
             var isCrossFade = context.IsCrossFade;
-
-            // TODO: 失敗のハンドリングは後ほど検討
-            // // 次Screenの初期化に失敗した場合は遷移時のUIの表示は何も変更しない。
-            // if (toScreen.IsInitializationFailed) yield break;
 
             // Noneの場合はイベントだけ発行して終了
             if (toScreen!.ScreenUIType == ScreenUIType.None) yield break;

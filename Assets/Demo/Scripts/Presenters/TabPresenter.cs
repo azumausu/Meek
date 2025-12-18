@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Meek;
 using Meek.MVP;
 using Meek.UGUI;
 using UniRx;
@@ -82,57 +81,26 @@ namespace Demo
 
         protected override async Task LoadAsync(TabModel model)
         {
-            var homeApp = MVPApplication.CreateApp(
-                new MVPApplicationOption()
-                {
-                    ContainerBuilderFactory = x => new VContainerServiceCollection(x),
-                    InputLocker = homeDefaultInputLocker,
-                    PrefabViewManager = homeDefaultPrefabViewManager,
-                    Parent = model.AppServices,
-                },
-                x => { x.AddTransient<HomeScreen>(); }
-            );
-            homeApp.AddTo(this);
-            await homeApp.RunAsync<HomeScreen>();
-
-            var searchApp = MVPApplication.CreateApp(
-                new MVPApplicationOption()
-                {
-                    ContainerBuilderFactory = x => new VContainerServiceCollection(x),
-                    InputLocker = searchDefaultInputLocker,
-                    PrefabViewManager = searchDefaultPrefabViewManager,
-                    Parent = model.AppServices,
-                },
-                x => { x.AddTransient<SearchScreen>(); }
-            );
-            searchApp.AddTo(this);
-            await searchApp.RunAsync<SearchScreen>();
-
-            var favoritesApp = MVPApplication.CreateApp(
-                new MVPApplicationOption()
-                {
-                    ContainerBuilderFactory = x => new VContainerServiceCollection(x),
-                    InputLocker = favoritesDefaultInputLocker,
-                    PrefabViewManager = favoritesDefaultPrefabViewManager,
-                    Parent = model.AppServices,
-                },
-                x => { x.AddTransient<FavoritesScreen>(); }
-            );
-            favoritesApp.AddTo(this);
-            await favoritesApp.RunAsync<FavoritesScreen>();
-
-            var profileApp = MVPApplication.CreateApp(
-                new MVPApplicationOption()
-                {
-                    ContainerBuilderFactory = x => new VContainerServiceCollection(x),
-                    InputLocker = profileDefaultInputLocker,
-                    PrefabViewManager = profileDefaultPrefabViewManager,
-                    Parent = model.AppServices,
-                },
-                x => { x.AddTransient<ProfileScreen>(); }
-            );
-            profileApp.AddTo(this);
-            await profileApp.RunAsync<ProfileScreen>();
+            var homeServices = await new VContainerServiceCollection(model.AppServices)
+                .AddMeekMvp(new MvpNavigatorOptions()
+                    { InputLocker = homeDefaultInputLocker, PrefabViewManager = homeDefaultPrefabViewManager })
+                .BuildAndRunMeekMvpAsync<HomeScreen>();
+            homeServices.AddTo(this);
+            var searchServices = await new VContainerServiceCollection(model.AppServices)
+                .AddMeekMvp(new MvpNavigatorOptions()
+                    { InputLocker = searchDefaultInputLocker, PrefabViewManager = searchDefaultPrefabViewManager })
+                .BuildAndRunMeekMvpAsync<SearchScreen>();
+            searchServices.AddTo(this);
+            var favoritesServices = await new VContainerServiceCollection(model.AppServices)
+                .AddMeekMvp(new MvpNavigatorOptions()
+                    { InputLocker = favoritesDefaultInputLocker, PrefabViewManager = favoritesDefaultPrefabViewManager })
+                .BuildAndRunMeekMvpAsync<FavoritesScreen>();
+            favoritesServices.AddTo(this);
+            var profileServices = await new VContainerServiceCollection(model.AppServices)
+                .AddMeekMvp(new MvpNavigatorOptions()
+                    { InputLocker = profileDefaultInputLocker, PrefabViewManager = profileDefaultPrefabViewManager })
+                .BuildAndRunMeekMvpAsync<ProfileScreen>();
+            profileServices.AddTo(this);
         }
     }
 }

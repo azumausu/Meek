@@ -6,7 +6,12 @@ namespace Meek.NavigationStack
 {
     public static class ScreenEventActionExtension
     {
-        public static void Invoke(this IEnumerable<ScreenActionEvent> self, string eventName, bool suppressException)
+        public static void Invoke(
+            this IEnumerable<ScreenActionEvent> self,
+            string eventName,
+            StackNavigationContext context,
+            bool suppressException
+        )
         {
             foreach (var entry in self)
             {
@@ -14,7 +19,7 @@ namespace Meek.NavigationStack
 
                 try
                 {
-                    entry.Action.Invoke();
+                    entry.Action.Invoke(context);
                 }
                 catch (Exception e)
                 {

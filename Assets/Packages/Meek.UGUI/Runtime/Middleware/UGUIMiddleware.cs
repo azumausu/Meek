@@ -30,9 +30,8 @@ namespace Meek.UGUI
 
             if (stackContext.NavigatingSourceType == StackNavigationSourceType.Insert)
             {
-                var insertionScreen = stackContext.GetFeatureValue<IScreen>(StackNavigationContextFeatureDefine.InsertionScreen);
-                if (insertionScreen is not StackScreen insertionUIScreen) throw new InvalidOperationException();
-                stackScreen = insertionUIScreen;
+                var insertionScreen = stackContext.GetInsertionScreen();
+                stackScreen = insertionScreen;
             }
 
 

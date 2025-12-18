@@ -21,13 +21,25 @@ namespace Meek.NavigationStack
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void RegisterActionEvent(string eventName, Action action)
         {
+            _screenActionEvents.Add(new ScreenActionEvent { EventName = eventName, Action = x => action.Invoke(), });
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void RegisterActionEvent(string eventName, Action<StackNavigationContext> action)
+        {
             _screenActionEvents.Add(new ScreenActionEvent { EventName = eventName, Action = action, });
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void RegisterTaskEvent(string eventName, Func<global::System.Threading.Tasks.Task> function)
         {
-            _screenTaskEvents.Add(new ScreenTaskEvent { EventName = eventName, Function = function, });
+            _screenTaskEvents.Add(new ScreenTaskEvent { EventName = eventName, Function = x => function.Invoke() });
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void RegisterTaskEvent(string eventName, Func<StackNavigationContext, global::System.Threading.Tasks.Task> function)
+        {
+            _screenTaskEvents.Add(new ScreenTaskEvent { EventName = eventName, Function = function });
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -69,16 +81,17 @@ namespace Meek.NavigationStack
 
         #region Interface Implementations
 
-        void IScreenEventInvoker.Invoke(string eventName, bool suppressException) =>
-            _screenActionEvents.Invoke(eventName, suppressException: suppressException);
+        void IScreenEventInvoker.Invoke(string eventName, StackNavigationContext context, bool suppressException) =>
+            _screenActionEvents.Invoke(eventName, context, suppressException: suppressException);
 
-        void IScreenEventInvoker.Invoke<TEnum>(TEnum eventName, bool suppressException) =>
-            _screenActionEvents.Invoke(eventName.ToString(), suppressException: suppressException);
+        void IScreenEventInvoker.Invoke<TEnum>(TEnum eventName, StackNavigationContext context, bool suppressException) =>
+            _screenActionEvents.Invoke(eventName.ToString(), context, suppressException: suppressException);
 
-        global::System.Threading.Tasks.Task IScreenEventInvoker.InvokeAsync(string eventName) => _screenTaskEvents.InvokeAsync(eventName);
+        global::System.Threading.Tasks.Task IScreenEventInvoker.InvokeAsync(string eventName, StackNavigationContext context) =>
+            _screenTaskEvents.InvokeAsync(eventName, context);
 
-        global::System.Threading.Tasks.Task IScreenEventInvoker.InvokeAsync<TEnum>(TEnum eventName) =>
-            _screenTaskEvents.InvokeAsync(eventName.ToString());
+        global::System.Threading.Tasks.Task IScreenEventInvoker.InvokeAsync<TEnum>(TEnum eventName, StackNavigationContext context) =>
+            _screenTaskEvents.InvokeAsync(eventName.ToString(), context);
 
         bool IScreenEventInvoker.Dispatch(string eventName, object param)
         {

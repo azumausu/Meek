@@ -34,7 +34,7 @@ namespace Meek.NavigationStack
         }
 
 
-        private IEnumerator PlayPopAnimationRoutine(StackNavigationContext context)
+        protected virtual IEnumerator PlayPopAnimationRoutine(StackNavigationContext context)
         {
             // toScreenは存在しない可能性がある。
             var fromScreen = (StackScreen)context.FromScreen;

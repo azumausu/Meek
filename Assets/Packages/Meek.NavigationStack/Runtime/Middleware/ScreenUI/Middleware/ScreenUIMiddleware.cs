@@ -17,8 +17,8 @@ namespace Meek.NavigationStack
 
             if (stackContext.NavigatingSourceType == StackNavigationSourceType.Insert)
             {
-                var insertionScreen = stackContext.GetFeatureValue<IScreen>(StackNavigationContextFeatureDefine.InsertionScreen);
-                insertionScreen.Initialize(context);
+                var insertionScreen = stackContext.GetInsertionScreen();
+                ((IScreen)insertionScreen).Initialize(context);
             }
 
 
@@ -40,7 +40,7 @@ namespace Meek.NavigationStack
 
             if (stackContext.NavigatingSourceType == StackNavigationSourceType.Remove)
             {
-                var removeScreen = context.GetFeatureValue<IScreen>(StackNavigationContextFeatureDefine.RemoveScreen);
+                var removeScreen = stackContext.GetRemoveScreen();
 
                 if (removeScreen is IAsyncDisposable asyncDisposable)
                 {
