@@ -66,7 +66,7 @@ namespace Meek.UGUI
             }
         }
 
-        protected virtual void Setup()
+        protected virtual void Setup(StackNavigationContext context)
         {
         }
 
@@ -80,41 +80,32 @@ namespace Meek.UGUI
             SetVisibility(visible);
         }
 
-        void IViewHandler.Setup()
+        void IViewHandler.Setup(StackNavigationContext context)
         {
-            Setup();
+            Setup(context);
         }
 
         void IViewHandler.EvaluateNavigateAnimation(
+            StackNavigationContext context,
             NavigatorAnimationType animationType,
-            Type fromScreenClassType,
-            Type toScreenClassType,
             float t
         )
         {
             if (NavigatorAnimationPlayer == null) return;
 
-            NavigatorAnimationPlayer.Evaluate(animationType, fromScreenClassType, toScreenClassType, Mathf.Clamp01(t));
+            NavigatorAnimationPlayer.Evaluate(context, animationType, Mathf.Clamp01(t));
         }
 
-        IEnumerator IViewHandler.PlayNavigateAnimationRoutine(
-            NavigatorAnimationType animationType,
-            Type fromScreenClassType,
-            Type toScreenClassType
-        )
+        IEnumerator IViewHandler.PlayNavigateAnimationRoutine(StackNavigationContext context, NavigatorAnimationType animationType)
         {
             if (NavigatorAnimationPlayer == null) yield break;
 
             yield return animationType switch
             {
-                NavigatorAnimationType.Open => NavigatorAnimationPlayer.OpenRoutine(fromScreenClassType,
-                    toScreenClassType),
-                NavigatorAnimationType.Close => NavigatorAnimationPlayer.CloseRoutine(fromScreenClassType,
-                    toScreenClassType),
-                NavigatorAnimationType.Show => NavigatorAnimationPlayer.ShowRoutine(fromScreenClassType,
-                    toScreenClassType),
-                NavigatorAnimationType.Hide => NavigatorAnimationPlayer.HideRoutine(fromScreenClassType,
-                    toScreenClassType),
+                NavigatorAnimationType.Open => NavigatorAnimationPlayer.OpenRoutine(context),
+                NavigatorAnimationType.Close => NavigatorAnimationPlayer.CloseRoutine(context),
+                NavigatorAnimationType.Show => NavigatorAnimationPlayer.ShowRoutine(context),
+                NavigatorAnimationType.Hide => NavigatorAnimationPlayer.HideRoutine(context),
                 _ => throw new ArgumentOutOfRangeException(nameof(animationType), animationType, null)
             };
         }

@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using Meek.NavigationStack;
 using Meek.UGUI;
 using UnityEngine;
 
@@ -14,7 +15,7 @@ namespace Meek.MVP
             Presenter = Instance.GetComponent<IPresenter>();
         }
 
-        protected override void Setup()
+        protected override void Setup(StackNavigationContext context)
         {
             Presenter.Setup();
         }

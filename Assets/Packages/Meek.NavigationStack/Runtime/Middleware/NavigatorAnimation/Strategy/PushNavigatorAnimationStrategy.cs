@@ -32,8 +32,6 @@ namespace Meek.NavigationStack
 
         protected virtual IEnumerator PushTransition(StackNavigationContext context)
         {
-            var toScreenType = context.ToScreen.GetType();
-            var fromScreenType = context.FromScreen?.GetType();
             var toScreen = context.ToScreen as StackScreen;
             var fromScreen = context.FromScreen as StackScreen;
             var skipAnimation = context.SkipAnimation;
@@ -45,25 +43,27 @@ namespace Meek.NavigationStack
             if (isCrossFade)
             {
                 // CrossFadeの確認
-                var coroutines = ListPool<IEnumerator>.Get();
+                using var disposable = ListPool<IEnumerator>.Get(out var coroutines);
 
                 // 次ScreenのVisibleをONにしておく
                 toScreen!.UI.SetVisible(true);
-                coroutines.Add(fromScreen.UI.HideRoutine(fromScreenType, toScreenType, skipAnimation));
-                coroutines.Add(toScreen.UI.OpenRoutine(fromScreenType, toScreenType, skipAnimation));
-                yield return _coroutineRunner.StartParallelCoroutine(coroutines.ToArray());
+                if (fromScreen != null)
+                {
+                    coroutines.Add(fromScreen.UI.HideRoutine(context, skipAnimation));
+                }
 
-                ListPool<IEnumerator>.Release(coroutines);
+                coroutines.Add(toScreen.UI.OpenRoutine(context, skipAnimation));
+                yield return _coroutineRunner.StartParallelCoroutine(coroutines);
             }
             else
             {
                 if (fromScreen != null)
                 {
-                    yield return fromScreen.UI.HideRoutine(fromScreenType, toScreenType, skipAnimation);
+                    yield return fromScreen.UI.HideRoutine(context, skipAnimation);
                 }
 
                 toScreen!.UI.SetVisible(true);
-                yield return toScreen.UI.OpenRoutine(fromScreenType, toScreenType, skipAnimation);
+                yield return toScreen.UI.OpenRoutine(context, skipAnimation);
             }
 
             // FullScreenUIが乗った時のみ、1つ下の全画面Viewが見つかるまで全て非表示にする。

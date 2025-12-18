@@ -58,7 +58,7 @@ namespace Meek.NavigationStack
 
             await tcs.Task;
 
-            UI.SetOpenAniationStartTime(context);
+            UI.SetOpenAnimationStartTime(context);
             ScreenEventInvoker.Invoke(ScreenViewEvent.ViewWillSetup, context);
             UI.Setup(context);
             ScreenEventInvoker.Invoke(ScreenViewEvent.ViewDidSetup, context);
@@ -124,7 +124,11 @@ namespace Meek.NavigationStack
                     _ => throw new ArgumentOutOfRangeException()
                 };
 
-                _interactableLocks.Pop().Dispose();
+                if (_interactableLocks.TryPop(out var interactableLock))
+                {
+                    interactableLock.Dispose();
+                }
+
                 ScreenEventInvoker.Invoke(stateEvent, context);
             }
         }
