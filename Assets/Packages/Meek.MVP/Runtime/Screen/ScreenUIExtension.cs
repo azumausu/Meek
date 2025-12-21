@@ -16,7 +16,7 @@ namespace Meek.MVP
         {
             foreach (var handler in self.ViewHandlers)
             {
-                if (handler is not PrefabViewHandler prefabViewHandler) continue;
+                if (handler is not DynamicPrefabViewHandler prefabViewHandler) continue;
 
                 var presenter = prefabViewHandler.Instance.GetComponent<T>();
                 if (presenter != null) return presenter;

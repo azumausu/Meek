@@ -26,7 +26,6 @@ namespace Meek.MVP
             builder.ServiceCollection.AddSingleton(options.PrefabViewManager);
 
             builder.ServiceCollection.AddSingleton<IScreenContainer, StackScreenContainer>();
-            builder.ServiceCollection.AddSingleton<IPresenterLoaderFactory, PresenterLoaderFactoryFromResources>();
             builder.ServiceCollection.AddSingleton<NavigationSharedSemaphore>();
             builder.ServiceCollection.AddSingleton(x => new StackNavigationService(x.GetService<INavigator>(), x));
             builder.ServiceCollection.AddSingleton<INavigator, MvpNavigator>();
@@ -37,6 +36,10 @@ namespace Meek.MVP
                 builder.ServiceCollection.AddSingleton(x => new ServiceRegistrationHandler(x));
             }
 
+            builder.ServiceCollection.AddTransient<IPresenterViewHandler, DynamicPresenterViewHandler>();
+            builder.ServiceCollection.AddTransient<IPresenterViewProvider, PresenterViewProviderFromResources>(x =>
+                new PresenterViewProviderFromResources("UI")
+            );
             builder.ServiceCollection.AddTransient<ScreenUI>();
             builder.ServiceCollection.AddTransient<PushNavigatorAnimationStrategy>();
             builder.ServiceCollection.AddTransient<PopNavigatorAnimationStrategy>();

@@ -67,19 +67,26 @@ namespace Meek.MVP
             await base.StartingImplAsync(context);
         }
 
-        protected async Task<TPresenter> LoadPresenterAsync<TPresenter>(IViewHandlerLoader loader, [CanBeNull] object param = null)
+        public virtual async Task<TPresenter> LoadPresenterAsync<TPresenter>(
+            IPrefabViewProvider viewProvider,
+            [CanBeNull] object param = null
+        )
             where TPresenter : class, IPresenter<TModel>
         {
-            var viewHandler = await UI.LoadViewHandlerAsync(loader, param) as PrefabViewHandler;
-            return viewHandler.Instance.GetComponent<TPresenter>();
+            var presenterViewHandler = AppServices.GetService<IPresenterViewHandler>();
+            await presenterViewHandler.InitializeAsync(viewProvider, this, param);
+            await presenterViewHandler.LoadAsync(Model);
+            UI.AddViewHandler(presenterViewHandler);
+
+            return presenterViewHandler.GetPresenter<TPresenter>();
         }
 
         protected async Task<TPresenter> LoadPresenterAsync<TPresenter>([CanBeNull] object param = null)
             where TPresenter : class, IPresenter<TModel>
         {
-            var factory = AppServices.GetService<IPresenterLoaderFactory>();
-            var loader = factory.CreateLoader(this, Model, typeof(TPresenter).Name, param);
-            return await LoadPresenterAsync<TPresenter>(loader, param);
+            var provider = AppServices.GetService<IPresenterViewProvider>();
+            provider.SetPrefabName(typeof(TPresenter).Name);
+            return await LoadPresenterAsync<TPresenter>(provider, param);
         }
 
         #endregion

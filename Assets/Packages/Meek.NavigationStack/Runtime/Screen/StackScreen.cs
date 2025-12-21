@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
-using UnityEngine;
 
 namespace Meek.NavigationStack
 {
@@ -11,11 +10,10 @@ namespace Meek.NavigationStack
         private readonly Stack<IDisposable> _interactableLocks = new Stack<IDisposable>();
         private ICoroutineRunner _coroutineRunner;
 
-        protected readonly List<IDisposable> Disposables = new List<IDisposable>();
-        protected readonly List<IAsyncDisposable> AsyncDisposables = new List<IAsyncDisposable>();
-        protected IServiceProvider AppServices;
+        public readonly List<IDisposable> Disposables = new List<IDisposable>();
+        public readonly List<IAsyncDisposable> AsyncDisposables = new List<IAsyncDisposable>();
 
-
+        public IServiceProvider AppServices;
         public ScreenUI UI { get; private set; }
         public IScreenEventInvoker ScreenEventInvoker { get; private set; }
         public StackNavigationService NavigationService => AppServices.GetService<StackNavigationService>();
@@ -48,20 +46,8 @@ namespace Meek.NavigationStack
             ScreenEventInvoker.Invoke(ScreenLifecycleEvent.ScreenWillStart, context);
             await ScreenEventInvoker.InvokeAsync(ScreenLifecycleEvent.ScreenWillStart, context);
 
-            var tcs = new TaskCompletionSource<bool>();
-            if (UI.IsLoaded) tcs.SetResult(true);
-            else
-            {
-                var waitUntil = new WaitUntil(() => UI.IsLoaded);
-                _coroutineRunner.StartCoroutineWithCallback(waitUntil, () => tcs.SetResult(true));
-            }
-
-            await tcs.Task;
-
             UI.SetOpenAnimationStartTime(context);
-            ScreenEventInvoker.Invoke(ScreenViewEvent.ViewWillSetup, context);
             UI.Setup(context);
-            ScreenEventInvoker.Invoke(ScreenViewEvent.ViewDidSetup, context);
         }
 
         protected virtual async ValueTask ResumingImplAsync(StackNavigationContext context)
@@ -91,17 +77,22 @@ namespace Meek.NavigationStack
 
         protected virtual void ScreenWillNavigate(StackNavigationContext context)
         {
+            if (context.FromScreen != this)
+            {
+                return;
+            }
+
             if (context.NavigatingSourceType is StackNavigationSourceType.Insert or StackNavigationSourceType.Remove)
             {
                 return;
             }
 
-            if (context.FromScreen == this && context.NavigatingSourceType == StackNavigationSourceType.Pop)
+            if (context.NavigatingSourceType == StackNavigationSourceType.Pop)
             {
                 ScreenEventInvoker.Invoke(ScreenLifecycleEvent.ScreenWillDestroy, context);
             }
 
-            if (context.FromScreen == this && context.NavigatingSourceType == StackNavigationSourceType.Push)
+            if (context.NavigatingSourceType == StackNavigationSourceType.Push)
             {
                 ScreenEventInvoker.Invoke(ScreenLifecycleEvent.ScreenWillPause, context);
                 _interactableLocks.Push(UI.LockInteractable());
@@ -110,27 +101,29 @@ namespace Meek.NavigationStack
 
         protected virtual void ScreenDidNavigate(StackNavigationContext context)
         {
+            if (context.ToScreen != this)
+            {
+                return;
+            }
+
             if (context.NavigatingSourceType is StackNavigationSourceType.Insert or StackNavigationSourceType.Remove)
             {
                 return;
             }
 
-            if (context.ToScreen == this)
+            var stateEvent = context.NavigatingSourceType switch
             {
-                var stateEvent = context.NavigatingSourceType switch
-                {
-                    StackNavigationSourceType.Push => ScreenLifecycleEvent.ScreenDidStart,
-                    StackNavigationSourceType.Pop => ScreenLifecycleEvent.ScreenDidResume,
-                    _ => throw new ArgumentOutOfRangeException()
-                };
+                StackNavigationSourceType.Push => ScreenLifecycleEvent.ScreenDidStart,
+                StackNavigationSourceType.Pop => ScreenLifecycleEvent.ScreenDidResume,
+                _ => throw new ArgumentOutOfRangeException()
+            };
 
-                if (_interactableLocks.TryPop(out var interactableLock))
-                {
-                    interactableLock.Dispose();
-                }
-
-                ScreenEventInvoker.Invoke(stateEvent, context);
+            if (_interactableLocks.TryPop(out var interactableLock))
+            {
+                interactableLock.Dispose();
             }
+
+            ScreenEventInvoker.Invoke(stateEvent, context);
         }
 
         private IScreenEventInvoker CreateEventInvoker()

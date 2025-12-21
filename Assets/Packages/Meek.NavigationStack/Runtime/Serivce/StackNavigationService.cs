@@ -33,13 +33,13 @@ namespace Meek.NavigationStack
             _serviceProvider = serviceProvider;
         }
 
-        public Task PushAsync<TScreen>(PushContext pushContext)
-            where TScreen : IScreen
+        public async Task<TScreen> PushAsync<TScreen>(PushContext pushContext) where TScreen : IScreen
         {
-            return PushAsync(typeof(TScreen), pushContext);
+            var screen = await PushAsync(typeof(TScreen), pushContext);
+            return (TScreen)screen;
         }
 
-        public async Task PushAsync(Type screenClassType, PushContext pushContext)
+        public virtual async Task<IScreen> PushAsync(Type screenClassType, PushContext pushContext)
         {
             using var poolDisposable = DictionaryPool<string, object>.Get(out var features);
 
@@ -63,6 +63,8 @@ namespace Meek.NavigationStack
                 await InvokeWillNavigateAsync(context);
                 await _stackNavigator.NavigateAsync(context);
                 await InvokeDidNavigateAsync(context);
+
+                return toScreen;
             }
             catch
             {
@@ -72,7 +74,7 @@ namespace Meek.NavigationStack
             }
         }
 
-        public async Task<bool> PopAsync(PopContext popContext)
+        public virtual async Task<bool> PopAsync(PopContext popContext)
         {
             using var poolDisposable = DictionaryPool<string, object>.Get(out var features);
 
@@ -105,17 +107,22 @@ namespace Meek.NavigationStack
         /// <summary>
         ///  If two or more screens of the same type exist, the one at the top of the stack will be selected.
         /// </summary>
-        public Task InsertScreenBeforeAsync<TBeforeScreen, TInsertionScreen>(InsertContext insertionContext)
+        public async Task<TInsertionScreen> InsertScreenBeforeAsync<TBeforeScreen, TInsertionScreen>(InsertContext insertionContext)
             where TBeforeScreen : IScreen
             where TInsertionScreen : IScreen
         {
-            return InsertScreenBeforeAsync(typeof(TBeforeScreen), typeof(TInsertionScreen), insertionContext);
+            var screen = await InsertScreenBeforeAsync(typeof(TBeforeScreen), typeof(TInsertionScreen), insertionContext);
+            return (TInsertionScreen)screen;
         }
 
         /// <summary>
         ///  If two or more screens of the same type exist, the one at the top of the stack will be selected.
         /// </summary>
-        public Task InsertScreenBeforeAsync(Type beforeScreenClassType, Type insertionScreenClassType, InsertContext insertionContext)
+        public Task<IScreen> InsertScreenBeforeAsync(
+            Type beforeScreenClassType,
+            Type insertionScreenClassType,
+            InsertContext insertionContext
+        )
         {
             return InsertScreenBeforeAsync(
                 _stackNavigator.ScreenContainer.GetScreen(beforeScreenClassType),
@@ -124,7 +131,11 @@ namespace Meek.NavigationStack
             );
         }
 
-        public async Task InsertScreenBeforeAsync(IScreen beforeScreen, Type insertionScreenClassType, InsertContext insertionContext)
+        public virtual async Task<IScreen> InsertScreenBeforeAsync(
+            IScreen beforeScreen,
+            Type insertionScreenClassType,
+            InsertContext insertionContext
+        )
         {
             var fromScreen = _stackNavigator.ScreenContainer.GetPeekScreen();
             if (fromScreen == beforeScreen)
@@ -136,8 +147,8 @@ namespace Meek.NavigationStack
                     IsCrossFade = insertionContext.IsCrossFade,
                     SkipAnimation = insertionContext.SkipAnimation,
                 };
-                await PushAsync(insertionScreenClassType, pushContext);
-                return;
+                var screen = await PushAsync(insertionScreenClassType, pushContext);
+                return screen;
             }
 
             using var poolDisposable = DictionaryPool<string, object>.Get(out var features);
@@ -165,6 +176,8 @@ namespace Meek.NavigationStack
                 await InvokeWillNavigateAsync(context);
                 await _stackNavigator.NavigateAsync(context);
                 await InvokeDidNavigateAsync(context);
+
+                return insertionScreen;
             }
             catch
             {
@@ -192,7 +205,7 @@ namespace Meek.NavigationStack
             return RemoveAsync(_stackNavigator.ScreenContainer.GetScreen(removeScreenClassType), removeContext);
         }
 
-        public async Task RemoveAsync(IScreen removeScreen, RemoveContext removeContext)
+        public virtual async Task RemoveAsync(IScreen removeScreen, RemoveContext removeContext)
         {
             var fromScreen = _stackNavigator.ScreenContainer.GetPeekScreen();
             if (fromScreen == removeScreen)

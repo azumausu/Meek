@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using Meek.NavigationStack;
 using UnityEngine;
 using UnityEngine.UI;
@@ -10,12 +11,15 @@ using Object = UnityEngine.Object;
 
 namespace Meek.UGUI
 {
-    public class PrefabViewHandler : IViewHandler
+    public class DynamicPrefabViewHandler : IPrefabViewHandler
     {
-        protected readonly RectTransform RectTransform;
-        protected readonly CanvasGroup CanvasGroup;
-        protected readonly Canvas Canvas;
-        protected readonly NavigatorAnimationPlayer NavigatorAnimationPlayer;
+        private IPrefabViewProvider _prefabViewProvider;
+        protected readonly IPrefabViewManager PrefabViewManager;
+
+        protected RectTransform RectTransform;
+        protected CanvasGroup CanvasGroup;
+        protected Canvas Canvas;
+        protected NavigatorAnimationPlayer NavigatorAnimationPlayer;
 
         public readonly HashSet<GraphicRaycaster> GraphicRaycasters = new HashSet<GraphicRaycaster>();
         public readonly HashSet<IVisibilitySwitcher> VisibilitySwitchers = new HashSet<IVisibilitySwitcher>();
@@ -24,20 +28,49 @@ namespace Meek.UGUI
         public GameObject Instance { get; private set; }
         public Transform RootNode { get; private set; }
 
-        public PrefabViewHandler(Transform instanceRootNode, GameObject instance)
+        public DynamicPrefabViewHandler(IPrefabViewManager prefabViewManager)
         {
+            PrefabViewManager = prefabViewManager;
+        }
+
+        public virtual async ValueTask InitializeAsync(IPrefabViewProvider viewProvider, IScreen ownerScreen, [CanBeNull] object param)
+        {
+            _prefabViewProvider = viewProvider;
+
+            var prefab = await viewProvider.ProvideAsync(ownerScreen, param);
+            var parent = PrefabViewManager.GetRootNode(ownerScreen, param);
+            var rootNode = new GameObject(prefab.name) { layer = parent.gameObject.layer, transform = { parent = parent } };
+
+            var rootNodeRectTransform = rootNode.AddComponent<RectTransform>();
+            rootNodeRectTransform.anchoredPosition3D = Vector3.zero;
+            rootNodeRectTransform.anchorMin = Vector2.zero;
+            rootNodeRectTransform.anchorMax = Vector2.one;
+            rootNodeRectTransform.sizeDelta = Vector2.zero;
+            rootNodeRectTransform.localScale = Vector3.one;
+
+            var rootNodeCanvas = rootNode.AddComponent<Canvas>();
+            rootNodeCanvas.overrideSorting = false;
+            rootNode.AddComponent<CanvasGroup>();
+            rootNode.AddComponent<GraphicRaycaster>();
+
+            var instance = GameObject.Instantiate(prefab, rootNode.transform);
+
+
             Instance = instance;
-            RootNode = instanceRootNode;
-            RectTransform = instanceRootNode.GetComponent<RectTransform>();
-            Canvas = instanceRootNode.GetComponent<Canvas>();
-            CanvasGroup = instanceRootNode.GetComponent<CanvasGroup>();
+            RootNode = rootNode.transform;
+            RectTransform = rootNode.GetComponent<RectTransform>();
+            Canvas = rootNode.GetComponent<Canvas>();
+            CanvasGroup = rootNode.GetComponent<CanvasGroup>();
             NavigatorAnimationPlayer = instance.GetComponent<NavigatorAnimationPlayer>();
 
-            var graphicRaycaster = instanceRootNode.GetComponent<GraphicRaycaster>();
+            var graphicRaycaster = rootNode.GetComponent<GraphicRaycaster>();
             if (graphicRaycaster != null)
             {
                 GraphicRaycasters.Add(graphicRaycaster);
             }
+
+            SetInteractable(false);
+            SetVisibility(false);
         }
 
         public virtual void SetInteractable(bool interactable)
@@ -114,15 +147,63 @@ namespace Meek.UGUI
 
         public virtual void Dispose()
         {
+            var disposable = Instance.GetComponent<IDisposable>();
+            if (disposable != null)
+            {
+                try
+                {
+                    disposable.Dispose();
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError(e);
+                }
+            }
+
+            if (_prefabViewProvider is IDisposable disposableProvider)
+            {
+                try
+                {
+                    disposableProvider.Dispose();
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError(e);
+                }
+            }
+
             if (RootNode != null && RootNode.gameObject != null)
             {
                 Object.Destroy(RootNode.gameObject);
             }
         }
 
-        public virtual ValueTask DisposeAsync()
+        public virtual async ValueTask DisposeAsync()
         {
-            return new ValueTask();
+            var asyncDisposable = Instance.GetComponent<IAsyncDisposable>();
+            if (asyncDisposable != null)
+            {
+                try
+                {
+                    await asyncDisposable.DisposeAsync();
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError(e);
+                }
+            }
+
+            if (_prefabViewProvider is IAsyncDisposable asyncDisposableProvider)
+            {
+                try
+                {
+                    await asyncDisposableProvider.DisposeAsync();
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError(e);
+                }
+            }
         }
 
         #endregion

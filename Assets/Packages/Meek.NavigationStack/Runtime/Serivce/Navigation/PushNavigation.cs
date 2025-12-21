@@ -29,17 +29,18 @@ namespace Meek.NavigationStack
             PushAsync<TScreen>().Forget();
         }
 
-        public virtual Task PushAsync<TScreen>() where TScreen : IScreen
+        public virtual async Task<TScreen> PushAsync<TScreen>() where TScreen : IScreen
         {
-            return PushAsync(typeof(TScreen));
+            var screen = await PushAsync(typeof(TScreen));
+            return (TScreen)screen;
         }
 
-        public virtual async Task PushAsync(Type screenClassType)
+        public virtual async Task<IScreen> PushAsync(Type screenClassType)
         {
             await SharedSemaphore.NavigationSemaphore.WaitAsync();
             try
             {
-                await StackNavigationService.PushAsync(screenClassType, PushContext);
+                return await StackNavigationService.PushAsync(screenClassType, PushContext);
             }
             finally
             {

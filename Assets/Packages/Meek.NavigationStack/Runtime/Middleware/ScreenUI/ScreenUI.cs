@@ -1,31 +1,20 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using JetBrains.Annotations;
-using UnityEngine;
 using UnityEngine.Pool;
 
 namespace Meek.NavigationStack
 {
     public class ScreenUI
     {
-        #region Fields
-
         private readonly ICoroutineRunner _coroutineRunner;
-        private readonly List<IViewHandlerLoader> _viewHandlerLoaders = new List<IViewHandlerLoader>();
         private readonly List<IViewHandler> _viewHandlers = new List<IViewHandler>();
         private readonly LockObject _interactableLocker;
 
         public bool IsInteractable => !_interactableLocker.IsLock;
         public bool IsVisible { get; private set; }
-        public bool IsLoaded => _viewHandlerLoaders.All(x => x.IsLoaded);
         public IReadOnlyCollection<IViewHandler> ViewHandlers => _viewHandlers;
-
-        #endregion
-
-        #region Constructors
 
         public ScreenUI(ICoroutineRunner coroutineRunner)
         {
@@ -42,25 +31,9 @@ namespace Meek.NavigationStack
             );
         }
 
-        #endregion
-
-        #region Methods
-
-        public async Task<IViewHandler> LoadViewHandlerAsync(IViewHandlerLoader viewHandlerLoader, [CanBeNull] object param = null)
+        public void AddViewHandler(IViewHandler viewHandler)
         {
-            _viewHandlerLoaders.Add(viewHandlerLoader);
-            try
-            {
-                var viewHandler = await viewHandlerLoader.LoadAsync(param);
-                _viewHandlers.Add(viewHandler);
-
-                return viewHandler;
-            }
-            catch
-            {
-                _viewHandlerLoaders.Remove(viewHandlerLoader);
-                throw;
-            }
+            _viewHandlers.Add(viewHandler);
         }
 
         public void DisposeViewHandler(IViewHandler viewHandler)
@@ -153,8 +126,6 @@ namespace Meek.NavigationStack
 
             yield return _coroutineRunner.StartParallelCoroutine(coroutines);
         }
-
-        #endregion
 
         public async ValueTask DisposeAsync()
         {
