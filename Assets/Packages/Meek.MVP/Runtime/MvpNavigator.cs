@@ -13,7 +13,7 @@ namespace Meek.MVP
     {
         private readonly SemaphoreSlim _navigationLock = new SemaphoreSlim(1, 1);
         private readonly MvpNavigatorOptions _options;
-        private readonly IInputLocker _inputLocker;
+        private readonly NavigationStackDebugOption _debugOption;
         private readonly ICoroutineRunner _coroutineRunner;
         private readonly IPrefabViewManager _prefabViewManager;
         private readonly List<INavigatorAnimationStrategy> _transitionAnimationModules = new();
@@ -22,8 +22,8 @@ namespace Meek.MVP
 
         public MvpNavigator(
             MvpNavigatorOptions options,
+            NavigationStackDebugOption debugOption,
             IScreenContainer screenContainer,
-            IInputLocker inputLocker,
             ICoroutineRunner coroutineRunner,
             IPrefabViewManager prefabViewManager,
             PushNavigatorAnimationStrategy pushNavigatorAnimationStrategy,
@@ -33,7 +33,7 @@ namespace Meek.MVP
         )
         {
             _options = options;
-            _inputLocker = inputLocker;
+            _debugOption = debugOption;
             _coroutineRunner = coroutineRunner;
             _prefabViewManager = prefabViewManager;
             _transitionAnimationModules.Add(pushNavigatorAnimationStrategy);
@@ -51,20 +51,17 @@ namespace Meek.MVP
             var fromScreenEventHandler = stackContext.FromScreen as IScreenNavigatorEventHandler;
             var toScreenEventHandler = stackContext.ToScreen as IScreenNavigatorEventHandler;
 
-            if (_options.DebugOption.UseDebug)
+            if (_debugOption.UseDebug)
             {
                 RuntimeNavigationStackManager.Instance.FireScreenWillNavigate(stackContext);
             }
-
-            fromScreenEventHandler?.ScreenWillNavigate(stackContext);
-            toScreenEventHandler?.ScreenWillNavigate(stackContext);
 
             try
             {
                 try
                 {
-                    using var locker = _inputLocker.LockInput();
-
+                    fromScreenEventHandler?.ScreenWillNavigate(stackContext);
+                    toScreenEventHandler?.ScreenWillNavigate(stackContext);
                     switch (stackContext.NavigatingSourceType)
                     {
                         case StackNavigationSourceType.Push:
@@ -74,9 +71,11 @@ namespace Meek.MVP
                             await PopAsync(stackContext);
                             break;
                         case StackNavigationSourceType.Remove:
+                            (stackContext.GetRemoveScreen() as IScreenNavigatorEventHandler)?.ScreenWillNavigate(stackContext);
                             await RemoveAsync(stackContext);
                             break;
                         case StackNavigationSourceType.Insert:
+                            (stackContext.GetInsertionScreen() as IScreenNavigatorEventHandler)?.ScreenWillNavigate(stackContext);
                             await InsertAsync(stackContext);
                             break;
                     }
@@ -85,8 +84,21 @@ namespace Meek.MVP
                 {
                     toScreenEventHandler?.ScreenDidNavigate(stackContext);
                     fromScreenEventHandler?.ScreenDidNavigate(stackContext);
+                    switch (stackContext.NavigatingSourceType)
+                    {
+                        case StackNavigationSourceType.Push:
+                            break;
+                        case StackNavigationSourceType.Pop:
+                            break;
+                        case StackNavigationSourceType.Remove:
+                            (stackContext.GetRemoveScreen() as IScreenNavigatorEventHandler)?.ScreenDidNavigate(stackContext);
+                            break;
+                        case StackNavigationSourceType.Insert:
+                            (stackContext.GetInsertionScreen() as IScreenNavigatorEventHandler)?.ScreenDidNavigate(stackContext);
+                            break;
+                    }
 
-                    if (_options.DebugOption.UseDebug)
+                    if (_debugOption.UseDebug)
                     {
                         RuntimeNavigationStackManager.Instance.FireScreenDidNavigate(stackContext);
                     }

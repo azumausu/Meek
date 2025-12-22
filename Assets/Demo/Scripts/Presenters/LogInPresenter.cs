@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Meek.MVP;
 using UniRx;
 using UnityEngine;
@@ -7,7 +8,7 @@ using UnityEngine.UI;
 
 namespace Demo
 {
-    public class LogInPresenter : Presenter<LogInModel>
+    public class LogInPresenter : Presenter<LogInModel>, IDisposable
     {
         [SerializeField] private InputFieldView _emailInputField;
         [SerializeField] private InputFieldView _passwordInputField;
@@ -17,7 +18,7 @@ namespace Demo
 
         public IObservable<Unit> OnClickBack => _backButton.OnClickAsObservable();
         public IObservable<Unit> OnClickLogIn => _logInButton.OnClickAsObservable();
-        
+
         public IObservable<string> OnEndEditEmail => _emailInputField.OnEndEdit;
         public IObservable<string> OnEndEditPassword => _passwordInputField.OnEndEdit;
 
@@ -26,6 +27,17 @@ namespace Demo
         {
             yield return model.Email.Subscribe(x => _emailInputField.UpdateView(x));
             yield return model.Password.Subscribe(x => _passwordInputField.UpdateView(x));
+        }
+
+        protected override async Task DisposeAsync()
+        {
+            await base.DisposeAsync();
+            Debug.LogError("DisposeAsync LogInPresenter");
+        }
+
+        public void Dispose()
+        {
+            Debug.LogError("Dispose LogInPresenter");
         }
     }
 }

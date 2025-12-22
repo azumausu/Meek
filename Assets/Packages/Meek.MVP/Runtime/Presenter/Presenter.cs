@@ -1,42 +1,80 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using UnityEngine;
+using UnityEngine.Pool;
 
 namespace Meek.MVP
 {
     public abstract class Presenter<TModel> : MonoBehaviour, IPresenter<TModel>, IAsyncDisposable
     {
-        private readonly List<IDisposable> _disposables = new List<IDisposable>();
-        private readonly List<IPresenterEventHandler> _presenterEventHandlers = new List<IPresenterEventHandler>();
+        [CanBeNull] private List<IDisposable> _disposables;
+        [CanBeNull] private List<IPresenterEventHandler> _presenterEventHandlers;
         private TModel _model;
 
         private void Awake()
         {
-            var handlers = this.GetComponents<IPresenterEventHandler>();
-            if (handlers != null && handlers.Length > 0) _presenterEventHandlers.AddRange(handlers);
+            using var disposable = ListPool<IPresenterEventHandler>.Get(out var handlers);
+            GetComponents(handlers);
+            if (handlers.Count > 0)
+            {
+                if (_presenterEventHandlers == null)
+                {
+                    _presenterEventHandlers = new List<IPresenterEventHandler>(handlers);
+                }
+            }
 
             OnInit();
-            foreach (var handler in _presenterEventHandlers) handler.PresenterDidInit(this);
+
+            if (_presenterEventHandlers != null)
+            {
+                foreach (var handler in _presenterEventHandlers)
+                {
+                    handler.PresenterDidInit(this);
+                }
+            }
         }
 
         private void OnDestroy()
         {
             try
             {
-                foreach (var handler in _presenterEventHandlers) handler.PresenterDidDeinit(this, _model);
+                if (_presenterEventHandlers != null)
+                {
+                    foreach (var handler in _presenterEventHandlers)
+                    {
+                        handler.PresenterDidDeinit(this, _model);
+                    }
+                }
+
                 OnDeinit(_model);
             }
             finally
             {
-                _disposables.DisposeAll();
+                _disposables?.DisposeAll();
             }
         }
 
         private void Bind()
         {
-            _disposables.AddRange(Bind(_model));
-            foreach (var handler in _presenterEventHandlers) handler.PresenterDidBind(this, _model);
+            foreach (var disposable in Bind(_model))
+            {
+                if (_disposables == null)
+                {
+                    _disposables = new List<IDisposable>();
+                }
+
+                _disposables.Add(disposable);
+            }
+
+            if (_presenterEventHandlers != null)
+            {
+                foreach (var handler in _presenterEventHandlers)
+                {
+                    handler.PresenterDidBind(this, _model);
+                }
+            }
         }
 
         protected virtual IEnumerable<IDisposable> Bind(TModel model) { yield break; }
@@ -57,7 +95,15 @@ namespace Meek.MVP
         void IPresenter.Setup()
         {
             OnSetup(_model);
-            foreach (var handler in _presenterEventHandlers) handler.PresenterDidSetup(this, _model);
+
+            if (_presenterEventHandlers != null)
+            {
+                foreach (var handler in _presenterEventHandlers)
+                {
+                    handler.PresenterDidSetup(this, _model);
+                }
+            }
+
             Bind();
         }
 

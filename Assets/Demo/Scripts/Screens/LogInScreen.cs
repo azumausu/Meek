@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using Meek.MVP;
 using Meek.NavigationStack;
 using UniRx;
+using UnityEngine;
 
 namespace Demo
 {
@@ -18,12 +19,15 @@ namespace Demo
             {
                 var presenter = await LoadPresenterAsync<LogInPresenter>();
 
+                throw new System.NotImplementedException("Implement authentication logic here.");
                 presenter.OnClickBack.Subscribe(_ => PopNavigation.PopAsync().Forget());
                 presenter.OnClickLogIn.Subscribe(_ => PushNavigation.PushAsync<TabScreen>().Forget());
 
                 presenter.OnEndEditEmail.Subscribe(model.UpdateEmail);
                 presenter.OnEndEditPassword.Subscribe(model.UpdatePassword);
             });
+
+            eventHolder.ScreenDidStart(() => { Debug.Log($"Screen Did Start: {this.GetType().Name}"); });
         }
     }
 }

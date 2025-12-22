@@ -1,4 +1,5 @@
 using JetBrains.Annotations;
+using Meek.NavigationStack;
 using UnityEngine;
 
 #if MEEK_ENABLE_UGUI
@@ -8,7 +9,7 @@ namespace Meek.UGUI
     {
         Transform GetRootNode(IScreen ownerScreen, [CanBeNull] object param = null);
 
-        void SortOrderInHierarchy(NavigationContext navigationContext);
+        void SortOrderInHierarchy(StackNavigationContext context);
     }
 }
 #endif

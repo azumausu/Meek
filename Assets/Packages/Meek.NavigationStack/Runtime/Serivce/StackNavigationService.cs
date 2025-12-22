@@ -8,8 +8,10 @@ namespace Meek.NavigationStack
 {
     public class StackNavigationService
     {
+        private readonly IInputLocker _inputLocker;
         private readonly INavigator _stackNavigator;
         private readonly IServiceProvider _serviceProvider;
+
         private event Func<StackNavigationContext, ValueTask> _willNavigate;
         private event Func<StackNavigationContext, ValueTask> _didNavigate;
 
@@ -27,20 +29,22 @@ namespace Meek.NavigationStack
             remove => _didNavigate -= value;
         }
 
-        public StackNavigationService(INavigator stackNavigator, IServiceProvider serviceProvider)
+        public StackNavigationService(IServiceProvider serviceProvider)
         {
-            _stackNavigator = stackNavigator;
             _serviceProvider = serviceProvider;
+            _inputLocker = serviceProvider.GetService<IInputLocker>();
+            _stackNavigator = serviceProvider.GetService<INavigator>();
         }
 
-        public Task PushAsync<TScreen>(PushContext pushContext)
-            where TScreen : IScreen
+        public async ValueTask<TScreen> PushAsync<TScreen>(PushContext pushContext) where TScreen : IScreen
         {
-            return PushAsync(typeof(TScreen), pushContext);
+            var screen = await PushAsync(typeof(TScreen), pushContext);
+            return (TScreen)screen;
         }
 
-        public async Task PushAsync(Type screenClassType, PushContext pushContext)
+        public virtual async ValueTask<IScreen> PushAsync(Type screenClassType, PushContext pushContext)
         {
+            using var locker = _inputLocker.LockInput();
             using var poolDisposable = DictionaryPool<string, object>.Get(out var features);
 
             var fromScreen = _stackNavigator.ScreenContainer.Screens.FirstOrDefault() as StackScreen;
@@ -63,17 +67,21 @@ namespace Meek.NavigationStack
                 await InvokeWillNavigateAsync(context);
                 await _stackNavigator.NavigateAsync(context);
                 await InvokeDidNavigateAsync(context);
+
+                return toScreen;
             }
-            catch
+            catch (Exception e)
             {
+                context.InvokeOnError(e);
                 if (toScreen is IDisposable disposable) disposable.Dispose();
                 if (toScreen is IAsyncDisposable asyncDisposable) await asyncDisposable.DisposeAsync();
                 throw;
             }
         }
 
-        public async Task<bool> PopAsync(PopContext popContext)
+        public virtual async ValueTask<bool> PopAsync(PopContext popContext)
         {
+            using var locker = _inputLocker.LockInput();
             using var poolDisposable = DictionaryPool<string, object>.Get(out var features);
 
             var fromScreen = _stackNavigator.ScreenContainer.GetPeekScreen();
@@ -95,9 +103,16 @@ namespace Meek.NavigationStack
                 AppServices = _serviceProvider,
             };
 
-            await InvokeWillNavigateAsync(context);
-            await _stackNavigator.NavigateAsync(context);
-            await InvokeDidNavigateAsync(context);
+            try
+            {
+                await InvokeWillNavigateAsync(context);
+                await _stackNavigator.NavigateAsync(context);
+                await InvokeDidNavigateAsync(context);
+            }
+            catch (Exception e)
+            {
+                context.InvokeOnError(e);
+            }
 
             return true;
         }
@@ -105,17 +120,22 @@ namespace Meek.NavigationStack
         /// <summary>
         ///  If two or more screens of the same type exist, the one at the top of the stack will be selected.
         /// </summary>
-        public Task InsertScreenBeforeAsync<TBeforeScreen, TInsertionScreen>(InsertContext insertionContext)
+        public async ValueTask<TInsertionScreen> InsertScreenBeforeAsync<TBeforeScreen, TInsertionScreen>(InsertContext insertionContext)
             where TBeforeScreen : IScreen
             where TInsertionScreen : IScreen
         {
-            return InsertScreenBeforeAsync(typeof(TBeforeScreen), typeof(TInsertionScreen), insertionContext);
+            var screen = await InsertScreenBeforeAsync(typeof(TBeforeScreen), typeof(TInsertionScreen), insertionContext);
+            return (TInsertionScreen)screen;
         }
 
         /// <summary>
         ///  If two or more screens of the same type exist, the one at the top of the stack will be selected.
         /// </summary>
-        public Task InsertScreenBeforeAsync(Type beforeScreenClassType, Type insertionScreenClassType, InsertContext insertionContext)
+        public ValueTask<IScreen> InsertScreenBeforeAsync(
+            Type beforeScreenClassType,
+            Type insertionScreenClassType,
+            InsertContext insertionContext
+        )
         {
             return InsertScreenBeforeAsync(
                 _stackNavigator.ScreenContainer.GetScreen(beforeScreenClassType),
@@ -124,7 +144,11 @@ namespace Meek.NavigationStack
             );
         }
 
-        public async Task InsertScreenBeforeAsync(IScreen beforeScreen, Type insertionScreenClassType, InsertContext insertionContext)
+        public virtual async ValueTask<IScreen> InsertScreenBeforeAsync(
+            IScreen beforeScreen,
+            Type insertionScreenClassType,
+            InsertContext insertionContext
+        )
         {
             var fromScreen = _stackNavigator.ScreenContainer.GetPeekScreen();
             if (fromScreen == beforeScreen)
@@ -136,10 +160,11 @@ namespace Meek.NavigationStack
                     IsCrossFade = insertionContext.IsCrossFade,
                     SkipAnimation = insertionContext.SkipAnimation,
                 };
-                await PushAsync(insertionScreenClassType, pushContext);
-                return;
+                var screen = await PushAsync(insertionScreenClassType, pushContext);
+                return screen;
             }
 
+            using var locker = _inputLocker.LockInput();
             using var poolDisposable = DictionaryPool<string, object>.Get(out var features);
 
             var insertionScreen = _serviceProvider.GetService(insertionScreenClassType) as IScreen
@@ -165,9 +190,12 @@ namespace Meek.NavigationStack
                 await InvokeWillNavigateAsync(context);
                 await _stackNavigator.NavigateAsync(context);
                 await InvokeDidNavigateAsync(context);
+
+                return insertionScreen;
             }
-            catch
+            catch (Exception e)
             {
+                context.InvokeOnError(e);
                 if (insertionScreen is IDisposable disposable) disposable.Dispose();
                 if (insertionScreen is IAsyncDisposable asyncDisposable) await asyncDisposable.DisposeAsync();
                 throw;
@@ -178,7 +206,7 @@ namespace Meek.NavigationStack
         /// Removes the specified screen type from the navigation stack.
         /// If two or more screens of the same type exist, the one at the top of the stack will be selected.
         /// </summary>
-        public Task RemoveAsync<TScreen>(RemoveContext removeContext) where TScreen : IScreen
+        public ValueTask RemoveAsync<TScreen>(RemoveContext removeContext) where TScreen : IScreen
         {
             return RemoveAsync(typeof(TScreen), removeContext);
         }
@@ -187,12 +215,12 @@ namespace Meek.NavigationStack
         /// Removes the specified screen type from the navigation stack.
         /// If two or more screens of the same type exist, the one at the top of the stack will be selected.
         /// </summary>
-        public Task RemoveAsync(Type removeScreenClassType, RemoveContext removeContext)
+        public ValueTask RemoveAsync(Type removeScreenClassType, RemoveContext removeContext)
         {
             return RemoveAsync(_stackNavigator.ScreenContainer.GetScreen(removeScreenClassType), removeContext);
         }
 
-        public async Task RemoveAsync(IScreen removeScreen, RemoveContext removeContext)
+        public virtual async ValueTask RemoveAsync(IScreen removeScreen, RemoveContext removeContext)
         {
             var fromScreen = _stackNavigator.ScreenContainer.GetPeekScreen();
             if (fromScreen == removeScreen)
@@ -207,6 +235,7 @@ namespace Meek.NavigationStack
                 return;
             }
 
+            using var locker = _inputLocker.LockInput();
             using var poolDisposable = DictionaryPool<string, object>.Get(out var features);
             var beforeScreen = _stackNavigator.ScreenContainer.GetScreenBefore(removeScreen);
             var afterScreen = _stackNavigator.ScreenContainer.GetScreenAfter(removeScreen);
@@ -224,9 +253,16 @@ namespace Meek.NavigationStack
             context.SetRemoveAfterScreen((afterScreen as StackScreen));
             context.SetRemoveBeforeScreen((beforeScreen as StackScreen));
 
-            await InvokeWillNavigateAsync(context);
-            await _stackNavigator.NavigateAsync(context);
-            await InvokeDidNavigateAsync(context);
+            try
+            {
+                await InvokeWillNavigateAsync(context);
+                await _stackNavigator.NavigateAsync(context);
+                await InvokeDidNavigateAsync(context);
+            }
+            catch (Exception e)
+            {
+                context.InvokeOnError(e);
+            }
         }
 
         public void Dispatch<T>(T args)
@@ -239,12 +275,12 @@ namespace Meek.NavigationStack
             DispatchInternal(eventName, parameter);
         }
 
-        public Task DispatchAsync<T>(T args)
+        public ValueTask<bool> DispatchAsync<T>(T args)
         {
             return DispatchInternalAsync(typeof(T).FullName, args);
         }
 
-        public Task DispatchAsync(string eventName, object parameter)
+        public ValueTask<bool> DispatchAsync(string eventName, object parameter)
         {
             return DispatchInternalAsync(eventName, parameter);
         }
@@ -265,7 +301,7 @@ namespace Meek.NavigationStack
             return false;
         }
 
-        private async Task<bool> DispatchInternalAsync(string eventValue, object param = null)
+        private async ValueTask<bool> DispatchInternalAsync(string eventValue, object param = null)
         {
             foreach (var screen in _stackNavigator.ScreenContainer.Screens)
             {

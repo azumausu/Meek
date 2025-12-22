@@ -18,8 +18,8 @@ namespace Demo
             {
                 var presenter = await LoadPresenterAsync<SplashPresenter>();
 
-                presenter.OnClickSignUp.Subscribe(_ => PushNavigation.PushAsync<SignUpScreen>());
-                presenter.OnClickLogIn.Subscribe(_ => PushNavigation.PushAsync<LogInScreen>());
+                presenter.OnClickSignUp.Subscribe(_ => PushNavigation.PushForget<SignUpScreen>());
+                presenter.OnClickLogIn.Subscribe(_ => PushNavigation.PushForget<LogInScreen>());
             });
         }
     }

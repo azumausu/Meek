@@ -33,19 +33,20 @@ namespace Meek.NavigationStack
             InsertScreenBeforeAsync<TBeforeScreen, TInsertionScreen>().Forget();
         }
 
-        public virtual Task InsertScreenBeforeAsync<TBeforeScreen, TInsertionScreen>()
+        public virtual async Task<IScreen> InsertScreenBeforeAsync<TBeforeScreen, TInsertionScreen>()
             where TBeforeScreen : IScreen
             where TInsertionScreen : IScreen
         {
-            return InsertScreenBeforeAsync(typeof(TBeforeScreen), typeof(TInsertionScreen));
+            var screen = await InsertScreenBeforeAsync(typeof(TBeforeScreen), typeof(TInsertionScreen));
+            return (TInsertionScreen)screen;
         }
 
-        public virtual async Task InsertScreenBeforeAsync(Type beforeScreenClassType, Type insertionScreenClassType)
+        public virtual async Task<IScreen> InsertScreenBeforeAsync(Type beforeScreenClassType, Type insertionScreenClassType)
         {
             await SharedSemaphore.NavigationSemaphore.WaitAsync();
             try
             {
-                await StackNavigationService.InsertScreenBeforeAsync(beforeScreenClassType, insertionScreenClassType, this.Context);
+                return await StackNavigationService.InsertScreenBeforeAsync(beforeScreenClassType, insertionScreenClassType, this.Context);
             }
             finally
             {

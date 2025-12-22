@@ -16,13 +16,13 @@ namespace Meek.UGUI
             return _rootNode;
         }
 
-        public virtual void SortOrderInHierarchy(NavigationContext navigationContext)
+        public virtual void SortOrderInHierarchy(StackNavigationContext navigationContext)
         {
             var navigationService = navigationContext.AppServices.GetService<StackNavigationService>();
             var uis = navigationService.ScreenContainer.Screens.OfType<StackScreen>().Select(x => x.UI);
             foreach (var ui in uis)
             {
-                foreach (var prefabView in ui.ViewHandlers.Reverse().OfType<PrefabViewHandler>())
+                foreach (var prefabView in ui.ViewHandlers.Reverse().OfType<DynamicPrefabViewHandler>())
                 {
                     prefabView.RootNode.SetAsFirstSibling();
                 }

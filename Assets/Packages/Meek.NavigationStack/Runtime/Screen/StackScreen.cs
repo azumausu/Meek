@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
-using UnityEngine;
 
 namespace Meek.NavigationStack
 {
@@ -11,11 +10,10 @@ namespace Meek.NavigationStack
         private readonly Stack<IDisposable> _interactableLocks = new Stack<IDisposable>();
         private ICoroutineRunner _coroutineRunner;
 
-        protected readonly List<IDisposable> Disposables = new List<IDisposable>();
-        protected readonly List<IAsyncDisposable> AsyncDisposables = new List<IAsyncDisposable>();
-        protected IServiceProvider AppServices;
+        public readonly List<IDisposable> Disposables = new List<IDisposable>();
+        public readonly List<IAsyncDisposable> AsyncDisposables = new List<IAsyncDisposable>();
 
-
+        public IServiceProvider AppServices;
         public ScreenUI UI { get; private set; }
         public IScreenEventInvoker ScreenEventInvoker { get; private set; }
         public StackNavigationService NavigationService => AppServices.GetService<StackNavigationService>();
@@ -27,7 +25,9 @@ namespace Meek.NavigationStack
         protected virtual BackToNavigation BackToNavigation => AppServices.GetService<BackToNavigation>().SetSender(this);
 
         protected virtual void Dispatch<TParam>(TParam param) => AppServices.GetService<StackNavigationService>().Dispatch(param);
-        protected virtual Task DispatchAsync<TParam>(TParam param) => AppServices.GetService<StackNavigationService>().DispatchAsync(param);
+
+        protected virtual async Task DispatchAsync<TParam>(TParam param) =>
+            await AppServices.GetService<StackNavigationService>().DispatchAsync(param);
 
         /// <summary>
         /// When set to true, it will automatically call _interactableLocks.Dispose() when the Screen is destroyed.
@@ -43,25 +43,14 @@ namespace Meek.NavigationStack
         {
             ScreenEventInvoker = CreateEventInvoker();
 
+            // Unlocking is handled by ScreenDidNavigate.FinalizeIfPostActive.
             _interactableLocks.Push(UI.LockInteractable());
 
             ScreenEventInvoker.Invoke(ScreenLifecycleEvent.ScreenWillStart, context);
             await ScreenEventInvoker.InvokeAsync(ScreenLifecycleEvent.ScreenWillStart, context);
 
-            var tcs = new TaskCompletionSource<bool>();
-            if (UI.IsLoaded) tcs.SetResult(true);
-            else
-            {
-                var waitUntil = new WaitUntil(() => UI.IsLoaded);
-                _coroutineRunner.StartCoroutineWithCallback(waitUntil, () => tcs.SetResult(true));
-            }
-
-            await tcs.Task;
-
             UI.SetOpenAnimationStartTime(context);
-            ScreenEventInvoker.Invoke(ScreenViewEvent.ViewWillSetup, context);
             UI.Setup(context);
-            ScreenEventInvoker.Invoke(ScreenViewEvent.ViewDidSetup, context);
         }
 
         protected virtual async ValueTask ResumingImplAsync(StackNavigationContext context)
@@ -91,45 +80,120 @@ namespace Meek.NavigationStack
 
         protected virtual void ScreenWillNavigate(StackNavigationContext context)
         {
-            if (context.NavigatingSourceType is StackNavigationSourceType.Insert or StackNavigationSourceType.Remove)
+            switch (context.NavigatingSourceType)
             {
-                return;
+                case StackNavigationSourceType.Push:
+                    Push();
+                    break;
+                case StackNavigationSourceType.Pop:
+                    Pop();
+                    break;
+                case StackNavigationSourceType.Insert:
+                    Insert();
+                    break;
+                case StackNavigationSourceType.Remove:
+                    Remove();
+                    break;
             }
 
-            if (context.FromScreen == this && context.NavigatingSourceType == StackNavigationSourceType.Pop)
+            return;
+
+            void Push()
             {
-                ScreenEventInvoker.Invoke(ScreenLifecycleEvent.ScreenWillDestroy, context);
+                // Prepare If PreActive
+                if (context.FromScreen == this)
+                {
+                    ScreenEventInvoker.Invoke(ScreenLifecycleEvent.ScreenWillPause, context);
+                    _interactableLocks.Push(UI.LockInteractable());
+                    // Unlock interactable if error occurs during navigation
+                    context.OnError += _ =>
+                    {
+                        if (_interactableLocks.TryPop(out var interactableLock))
+                        {
+                            interactableLock.Dispose();
+                        }
+                    };
+                }
             }
 
-            if (context.FromScreen == this && context.NavigatingSourceType == StackNavigationSourceType.Push)
+            void Pop()
             {
-                ScreenEventInvoker.Invoke(ScreenLifecycleEvent.ScreenWillPause, context);
-                _interactableLocks.Push(UI.LockInteractable());
+                // Prepare If PreActive
+                if (context.FromScreen == this)
+                {
+                    ScreenEventInvoker.Invoke(ScreenLifecycleEvent.ScreenWillDestroy, context);
+                }
+            }
+
+            void Insert()
+            {
+            }
+
+            void Remove()
+            {
             }
         }
 
         protected virtual void ScreenDidNavigate(StackNavigationContext context)
         {
-            if (context.NavigatingSourceType is StackNavigationSourceType.Insert or StackNavigationSourceType.Remove)
+            switch (context.NavigatingSourceType)
             {
-                return;
+                case StackNavigationSourceType.Push:
+                    Push();
+                    break;
+                case StackNavigationSourceType.Pop:
+                    Pop();
+                    break;
+                case StackNavigationSourceType.Insert:
+                    Insert();
+                    break;
+                case StackNavigationSourceType.Remove:
+                    Remove();
+                    break;
             }
 
-            if (context.ToScreen == this)
+            return;
+
+            void Push()
             {
-                var stateEvent = context.NavigatingSourceType switch
+                // Finalize If PostActive
+                if (context.ToScreen == this)
                 {
-                    StackNavigationSourceType.Push => ScreenLifecycleEvent.ScreenDidStart,
-                    StackNavigationSourceType.Pop => ScreenLifecycleEvent.ScreenDidResume,
-                    _ => throw new ArgumentOutOfRangeException()
-                };
+                    // The lock released at this point is the lock that was added in StartingImplAsync().
+                    if (_interactableLocks.TryPop(out var interactableLock))
+                    {
+                        interactableLock.Dispose();
+                    }
 
-                if (_interactableLocks.TryPop(out var interactableLock))
-                {
-                    interactableLock.Dispose();
+                    ScreenEventInvoker.Invoke(ScreenLifecycleEvent.ScreenDidStart, context);
                 }
+            }
 
-                ScreenEventInvoker.Invoke(stateEvent, context);
+            void Pop()
+            {
+                // Finalize If PostActive
+                if (context.ToScreen == this)
+                {
+                    //  The lock released at this point is the lock that was added in ScreenWillNavigate.Push().
+                    if (_interactableLocks.TryPop(out var interactableLock))
+                    {
+                        interactableLock.Dispose();
+                    }
+
+                    ScreenEventInvoker.Invoke(ScreenLifecycleEvent.ScreenDidResume, context);
+                }
+            }
+
+            void Insert()
+            {
+                if (context.GetInsertionScreen() == this)
+                {
+                    ScreenEventInvoker.Invoke(ScreenLifecycleEvent.ScreenDidStart, context);
+                }
+            }
+
+            void Remove()
+            {
             }
         }
 

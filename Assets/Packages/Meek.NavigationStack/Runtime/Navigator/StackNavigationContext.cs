@@ -19,6 +19,12 @@ namespace Meek.NavigationStack
 
         public bool SkipAnimation;
 
+        /// <summary>
+        /// This callback is triggered when an error occurs during navigation.
+        /// For Push and Insert operations, it is invoked before the Screen is disposed.
+        /// </summary>
+        public event Action<Exception> OnError;
+
         public StackScreen GetInsertionScreen()
         {
             if (NavigatingSourceType != StackNavigationSourceType.Insert)
@@ -104,6 +110,11 @@ namespace Meek.NavigationStack
         public void SetNextScreenParameter(object parameter)
         {
             Features.Add(NextScreenParameter, parameter);
+        }
+
+        internal void InvokeOnError(Exception exception)
+        {
+            OnError?.Invoke(exception);
         }
     }
 }
