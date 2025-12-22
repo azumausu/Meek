@@ -6,11 +6,6 @@ using Meek.UGUI;
 
 namespace Meek.MVP
 {
-    /// <summary>
-    /// Presenterをロードする機能を追加したOsmiumScreen
-    /// </summary>
-    /// <typeparam name="TModel"></typeparam>
-    /// <typeparam name="TParam"></typeparam>
     public abstract class MVPScreen<TModel, TParam> : MVPScreen<TModel>
     {
         private TParam _parameter;
@@ -24,9 +19,7 @@ namespace Meek.MVP
 
         protected override async ValueTask StartingImplAsync(StackNavigationContext context)
         {
-            // Parameterの代入を行う
             _parameter = context.GetNextScreenParameter<TParam>();
-            // Parameter代入後にAppBaseScreen<TModel>のStartImplを呼び出す。
             await base.StartingImplAsync(context);
         }
     }
@@ -60,7 +53,6 @@ namespace Meek.MVP
         {
             Model = await CreateModelAsync();
 
-            // Disposableを実装している場合は登録しておく。
             if (Model is IAsyncDisposable asyncDisposable) AsyncDisposables.Add(asyncDisposable);
             if (Model is IDisposable disposable) Disposables.Add(disposable);
 
@@ -76,6 +68,7 @@ namespace Meek.MVP
             var presenterViewHandler = AppServices.GetService<IPresenterViewHandler>();
             await presenterViewHandler.InitializeAsync(viewProvider, this, param);
             await presenterViewHandler.LoadAsync(Model);
+
             UI.AddViewHandler(presenterViewHandler);
 
             return presenterViewHandler.GetPresenter<TPresenter>();

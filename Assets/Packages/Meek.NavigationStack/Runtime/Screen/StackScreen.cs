@@ -25,7 +25,9 @@ namespace Meek.NavigationStack
         protected virtual BackToNavigation BackToNavigation => AppServices.GetService<BackToNavigation>().SetSender(this);
 
         protected virtual void Dispatch<TParam>(TParam param) => AppServices.GetService<StackNavigationService>().Dispatch(param);
-        protected virtual Task DispatchAsync<TParam>(TParam param) => AppServices.GetService<StackNavigationService>().DispatchAsync(param);
+
+        protected virtual async Task DispatchAsync<TParam>(TParam param) =>
+            await AppServices.GetService<StackNavigationService>().DispatchAsync(param);
 
         /// <summary>
         /// When set to true, it will automatically call _interactableLocks.Dispose() when the Screen is destroyed.
@@ -41,6 +43,7 @@ namespace Meek.NavigationStack
         {
             ScreenEventInvoker = CreateEventInvoker();
 
+            // Unlocking is handled by ScreenDidNavigate.FinalizeIfPostActive.
             _interactableLocks.Push(UI.LockInteractable());
 
             ScreenEventInvoker.Invoke(ScreenLifecycleEvent.ScreenWillStart, context);
@@ -77,53 +80,121 @@ namespace Meek.NavigationStack
 
         protected virtual void ScreenWillNavigate(StackNavigationContext context)
         {
-            if (context.FromScreen != this)
+            switch (context.NavigatingSourceType)
             {
-                return;
+                case StackNavigationSourceType.Push:
+                    Push();
+                    break;
+                case StackNavigationSourceType.Pop:
+                    Pop();
+                    break;
+                case StackNavigationSourceType.Insert:
+                    Insert();
+                    break;
+                case StackNavigationSourceType.Remove:
+                    Remove();
+                    break;
             }
 
-            if (context.NavigatingSourceType is StackNavigationSourceType.Insert or StackNavigationSourceType.Remove)
+            return;
+
+            void Push()
             {
-                return;
+                // Prepare If PreActive
+                if (context.FromScreen == this)
+                {
+                    ScreenEventInvoker.Invoke(ScreenLifecycleEvent.ScreenWillPause, context);
+                    _interactableLocks.Push(UI.LockInteractable());
+                    // Unlock interactable if error occurs during navigation
+                    context.OnError += _ =>
+                    {
+                        if (_interactableLocks.TryPop(out var interactableLock))
+                        {
+                            interactableLock.Dispose();
+                        }
+                    };
+                }
             }
 
-            if (context.NavigatingSourceType == StackNavigationSourceType.Pop)
+            void Pop()
             {
-                ScreenEventInvoker.Invoke(ScreenLifecycleEvent.ScreenWillDestroy, context);
+                // Prepare If PreActive
+                if (context.FromScreen == this)
+                {
+                    ScreenEventInvoker.Invoke(ScreenLifecycleEvent.ScreenWillDestroy, context);
+                }
             }
 
-            if (context.NavigatingSourceType == StackNavigationSourceType.Push)
+            void Insert()
             {
-                ScreenEventInvoker.Invoke(ScreenLifecycleEvent.ScreenWillPause, context);
-                _interactableLocks.Push(UI.LockInteractable());
+            }
+
+            void Remove()
+            {
             }
         }
 
         protected virtual void ScreenDidNavigate(StackNavigationContext context)
         {
-            if (context.ToScreen != this)
+            switch (context.NavigatingSourceType)
             {
-                return;
+                case StackNavigationSourceType.Push:
+                    Push();
+                    break;
+                case StackNavigationSourceType.Pop:
+                    Pop();
+                    break;
+                case StackNavigationSourceType.Insert:
+                    Insert();
+                    break;
+                case StackNavigationSourceType.Remove:
+                    Remove();
+                    break;
             }
 
-            if (context.NavigatingSourceType is StackNavigationSourceType.Insert or StackNavigationSourceType.Remove)
+            return;
+
+            void Push()
             {
-                return;
+                // Finalize If PostActive
+                if (context.ToScreen == this)
+                {
+                    // The lock released at this point is the lock that was added in StartingImplAsync().
+                    if (_interactableLocks.TryPop(out var interactableLock))
+                    {
+                        interactableLock.Dispose();
+                    }
+
+                    ScreenEventInvoker.Invoke(ScreenLifecycleEvent.ScreenDidStart, context);
+                }
             }
 
-            var stateEvent = context.NavigatingSourceType switch
+            void Pop()
             {
-                StackNavigationSourceType.Push => ScreenLifecycleEvent.ScreenDidStart,
-                StackNavigationSourceType.Pop => ScreenLifecycleEvent.ScreenDidResume,
-                _ => throw new ArgumentOutOfRangeException()
-            };
+                // Finalize If PostActive
+                if (context.ToScreen == this)
+                {
+                    //  The lock released at this point is the lock that was added in ScreenWillNavigate.Push().
+                    if (_interactableLocks.TryPop(out var interactableLock))
+                    {
+                        interactableLock.Dispose();
+                    }
 
-            if (_interactableLocks.TryPop(out var interactableLock))
-            {
-                interactableLock.Dispose();
+                    ScreenEventInvoker.Invoke(ScreenLifecycleEvent.ScreenDidResume, context);
+                }
             }
 
-            ScreenEventInvoker.Invoke(stateEvent, context);
+            void Insert()
+            {
+                if (context.GetInsertionScreen() == this)
+                {
+                    ScreenEventInvoker.Invoke(ScreenLifecycleEvent.ScreenDidStart, context);
+                }
+            }
+
+            void Remove()
+            {
+            }
         }
 
         private IScreenEventInvoker CreateEventInvoker()

@@ -16,7 +16,7 @@ namespace Meek.UGUI
             return _rootNode;
         }
 
-        public virtual void SortOrderInHierarchy(NavigationContext navigationContext)
+        public virtual void SortOrderInHierarchy(StackNavigationContext navigationContext)
         {
             var navigationService = navigationContext.AppServices.GetService<StackNavigationService>();
             var uis = navigationService.ScreenContainer.Screens.OfType<StackScreen>().Select(x => x.UI);

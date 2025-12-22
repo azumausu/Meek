@@ -2,7 +2,6 @@ using System;
 using System.Threading.Tasks;
 using Meek.NavigationStack;
 using Meek.NavigationStack.Debugs;
-using Meek;
 
 namespace Meek.MVP
 {
@@ -17,39 +16,28 @@ namespace Meek.MVP
 
             if (options?.PrefabViewManager == null)
             {
-                throw new ArgumentNullException(nameof(options.PrefabViewManager),
-                    "PrefabViewManager must be provided in MvpNavigatorOptions.");
+                throw new ArgumentNullException(
+                    nameof(options.PrefabViewManager),
+                    "PrefabViewManager must be provided in MvpNavigatorOptions."
+                );
             }
 
-            builder.ServiceCollection.AddSingleton<MvpNavigatorOptions>();
-            builder.ServiceCollection.AddSingleton(options.InputLocker);
+            // Stack Screen Navigator Logic
+            builder.ServiceCollection.AddStackNavigationService(options.InputLocker);
+            builder.ServiceCollection.AddSingleton<INavigator, MvpNavigator>();
+
+            // uGUI Logic
             builder.ServiceCollection.AddSingleton(options.PrefabViewManager);
 
-            builder.ServiceCollection.AddSingleton<IScreenContainer, StackScreenContainer>();
-            builder.ServiceCollection.AddSingleton<NavigationSharedSemaphore>();
-            builder.ServiceCollection.AddSingleton(x => new StackNavigationService(x.GetService<INavigator>(), x));
-            builder.ServiceCollection.AddSingleton<INavigator, MvpNavigator>();
-            builder.ServiceCollection.TryAddSingleton<ICoroutineRunner, CoroutineRunner>();
-            if (options.DebugOption.UseDebug)
-            {
-                builder.ServiceCollection.AddSingleton(options.DebugOption);
-                builder.ServiceCollection.AddSingleton(x => new ServiceRegistrationHandler(x));
-            }
-
+            // Model View Presenter Logic
+            builder.ServiceCollection.AddSingleton<MvpNavigatorOptions>();
             builder.ServiceCollection.AddTransient<IPresenterViewHandler, DynamicPresenterViewHandler>();
             builder.ServiceCollection.AddTransient<IPresenterViewProvider, PresenterViewProviderFromResources>(x =>
                 new PresenterViewProviderFromResources("UI")
             );
-            builder.ServiceCollection.AddTransient<ScreenUI>();
-            builder.ServiceCollection.AddTransient<PushNavigatorAnimationStrategy>();
-            builder.ServiceCollection.AddTransient<PopNavigatorAnimationStrategy>();
-            builder.ServiceCollection.AddTransient<RemoveNavigatorAnimationStrategy>();
-            builder.ServiceCollection.AddTransient<InsertNavigatorAnimationStrategy>();
-            builder.ServiceCollection.AddTransient<PushNavigation>();
-            builder.ServiceCollection.AddTransient<PopNavigation>();
-            builder.ServiceCollection.AddTransient<RemoveNavigation>();
-            builder.ServiceCollection.AddTransient<InsertNavigation>();
-            builder.ServiceCollection.AddTransient<BackToNavigation>();
+
+            // Debug Logic
+            builder.ServiceCollection.AddDebug();
 
             return builder;
         }
@@ -57,8 +45,8 @@ namespace Meek.MVP
         public static IServiceProvider BuildMeekMvp(this IContainerBuilder builder)
         {
             var appService = builder.Build();
-            var options = appService.GetService<MvpNavigatorOptions>();
-            if (options.DebugOption.UseDebug)
+            var debugOption = appService.GetService<NavigationStackDebugOption>();
+            if (debugOption.UseDebug)
             {
                 appService.GetService<ServiceRegistrationHandler>();
             }
@@ -66,16 +54,14 @@ namespace Meek.MVP
             return appService;
         }
 
-        public static async Task<IServiceProvider> RunMeekMvpAsync<TScreen>(this IServiceProvider services)
-            where TScreen : class, IScreen
+        public static async Task<IServiceProvider> RunMeekMvpAsync<TScreen>(this IServiceProvider services) where TScreen : IScreen
         {
             await services.GetService<PushNavigation>().PushAsync<TScreen>();
 
             return services;
         }
 
-        public static Task<IServiceProvider> BuildAndRunMeekMvpAsync<TScreen>(this IContainerBuilder builder)
-            where TScreen : class, IScreen
+        public static Task<IServiceProvider> BuildAndRunMeekMvpAsync<TScreen>(this IContainerBuilder builder) where TScreen : IScreen
         {
             var appService = builder.BuildMeekMvp();
 
