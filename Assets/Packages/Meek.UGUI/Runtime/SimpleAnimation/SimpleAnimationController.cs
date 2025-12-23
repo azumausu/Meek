@@ -43,7 +43,7 @@ namespace Meek.UGUI
             {
                 _currentEntry = entry;
                 var c = entry.config;
-                return Player.Play(entry.clip, c.FadeTime, c.PlaySpeed, c.StartPosition * entry.clip.length, onEnd: onEnd);
+                return Player?.Play(entry.clip, c.FadeTime, c.PlaySpeed, c.StartPosition * entry.clip.length, onEnd: onEnd);
             }
 
             onEnd?.Invoke();
@@ -65,6 +65,11 @@ namespace Meek.UGUI
 
         void ImmediateEnd(string name, bool isReverse = false)
         {
+            if (Player == null)
+            {
+                return;
+            }
+
             foreach (var e in m_Entries)
             {
                 if (e.name == name)
@@ -77,12 +82,22 @@ namespace Meek.UGUI
 
         public bool IsPlaying(string name = null)
         {
+            if (Player == null)
+            {
+                return false;
+            }
+
             var currentClip = Player.CurrentClip;
             if (currentClip == null) return false;
             if (string.IsNullOrEmpty(name)) name = _currentEntry.name;
             foreach (var e in m_Entries)
+            {
                 if (e.name == name)
+                {
                     return currentClip == e.clip;
+                }
+            }
+
             return false;
         }
 

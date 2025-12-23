@@ -35,7 +35,6 @@ namespace Meek.UGUI
 
             var output = AnimationPlayableOutput.Create(_graph, "output", _animator);
             output.SetSourcePlayable(_mixer);
-
         }
 
         public Coroutine Play(AnimationClip clip, float fadeTime = -1, float speed = 1f, float startPosition = 0, Action onEnd = null)
@@ -67,6 +66,7 @@ namespace Meek.UGUI
             {
                 _prevPlayable.Destroy();
             }
+
             _mixer.ConnectInput(0, _currentPlayable, 0);
             _mixer.SetInputWeight(0, 1);
             _mixer.SetInputWeight(1, 0);
@@ -99,6 +99,7 @@ namespace Meek.UGUI
                     onEnd?.Invoke();
                     yield break;
                 }
+
                 yield return null;
             }
 
@@ -137,6 +138,7 @@ namespace Meek.UGUI
                     _fading = false;
                 }
             }
+
             _mixer.SetInputWeight(0, 1);
 
             if (IsReverse(speed))
@@ -184,6 +186,7 @@ namespace Meek.UGUI
                 {
                     delta *= -1;
                 }
+
                 t += delta;
                 prevTime = time;
             }
@@ -197,6 +200,10 @@ namespace Meek.UGUI
         void OnDestroy()
         {
             _graph.Destroy();
+            if (_coroutine != null)
+            {
+                StopCoroutine(_coroutine);
+            }
         }
     }
 }

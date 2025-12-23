@@ -9,10 +9,8 @@ namespace Meek.UGUI
         , IAnimationClipSource
 #endif
     {
-        [SerializeField]
-        AnimationClip m_Clip;
-        [SerializeField]
-        bool m_AutoPlay = true;
+        [SerializeField] AnimationClip m_Clip;
+        [SerializeField] bool m_AutoPlay = true;
 
         SimpleAnimationPlayer _player;
 
@@ -29,11 +27,21 @@ namespace Meek.UGUI
 
         public void Play(global::System.Action onComplete = null)
         {
+            if (_player == null)
+            {
+                return;
+            }
+
             _player.Play(m_Clip, onEnd: onComplete);
         }
 
         public void Stop()
         {
+            if (_player == null)
+            {
+                return;
+            }
+
             _player.Stop();
         }
 
