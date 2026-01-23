@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 #nullable enable
@@ -61,6 +62,17 @@ namespace Meek.NavigationStack
         public RemoveNavigation SkipAnimation(bool skipAnimation)
         {
             RemoveContext.SkipAnimation = skipAnimation;
+            return this;
+        }
+
+        public RemoveNavigation CustomFeature(string key, object value)
+        {
+            if (RemoveContext.CustomFeatures == null)
+            {
+                RemoveContext.CustomFeatures = new Dictionary<string, object>();
+            }
+
+            RemoveContext.CustomFeatures[key] = value;
             return this;
         }
 

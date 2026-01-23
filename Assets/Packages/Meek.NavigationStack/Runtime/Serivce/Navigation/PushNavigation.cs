@@ -66,6 +66,17 @@ namespace Meek.NavigationStack
             return this;
         }
 
+        public PushNavigation CustomFeature(string key, object value)
+        {
+            if (PushContext.CustomFeatures == null)
+            {
+                PushContext.CustomFeatures = new System.Collections.Generic.Dictionary<string, object>();
+            }
+
+            PushContext.CustomFeatures[key] = value;
+            return this;
+        }
+
         public PushNavigation SetSender(object sender)
         {
             Sender = sender;

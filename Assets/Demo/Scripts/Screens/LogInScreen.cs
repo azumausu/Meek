@@ -19,7 +19,6 @@ namespace Demo
             {
                 var presenter = await LoadPresenterAsync<LogInPresenter>();
 
-                throw new System.NotImplementedException("Implement authentication logic here.");
                 presenter.OnClickBack.Subscribe(_ => PopNavigation.PopAsync().Forget());
                 presenter.OnClickLogIn.Subscribe(_ => PushNavigation.PushAsync<TabScreen>().Forget());
 

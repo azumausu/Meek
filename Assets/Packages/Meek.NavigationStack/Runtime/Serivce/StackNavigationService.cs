@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -45,7 +46,7 @@ namespace Meek.NavigationStack
         public virtual async ValueTask<IScreen> PushAsync(Type screenClassType, PushContext pushContext)
         {
             using var locker = _inputLocker.LockInput();
-            using var poolDisposable = DictionaryPool<string, object>.Get(out var features);
+            var features = new Dictionary<string, object>();
 
             var fromScreen = _stackNavigator.ScreenContainer.Screens.FirstOrDefault() as StackScreen;
             var toScreen = _serviceProvider.GetService(screenClassType) as StackScreen;
@@ -60,6 +61,14 @@ namespace Meek.NavigationStack
                 ToScreen = toScreen,
                 AppServices = _serviceProvider,
             };
+            if (pushContext.CustomFeatures != null)
+            {
+                foreach (var kv in pushContext.CustomFeatures)
+                {
+                    context.Features.Add(kv.Key, kv.Value);
+                }
+            }
+
             context.SetNextScreenParameter(pushContext.NextScreenParameter);
 
             try
@@ -82,7 +91,7 @@ namespace Meek.NavigationStack
         public virtual async ValueTask<bool> PopAsync(PopContext popContext)
         {
             using var locker = _inputLocker.LockInput();
-            using var poolDisposable = DictionaryPool<string, object>.Get(out var features);
+            var features = new Dictionary<string, object>();
 
             var fromScreen = _stackNavigator.ScreenContainer.GetPeekScreen();
             var toScreen = _stackNavigator.ScreenContainer.Screens.Skip(1).FirstOrDefault();
@@ -102,6 +111,13 @@ namespace Meek.NavigationStack
                 ToScreen = toScreen,
                 AppServices = _serviceProvider,
             };
+            if (popContext.CustomFeatures != null)
+            {
+                foreach (var kv in popContext.CustomFeatures)
+                {
+                    context.Features.Add(kv.Key, kv.Value);
+                }
+            }
 
             try
             {
@@ -165,7 +181,7 @@ namespace Meek.NavigationStack
             }
 
             using var locker = _inputLocker.LockInput();
-            using var poolDisposable = DictionaryPool<string, object>.Get(out var features);
+            var features = new Dictionary<string, object>();
 
             var insertionScreen = _serviceProvider.GetService(insertionScreenClassType) as IScreen
                                   ?? throw new ArgumentException();
@@ -180,6 +196,14 @@ namespace Meek.NavigationStack
                 ToScreen = fromScreen,
                 AppServices = _serviceProvider,
             };
+            if (insertionContext.CustomFeatures != null)
+            {
+                foreach (var kv in insertionContext.CustomFeatures)
+                {
+                    context.Features.Add(kv.Key, kv.Value);
+                }
+            }
+
             context.SetNextScreenParameter(insertionContext.NextScreenParameter);
             context.SetInsertionBeforeScreen((beforeScreen as StackScreen));
             context.SetInsertionScreen((insertionScreen as StackScreen));
@@ -236,7 +260,7 @@ namespace Meek.NavigationStack
             }
 
             using var locker = _inputLocker.LockInput();
-            using var poolDisposable = DictionaryPool<string, object>.Get(out var features);
+            var features = new Dictionary<string, object>();
             var beforeScreen = _stackNavigator.ScreenContainer.GetScreenBefore(removeScreen);
             var afterScreen = _stackNavigator.ScreenContainer.GetScreenAfter(removeScreen);
             var context = new StackNavigationContext()
@@ -249,6 +273,14 @@ namespace Meek.NavigationStack
                 ToScreen = fromScreen,
                 AppServices = _serviceProvider,
             };
+            if (removeContext.CustomFeatures != null)
+            {
+                foreach (var kv in removeContext.CustomFeatures)
+                {
+                    context.Features.Add(kv.Key, kv.Value);
+                }
+            }
+
             context.SetRemoveScreen((removeScreen as StackScreen));
             context.SetRemoveAfterScreen((afterScreen as StackScreen));
             context.SetRemoveBeforeScreen((beforeScreen as StackScreen));

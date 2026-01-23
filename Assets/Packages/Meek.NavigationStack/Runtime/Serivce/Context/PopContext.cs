@@ -1,3 +1,6 @@
+using System.Collections.Generic;
+using JetBrains.Annotations;
+
 namespace Meek.NavigationStack
 {
 #nullable enable
@@ -7,5 +10,6 @@ namespace Meek.NavigationStack
         public bool SkipAnimation = false;
         public IScreen? OnlyWhenScreen = null;
         public bool UseOnlyWhenScreen => OnlyWhenScreen != null;
+        public Dictionary<string, object>? CustomFeatures;
     }
 }

@@ -9,16 +9,16 @@ namespace Meek
         public IDictionary<string, object> Features;
 
         /// <summary>
-        /// ナビゲーション前にアクティブだったScreen
-        /// 注意: RemoveやInsertの場合はStackのPeekのScreenになります。
-        /// 注意: Push前にStackが空の場合はnullになります。
+        /// The screen that was active before navigation.
+        /// Note: For Remove or Insert operations, this will be the screen at the top (Peek) of the stack.
+        /// Note: Will be null if the stack is empty before Push.
         /// </summary>
         [CanBeNull] public IScreen FromScreen;
 
         /// <summary>
-        /// ナビゲーション後にアクティブになるScreen
-        /// 注意: RemoveやInsertの場合はStackのPeekのScreenになります。
-        /// 注意: Popの後にStackが空になる場合はnullになります。
+        /// The screen that will be active after navigation.
+        /// Note: For Remove or Insert operations, this will be the screen at the top (Peek) of the stack.
+        /// Note: Will be null if the stack becomes empty after Pop.
         /// </summary>
         [CanBeNull] public IScreen ToScreen;
 

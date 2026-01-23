@@ -72,6 +72,17 @@ namespace Meek.NavigationStack
             return this;
         }
 
+        public InsertNavigation CustomFeature(string key, object value)
+        {
+            if (Context.CustomFeatures == null)
+            {
+                Context.CustomFeatures = new System.Collections.Generic.Dictionary<string, object>();
+            }
+
+            Context.CustomFeatures[key] = value;
+            return this;
+        }
+
         public InsertNavigation SetSender(object sender)
         {
             Sender = sender;

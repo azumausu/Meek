@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -16,6 +17,7 @@ namespace Meek.NavigationStack
         protected bool CrossFade = false;
         protected bool SkipAnimation = false;
         protected bool RemoveScreenSkipAnimation = true;
+        protected Dictionary<string, object>? CustomFeatures;
         protected object? Sender;
 
         public BackToNavigation(StackNavigationService stackNavigationService, NavigationSharedSemaphore sharedSemaphore)
@@ -71,6 +73,7 @@ namespace Meek.NavigationStack
                         OnlyWhenScreen = removeScreenList[0],
                         IsCrossFade = CrossFade,
                         SkipAnimation = SkipAnimation,
+                        CustomFeatures = CustomFeatures,
                     });
                 }
                 else if (removeScreenList.Count > 1)
@@ -80,6 +83,7 @@ namespace Meek.NavigationStack
                         await StackNavigationService.RemoveAsync(screen, new RemoveContext()
                         {
                             SkipAnimation = RemoveScreenSkipAnimation,
+                            CustomFeatures = CustomFeatures,
                         });
                     }
 
@@ -87,6 +91,7 @@ namespace Meek.NavigationStack
                     {
                         IsCrossFade = CrossFade,
                         SkipAnimation = SkipAnimation,
+                        CustomFeatures = CustomFeatures,
                     });
                 }
             }
@@ -103,15 +108,26 @@ namespace Meek.NavigationStack
             return this;
         }
 
-        public BackToNavigation UpdateSkipAnimation(bool skipAnimation)
+        public BackToNavigation SetSkipAnimation(bool skipAnimation)
         {
             SkipAnimation = skipAnimation;
             return this;
         }
 
-        public BackToNavigation UpdateRemoveScreenSkipAnimation(bool removeScreenSkipAnimation)
+        public BackToNavigation SetRemoveScreenSkipAnimation(bool removeScreenSkipAnimation)
         {
             RemoveScreenSkipAnimation = removeScreenSkipAnimation;
+            return this;
+        }
+
+        public BackToNavigation CustomFeature(string key, object value)
+        {
+            if (CustomFeatures == null)
+            {
+                CustomFeatures = new System.Collections.Generic.Dictionary<string, object>();
+            }
+
+            CustomFeatures[key] = value;
             return this;
         }
 

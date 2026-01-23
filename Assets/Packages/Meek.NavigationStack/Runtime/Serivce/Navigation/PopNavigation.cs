@@ -62,6 +62,17 @@ namespace Meek.NavigationStack
             return this;
         }
 
+        public PopNavigation CustomFeature(string key, object value)
+        {
+            if (Context.CustomFeatures == null)
+            {
+                Context.CustomFeatures = new System.Collections.Generic.Dictionary<string, object>();
+            }
+
+            Context.CustomFeatures[key] = value;
+            return this;
+        }
+
         public PopNavigation SetSender(object sender)
         {
             Sender = sender;
