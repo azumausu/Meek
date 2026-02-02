@@ -165,7 +165,7 @@ namespace Meek.NavigationStack
                         interactableLock.Dispose();
                     }
 
-                    ScreenEventInvoker.Invoke(ScreenLifecycleEvent.ScreenDidStart, context);
+                    ScreenEventInvoker?.Invoke(ScreenLifecycleEvent.ScreenDidStart, context);
                 }
             }
 
@@ -180,7 +180,7 @@ namespace Meek.NavigationStack
                         interactableLock.Dispose();
                     }
 
-                    ScreenEventInvoker.Invoke(ScreenLifecycleEvent.ScreenDidResume, context);
+                    ScreenEventInvoker?.Invoke(ScreenLifecycleEvent.ScreenDidResume, context);
                 }
             }
 
@@ -188,7 +188,7 @@ namespace Meek.NavigationStack
             {
                 if (context.GetInsertionScreen() == this)
                 {
-                    ScreenEventInvoker.Invoke(ScreenLifecycleEvent.ScreenDidStart, context);
+                    ScreenEventInvoker?.Invoke(ScreenLifecycleEvent.ScreenDidStart, context);
                 }
             }
 
