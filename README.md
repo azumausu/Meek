@@ -86,7 +86,6 @@ Meek is organized into five modular packages:
 
 - **Unity 6000.0** (Unity 6) or newer
 - **[VContainer](https://github.com/hadashiA/VContainer)** 1.13.2+
-- **[UniRx](https://github.com/neuecc/UniRx)** (recommended for MVP reactive bindings)
 
 ---
 
@@ -98,7 +97,6 @@ Add the following lines to your `Packages/manifest.json`:
 {
   "dependencies": {
     "jp.amatech.meek": "https://github.com/azumausu/Meek.git?path=Assets/Packages",
-    "jp.hadashikick.vcontainer": "https://github.com/hadashiA/VContainer.git?path=VContainer/Assets/VContainer"
   }
 }
 ```

@@ -86,7 +86,6 @@ Meekは5つのモジュラーパッケージで構成されています：
 
 - **Unity 6000.0**（Unity 6）以降
 - **[VContainer](https://github.com/hadashiA/VContainer)** 1.13.2以上
-- **[UniRx](https://github.com/neuecc/UniRx)**（MVPリアクティブバインディングに推奨）
 
 ---
 
@@ -98,7 +97,6 @@ Meekは5つのモジュラーパッケージで構成されています：
 {
   "dependencies": {
     "jp.amatech.meek": "https://github.com/azumausu/Meek.git?path=Assets/Packages",
-    "jp.hadashikick.vcontainer": "https://github.com/hadashiA/VContainer.git?path=VContainer/Assets/VContainer"
   }
 }
 ```
