@@ -175,6 +175,7 @@ namespace Meek.NavigationStack
                     NextScreenParameter = insertionContext.NextScreenParameter,
                     IsCrossFade = insertionContext.IsCrossFade,
                     SkipAnimation = insertionContext.SkipAnimation,
+                    CustomFeatures = insertionContext.CustomFeatures,
                 };
                 var screen = await PushAsync(insertionScreenClassType, pushContext);
                 return screen;
@@ -254,6 +255,7 @@ namespace Meek.NavigationStack
                 {
                     IsCrossFade = removeContext.IsCrossFade,
                     SkipAnimation = removeContext.SkipAnimation,
+                    CustomFeatures = removeContext.CustomFeatures,
                 };
                 await PopAsync(popContext);
                 return;
