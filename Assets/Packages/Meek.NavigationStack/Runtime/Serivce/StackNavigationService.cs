@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.Pool;
 
 namespace Meek.NavigationStack
 {
@@ -81,9 +80,26 @@ namespace Meek.NavigationStack
             }
             catch (Exception e)
             {
+                Debug.LogException(e);
                 context.InvokeOnError(e);
-                if (toScreen is IDisposable disposable) disposable.Dispose();
-                if (toScreen is IAsyncDisposable asyncDisposable) await asyncDisposable.DisposeAsync();
+                try
+                {
+                    if (toScreen is IDisposable disposable) disposable.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogException(ex);
+                }
+
+                try
+                {
+                    if (toScreen is IAsyncDisposable asyncDisposable) await asyncDisposable.DisposeAsync();
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogException(ex);
+                }
+
                 throw;
             }
         }
@@ -127,7 +143,9 @@ namespace Meek.NavigationStack
             }
             catch (Exception e)
             {
+                Debug.LogException(e);
                 context.InvokeOnError(e);
+                throw;
             }
 
             return true;
@@ -220,9 +238,26 @@ namespace Meek.NavigationStack
             }
             catch (Exception e)
             {
+                Debug.LogException(e);
                 context.InvokeOnError(e);
-                if (insertionScreen is IDisposable disposable) disposable.Dispose();
-                if (insertionScreen is IAsyncDisposable asyncDisposable) await asyncDisposable.DisposeAsync();
+                try
+                {
+                    if (insertionScreen is IDisposable disposable) disposable.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogException(ex);
+                }
+
+                try
+                {
+                    if (insertionScreen is IAsyncDisposable asyncDisposable) await asyncDisposable.DisposeAsync();
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogException(ex);
+                }
+
                 throw;
             }
         }
@@ -295,7 +330,9 @@ namespace Meek.NavigationStack
             }
             catch (Exception e)
             {
+                Debug.LogException(e);
                 context.InvokeOnError(e);
+                throw;
             }
         }
 
