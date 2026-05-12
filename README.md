@@ -36,9 +36,9 @@ A DI-based screen management framework for Unity with stack navigation and MVP a
   - [Automatic disposal of Models and Presenters](#automatic-disposal-of-models-and-presenters)
   - [Navigation Builder options](#navigation-builder-options)
   - [Passing data via `CustomFeature`](#passing-data-via-customfeature)
+  - [Lifecycle event firing matrix](#lifecycle-event-firing-matrix)
   - [Receiving `StackNavigationContext` in lifecycle callbacks](#receiving-stacknavigationcontext-in-lifecycle-callbacks)
   - [Animation system internals](#animation-system-internals)
-  - [Lifecycle event firing matrix](#lifecycle-event-firing-matrix)
   - [Class architecture: Screen, ScreenUI, IViewHandler, Presenter](#class-architecture-screen-screenui-iviewhandler-presenter)
   - [Inspecting Navigation State (`StackNavigationService`)](#inspecting-navigation-state-stacknavigationservice)
 - [Advanced Usage](#advanced-usage)
@@ -211,14 +211,6 @@ public class SplashPresenter : Presenter<SplashModel>
 }
 ```
 
-### 5. Define `HomeScreen` (or any next screen)
-
-`HomeScreen` referenced from `SplashScreen` is a normal `MVPScreen<TModel>` defined exactly the same way as `SplashScreen` — create a model, register events, load a presenter, and place its prefab under `Resources/UI/HomePresenter`. The Quick Start registers it on the container in step 1, but you can extend the sample with as many screens as you need by repeating steps 2–4.
-
-### 6. Run the Demo
-
-Open `Assets/Demo/Scenes/Demo.unity` and press Play to see a full working example with 9 screens demonstrating all navigation patterns.
-
 ---
 
 ## Core Concepts
@@ -259,7 +251,10 @@ Meek provides five navigation operations:
 | **Remove** | `RemoveNavigation.RemoveAsync<T>()` | Remove a specific screen from the stack |
 | **BackTo** | `BackToNavigation.BackToAsync<T>()` | Pop all screens until the specified screen is on top |
 
-Each navigation builder supports method chaining and ships both an `Async` variant (returns a `Task`) and a `Forget` variant (fire-and-forget):
+Each navigation builder supports method chaining and ships two terminal variants:
+
+- **`Async`** — returns a `Task`, awaitable
+- **`Forget`** — fire-and-forget
 
 ```csharp
 // Awaitable
@@ -293,7 +288,13 @@ New top screen (the one being Pushed)
 
 Each `Will*` / `Did*` pair brackets one phase: `Will*` fires before the phase starts, `Did*` after it finishes.
 
-`Insert` and `Remove` fire a more restricted set of lifecycle events on the affected screen and never pause / resume the currently visible top screen. Around the actual transition, `ScreenUI` also fires `ViewWillOpen` / `ViewDidOpen` (Push, Insert) and `ViewWillClose` / `ViewDidClose` (Pop, Remove). Each lifecycle hook can additionally receive a `StackNavigationContext` — these mechanics and the exact firing order are documented in [Receiving `StackNavigationContext` in lifecycle callbacks](#receiving-stacknavigationcontext-in-lifecycle-callbacks).
+Additional behaviour:
+
+- **Insert / Remove** fire a more restricted set of lifecycle events on the affected screen, and never pause / resume the currently visible top screen.
+- **`ScreenUI` view events** — Around the actual transition, `ViewWillOpen` / `ViewDidOpen` fires for Push and Insert, and `ViewWillClose` / `ViewDidClose` fires for Pop and Remove.
+- **Context-aware hooks** — Each lifecycle hook can additionally receive a `StackNavigationContext`.
+
+The exact firing order and these mechanics are documented in [Receiving `StackNavigationContext` in lifecycle callbacks](#receiving-stacknavigationcontext-in-lifecycle-callbacks).
 
 ### DI Integration
 
@@ -464,7 +465,8 @@ Meek supports four animation types: **Open**, **Close**, **Show**, **Hide**.
 | **Push**  | `Open` | `Hide` (kept underneath) |
 | **Pop**   | `Show` (returns to top) | `Close` (the popped screen) |
 
-When `IsCrossFade(true)` is set, foreground and background animations run in parallel; otherwise they run sequentially. `ViewWillOpen/DidOpen` and `ViewWillClose/DidClose` events fire around the `Open` / `Close` animations only (the `Show` / `Hide` side has no `View*` event — see [Lifecycle event firing matrix](#lifecycle-event-firing-matrix)).
+- **Cross-fade vs sequential** — When `IsCrossFade(true)` is set, foreground and background animations run in parallel; otherwise they run sequentially.
+- **View events** — `ViewWillOpen` / `ViewDidOpen` and `ViewWillClose` / `ViewDidClose` fire around the `Open` / `Close` animations only. The `Show` / `Hide` side has no `View*` event — see [Lifecycle event firing matrix](#lifecycle-event-firing-matrix).
 
 Control animation behavior per navigation:
 
@@ -494,7 +496,7 @@ public class ReviewScreen : MVPScreen<ReviewModel, ReviewScreenParameter>
 
 ## In Depth
 
-This section drills into the runtime behaviour of Meek. The earlier "Core Concepts" and "Usage" sections were enough to ship features; the topics below explain how the framework wires those pieces together so you can extend or debug them confidently. The nine subsections cover, in order: the full member list on `MVPScreen`, how Models and Presenter bindings are disposed for you, the per-builder navigation options, the `CustomFeature` value-passing system, the lifecycle event firing matrix, how to receive a `StackNavigationContext` in lifecycle callbacks, the animation pipeline, the class architecture diagram, and how to inspect the live stack through `StackNavigationService`.
+The "Core Concepts" and "Usage" sections above cover everything you need to ship features. This section drills into Meek's runtime behaviour so you can extend or debug it confidently. See the [Table of Contents](#table-of-contents) for the subsections.
 
 ### MVPScreen members you can use
 
@@ -507,12 +509,23 @@ A subclass of `MVPScreen<TModel>` (or `MVPScreen<TModel, TParam>`) inherits ever
 | `UI` | The owning `ScreenUI` (manages visibility, the interaction lock, and the ViewHandler list). |
 | `NavigationService` | The `StackNavigationService` for inspecting the stack and subscribing to global navigation events. |
 | `PushNavigation` / `PopNavigation` / `InsertNavigation` / `RemoveNavigation` / `BackToNavigation` | Per-call navigation builders pre-tagged with this screen as `Sender`. |
-| `Dispatch<T>(arg)` / `DispatchAsync<T>(arg)` | `protected virtual` helpers that forward to `StackNavigationService.Dispatch` / `DispatchAsync`, broadcasting an event to every screen in the stack (see `EventHolder.SubscribeDispatchEvent`). |
+| `Dispatch<T>(arg)` / `DispatchAsync<T>(arg)` | `protected virtual` helpers that broadcast an event to every screen in the stack (see `EventHolder.SubscribeDispatchEvent`). |
 | `TryGetScreen<TScreen>()` | Look up another screen in the stack by type (returns `null` if not present). |
 | `Disposables` / `AsyncDisposables` | Add resources you want released when the screen leaves the stack. |
-| `LoadPresenterAsync<TPresenter>(param?)` | `protected` convenience helper that instantiates a Presenter prefab via the DI-registered `IPresenterViewProvider`, drives its `LoadAsync` / `Setup` / `Bind`, and registers its view handler with `UI`. A second `public virtual` overload taking an explicit `IPrefabViewProvider` exists for ad-hoc providers. Can be called multiple times to compose a screen from several Presenters. |
+| `LoadPresenterAsync<TPresenter>(param?)` | Instantiate a Presenter prefab and wire it into this screen (details below). |
 | `ScreenUIType` (override) | Defaults to `FullScreen`. Override to `WindowOrTransparent` for modals/overlays so the screen underneath keeps rendering. |
-| `ForceUnlockInteractable()` / `AutoDisposeLockerOnDestroy` | Manual control over the input lock. The default keeps locks alive until the middleware releases them; setting `AutoDisposeLockerOnDestroy = true` releases the lock during `ScreenDidDestroy`, at the cost of input briefly becoming enabled mid-animation. |
+| `ForceUnlockInteractable()` / `AutoDisposeLockerOnDestroy` | Manual control over the input lock (details below). |
+
+**`LoadPresenterAsync<TPresenter>(param?)`**
+
+- `protected` convenience helper that instantiates a Presenter prefab via the DI-registered `IPresenterViewProvider`, drives its `LoadAsync` / `Setup` / `Bind`, and registers its view handler with `UI`.
+- A second `public virtual` overload takes an explicit `IPrefabViewProvider` for ad-hoc providers.
+- Can be called multiple times to compose a screen from several Presenters.
+
+**Input lock controls**
+
+- `ForceUnlockInteractable()` releases the lock manually.
+- By default, locks stay alive until the middleware releases them.
 
 ### Automatic disposal of Models and Presenters
 
@@ -537,13 +550,21 @@ Meek removes most of the manual `Dispose` boilerplate by wiring disposal into th
 
 Every builder offers `Async` (returns `Task` / `Task<T>`) and `Forget` (returns `void`) terminal calls plus several chainable configuration methods. The matrix below covers what is unique to each builder — all builders additionally support `CustomFeature(string key, object value)` (see the next section) and `SetSender(object)`.
 
-| Builder | Chainable options | Terminal calls | Notes |
-|---------|-------------------|----------------|-------|
-| `PushNavigation` | `NextScreenParameter(object)`, `IsCrossFade(bool)`, `SkipAnimation(bool)` | `PushAsync<T>()` → `Task<T>`, `PushForget<T>()` | Default `SkipAnimation = false`, `IsCrossFade = false`. |
-| `PopNavigation`  | `OnlyWhen(IScreen)`, `IsCrossFade(bool)`, `SkipAnimation(bool)` | `PopAsync()` → `Task`, `PopForget()` | `OnlyWhen` makes the pop a no-op unless the given screen is currently on top — useful to prevent double-tap navigation. (Calling the underlying `StackNavigationService.PopAsync(PopContext)` directly returns `ValueTask<bool>` so you can detect whether the pop actually ran; the builder swallows the result.) |
-| `InsertNavigation` | `NextScreenParameter(object)`, `IsCrossFade(bool)`, `SkipAnimation(bool)` | `InsertScreenBeforeAsync<TBefore, TInsert>()` → `Task<IScreen>`, `InsertScreenBeforeForget<TBefore, TInsert>()` | `SkipAnimation` defaults to `true`. If the "before" screen is currently on top, the operation is automatically promoted to a normal Push. |
-| `RemoveNavigation` | `IsCrossFade(bool)`, `SkipAnimation(bool)` | `RemoveAsync<T>()` / `RemoveAsync(IScreen)` / `RemoveAsync(Type)` → `Task`, `RemoveForget<T>()` | `SkipAnimation` defaults to `true`. If the target is the top screen, the operation is automatically promoted to Pop. |
-| `BackToNavigation` | `IsCrossFade(bool)`, `SetSkipAnimation(bool)`, `SetRemoveScreenSkipAnimation(bool)` | `BackToAsync<T>()` → `Task`, `BackToForget<T>()` | Walks the stack down to the target screen. Intermediate screens are removed with `SkipAnimation = true` by default (configurable via `SetRemoveScreenSkipAnimation`), and the final transition uses a regular Pop. If the target is already on top this is a no-op. |
+| Builder | Chainable options | Terminal calls |
+|---------|-------------------|----------------|
+| `PushNavigation` | `NextScreenParameter(object)`, `IsCrossFade(bool)`, `SkipAnimation(bool)` | `PushAsync<T>()` → `Task<T>`, `PushForget<T>()` |
+| `PopNavigation`  | `OnlyWhen(IScreen)`, `IsCrossFade(bool)`, `SkipAnimation(bool)` | `PopAsync()` → `Task`, `PopForget()` |
+| `InsertNavigation` | `NextScreenParameter(object)`, `IsCrossFade(bool)`, `SkipAnimation(bool)` | `InsertScreenBeforeAsync<TBefore, TInsert>()` → `Task<IScreen>`, `InsertScreenBeforeForget<TBefore, TInsert>()` |
+| `RemoveNavigation` | `IsCrossFade(bool)`, `SkipAnimation(bool)` | `RemoveAsync<T>()` / `RemoveAsync(IScreen)` / `RemoveAsync(Type)` → `Task`, `RemoveForget<T>()` |
+| `BackToNavigation` | `IsCrossFade(bool)`, `SetSkipAnimation(bool)`, `SetRemoveScreenSkipAnimation(bool)` | `BackToAsync<T>()` → `Task`, `BackToForget<T>()` |
+
+**Per-builder notes:**
+
+- **`PushNavigation`** — Defaults: `SkipAnimation = false`, `IsCrossFade = false`.
+- **`PopNavigation`** — `OnlyWhen` makes the pop a no-op unless the given screen is currently on top — useful to prevent double-tap navigation. Calling the underlying `StackNavigationService.PopAsync(PopContext)` directly returns `ValueTask<bool>` so you can detect whether the pop actually ran; the builder swallows the result.
+- **`InsertNavigation`** — `SkipAnimation` defaults to `true`. If the "before" screen is currently on top, the operation is automatically promoted to a normal Push.
+- **`RemoveNavigation`** — `SkipAnimation` defaults to `true`. If the target is the top screen, the operation is automatically promoted to Pop.
+- **`BackToNavigation`** — Walks the stack down to the target screen. Intermediate screens are removed with `SkipAnimation = true` by default (configurable via `SetRemoveScreenSkipAnimation`), and the final transition uses a regular Pop. If the target is already on top, this is a no-op.
 
 ### Passing data via `CustomFeature`
 
@@ -585,9 +606,9 @@ eventHolder.ScreenWillStart(ctx =>
 | `ViewWillOpen` / `ViewDidOpen` | fired on the new top screen | — | dispatched through the existing top screen's `ScreenEventInvoker` (because Insert sets `ToScreen` to the current top) | — |
 | `ViewWillClose` / `ViewDidClose` | — | fired on the popped screen (after `ScreenDidDestroy`, around the close animation) | — | fired on the screen being removed |
 
-For Insert the inserted screen receives `ScreenWillStart` → `ScreenDidPause` → `ScreenDidStart` in that order, all in a single navigation step: it is started, then immediately demoted from the top (firing `ScreenDidPause`), and finally `ScreenDidStart` fires once the navigation pipeline completes.
+**Insert-specific ordering** — The inserted screen receives `ScreenWillStart` → `ScreenDidPause` → `ScreenDidStart` in that order, all within a single navigation step. The screen is started, then immediately demoted from the top (firing `ScreenDidPause`). Finally, `ScreenDidStart` fires once the navigation pipeline completes.
 
-The screen running `Show` or `Hide` is the one that stays mounted across the transition — it is neither being added to nor removed from the stack — so no `View*` event fires for it. The counterpart that is actually added or removed receives the matching `View*` pair around its `Open` / `Close`.
+**Why `Show` / `Hide` has no `View*` event** — The screen running `Show` or `Hide` stays mounted across the transition (it is neither being added to nor removed from the stack), so no `View*` event fires for it. The counterpart that is actually added or removed receives the matching `View*` pair around its `Open` / `Close`.
 
 ### Receiving `StackNavigationContext` in lifecycle callbacks
 
@@ -648,15 +669,21 @@ Animations live on the Presenter prefab itself. Drop the following components an
 - **`NavigatorAnimationByAnimationClip`** (Meek.UGUI) — The default `INavigatorAnimation` implementation. In the Inspector you set the `NavigatorAnimationType` (`Open` / `Close` / `Show` / `Hide`), an optional `FromScreenName` / `ToScreenName` filter, and an `AnimationClip`.
 - **`SimpleAnimationPlayer`** — Auto-required by `NavigatorAnimationByAnimationClip`; drives the clip through Unity's `PlayableGraph` API.
 
-When a transition fires, `ScreenUI` looks for the best match in this order: (1) clips where both `FromScreenName` and `ToScreenName` line up with the current transition, (2) clips that match `FromScreenName` only, (3) clips that match `ToScreenName` only, (4) clips whose names are left blank as catch-all defaults. The first non-null match wins, so put highly-specific clips first.
+**Clip selection order** — When a transition fires, `ScreenUI` picks the first non-null match in this order, so put highly-specific clips first:
+
+1. Clips where both `FromScreenName` and `ToScreenName` match the current transition
+2. Clips that match `FromScreenName` only
+3. Clips that match `ToScreenName` only
+4. Clips whose names are left blank (catch-all defaults)
 
 You can place multiple `NavigatorAnimationByAnimationClip` components on the same prefab to provide per-source/per-destination tailored animations without writing code.
 
-`IsCrossFade(true)` runs the foreground `Open` / `Close` clip in parallel with the background `Hide` / `Show` clip using `StartParallelCoroutine`. By default Meek runs them sequentially.
+**Flag behaviour:**
 
-`SkipAnimation(true)` does not silently skip the animation — instead `ScreenUI` calls `EvaluateNavigateAnimation(context, type, t = 1.0f)` on every view handler, which snaps each clip to its final frame so the resulting visual state is identical to a completed animation. Use it when you need an instant transition (initial boot, deep links, etc.) without ending up with a half-animated UI.
+- **`IsCrossFade(true)`** — runs the foreground `Open` / `Close` clip in parallel with the background `Hide` / `Show` clip using `StartParallelCoroutine`. By default Meek runs them sequentially.
+- **`SkipAnimation(true)`** — does not silently skip the animation. Instead `ScreenUI` calls `EvaluateNavigateAnimation(context, type, t = 1.0f)` on every view handler, which snaps each clip to its final frame so the resulting visual state is identical to a completed animation. Use it when you need an instant transition (initial boot, deep links, etc.) without ending up with a half-animated UI.
 
-For Insert / Remove, the built-in strategies (`InsertNavigatorAnimationStrategy`, `RemoveNavigatorAnimationStrategy`) operate on mid-stack screens only and default `SkipAnimation` to `true`, so they do not play `Open` / `Close` unless you explicitly opt in.
+**Insert / Remove defaults** — The built-in strategies (`InsertNavigatorAnimationStrategy`, `RemoveNavigatorAnimationStrategy`) operate on mid-stack screens only and default `SkipAnimation` to `true`, so they do not play `Open` / `Close` unless you explicitly opt in.
 
 ### Class architecture: Screen, ScreenUI, IViewHandler, Presenter
 
@@ -702,8 +729,6 @@ var nav = AppServices.GetService<StackNavigationService>();
 foreach (var screen in nav.ScreenContainer.Screens) { /* top-first */ }
 var top      = nav.ScreenContainer.GetPeekScreen();           // null if empty
 var detail   = nav.ScreenContainer.GetScreen<DetailScreen>();  // throws if missing
-var beforeIt = nav.ScreenContainer.GetScreenBefore(detail);
-var afterIt  = nav.ScreenContainer.GetScreenAfter(detail);
 bool onTop   = nav.IsActiveScreen(detail);
 
 // Cross-screen events
@@ -751,14 +776,11 @@ protected override async Task LoadAsync(TabModel model)
         })
         .BuildAndRunMeekMvpAsync<HomeScreen>();
 
-    // BuildAndRunMeekMvpAsync returns an IServiceProvider that also implements
-    // IDisposable. Dispose it when this Presenter is destroyed to tear down
-    // the child navigator's stack, screens, and DI scope together.
-    // `.AddTo(this)` here is a Demo-side helper for IServiceProvider; if you
-    // do not have it, write `((IDisposable)homeServices).AddTo(this);` instead.
     homeServices.AddTo(this);
 }
 ```
+
+> **Note on disposal** — `BuildAndRunMeekMvpAsync` returns an `IServiceProvider` that also implements `IDisposable`. Dispose it when this Presenter is destroyed to tear down the child navigator's stack, screens, and DI scope together. `.AddTo(this)` above is a Demo-side helper for `IServiceProvider`; if you do not have it, write `((IDisposable)homeServices).AddTo(this);` instead.
 
 Each tab gets its own navigation stack, input locker, and lifecycle — completely independent. See `Assets/Demo/Scripts/Presenters/TabPresenter.cs` for a full example with four nested navigators.
 
@@ -803,20 +825,17 @@ public class PresenterLoaderProviderFromAddressable : IPresenterViewProvider, ID
 }
 ```
 
-Replace the default provider by removing the descriptor registered by `AddMeekMvp` and adding your own. `AddMeekMvp` calls `AddTransient<IPresenterViewProvider, PresenterViewProviderFromResources>(...)` internally, so simply calling `AddTransient` again will not remove the previous registration — both descriptors would remain in the `ServiceCollection`, which is not what you want:
+To replace the default provider, just register your own implementation again with `AddTransient<IPresenterViewProvider, ...>` after `AddMeekMvp`.
 
 ```csharp
-using System.Linq;
+container.AddMeekMvp(options);
 
-// Remove the default IPresenterViewProvider registered by AddMeekMvp
-var existing = container.ServiceCollection
-    .First(d => d.ServiceType == typeof(IPresenterViewProvider));
-container.ServiceCollection.Remove(existing);
-
-// Register your Addressables-backed provider
+// Overrides the PresenterViewProviderFromResources registered by AddMeekMvp
 container.ServiceCollection
     .AddTransient<IPresenterViewProvider, PresenterLoaderProviderFromAddressable>();
 ```
+
+> **DI registration basics** — When the same service type is registered multiple times with `Add*` (`AddSingleton` / `AddScoped` / `AddTransient`), the **later registration overrides the earlier one**. In contrast, `TryAdd*` (`TryAddSingleton` / `TryAddTransient`, etc.) is **ignored if a registration for that service type already exists**. `AddMeekMvp` registers the default via plain `AddTransient`, so simply calling `AddTransient` again from your code replaces it.
 
 ### Multiple Navigators
 
@@ -918,8 +937,6 @@ public class ZenjectServiceCollection : IContainerBuilder
 
 ### Lifecycle Events
 
-For the full per-operation firing table see [Lifecycle event firing matrix](#lifecycle-event-firing-matrix).
-
 | Event | Trigger |
 |-------|---------|
 | `ScreenWillStart` / `ScreenDidStart` | Screen initialization (Push / Insert) |
@@ -928,6 +945,8 @@ For the full per-operation firing table see [Lifecycle event firing matrix](#lif
 | `ScreenWillDestroy` / `ScreenDidDestroy` | Screen destruction (Pop / Remove) |
 | `ViewWillOpen` / `ViewDidOpen` | Open animation start / end |
 | `ViewWillClose` / `ViewDidClose` | Close animation start / end |
+
+For the full per-operation firing table, see [Lifecycle event firing matrix](#lifecycle-event-firing-matrix).
 
 ---
 
