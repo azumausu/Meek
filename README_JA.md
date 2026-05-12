@@ -4,7 +4,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE.md)
 [![Unity](https://img.shields.io/badge/Unity-6000.0%2B-blue.svg)](https://unity.com/)
-[![Version](https://img.shields.io/badge/version-1.6.3-green.svg)](https://github.com/azumausu/Meek/releases)
+[![Version](https://img.shields.io/badge/version-1.6.5-green.svg)](https://github.com/azumausu/Meek/releases)
 
 Unity向けのDIベース画面管理フレームワーク。スタックナビゲーションとMVPアーキテクチャをサポートしています。
 
@@ -31,6 +31,16 @@ Unity向けのDIベース画面管理フレームワーク。スタックナビ�
   - [画面間のパラメータ受け渡し](#画面間のパラメータ受け渡し)
   - [画面間通信 (Dispatch)](#画面間通信-dispatch)
   - [遷移アニメーション](#遷移アニメーション)
+- [詳細仕様](#詳細仕様)
+  - [MVPScreen で使えるメンバー](#mvpscreen-で使えるメンバー)
+  - [Model / Presenter の自動破棄](#model--presenter-の自動破棄)
+  - [Navigation Builder のオプション](#navigation-builder-のオプション)
+  - [`CustomFeature` による値渡し](#customfeature-による値渡し)
+  - [ライフサイクルコールバックで `StackNavigationContext` を受け取る](#ライフサイクルコールバックで-stacknavigationcontext-を受け取る)
+  - [アニメーションシステムの仕組み](#アニメーションシステムの仕組み)
+  - [ライフサイクルイベント発火マトリクス](#ライフサイクルイベント発火マトリクス)
+  - [クラス構成: Screen, ScreenUI, IViewHandler, Presenter](#クラス構成-screen-screenui-iviewhandler-presenter)
+  - [StackNavigationService によるスタック情報の取得](#stacknavigationservice-によるスタック情報の取得)
 - [応用的な使い方](#応用的な使い方)
   - [ネストナビゲーション (タブ)](#ネストナビゲーション-タブ)
   - [Addressablesによるプレハブ読み込み](#addressablesによるプレハブ読み込み)
@@ -85,7 +95,7 @@ Meekは5つのモジュラーパッケージで構成されています：
 ## 動作要件
 
 - **Unity 6000.0**（Unity 6）以降
-- **[VContainer](https://github.com/hadashiA/VContainer)** 1.13.2以上
+- **[VContainer](https://github.com/hadashiA/VContainer)** 1.13.2 以上
 
 ---
 
@@ -96,10 +106,11 @@ Meekは5つのモジュラーパッケージで構成されています：
 ```json
 {
   "dependencies": {
-    "jp.amatech.meek": "https://github.com/azumausu/Meek.git?path=Assets/Packages",
+    "jp.amatech.meek": "https://github.com/azumausu/Meek.git?path=Assets/Packages"
   }
 }
 ```
+
 ---
 
 ## クイックスタート
@@ -109,6 +120,7 @@ Meekは5つのモジュラーパッケージで構成されています：
 この `MonoBehaviour` をシーン内のGameObjectにアタッチします。`DefaultInputLocker` と `DefaultPrefabViewManager` コンポーネントをGameObjectに配置し、Inspectorで割り当ててください。
 
 ```csharp
+using Cysharp.Threading.Tasks;
 using Meek;
 using Meek.MVP;
 using Meek.UGUI;
@@ -199,7 +211,11 @@ public class SplashPresenter : Presenter<SplashModel>
 }
 ```
 
-### 5. デモの実行
+### 5. `HomeScreen`（または任意の遷移先画面）の定義
+
+`SplashScreen` から参照している `HomeScreen` も通常の `MVPScreen<TModel>` として、`SplashScreen` とまったく同じ要領で定義します。Modelを作成し、イベントを登録し、Presenterをロードして、プレハブを `Resources/UI/HomePresenter` に配置するだけです。Step 1 でコンテナに登録済みのため、Step 2〜4 を画面数ぶん繰り返すことでサンプルを拡張できます。
+
+### 6. デモの実行
 
 `Assets/Demo/Scenes/Demo.unity` を開いてPlayボタンを押すと、すべてのナビゲーションパターンを実演する9画面の完全な動作例を確認できます。
 
@@ -229,6 +245,8 @@ Meekは **Screen** がコーディネーターとして機能する、拡張さ�
 - **Model** — `ReactiveProperty<T>` を使用してオブザーバブルなデータとして画面状態を保持
 - **Presenter** (`Presenter<TModel>`) — `Bind()` メソッドでModelデータをUI要素にバインドするUnityプレハブ（`MonoBehaviour`）
 
+Screen 内で使える全メンバーの一覧は [MVPScreen で使えるメンバー](#mvpscreen-で使えるメンバー) を、`IDisposable` な Model や Presenter のサブスクリプションが自動で破棄される仕組みは [Model / Presenter の自動破棄](#model--presenter-の自動破棄) を参照してください。
+
 ### ナビゲーション
 
 Meekは5つのナビゲーション操作を提供します：
@@ -237,52 +255,45 @@ Meekは5つのナビゲーション操作を提供します：
 |-----------|--------|-------------|
 | **Push** | `PushNavigation.PushAsync<T>()` | スタックの最上部に画面を追加 |
 | **Pop** | `PopNavigation.PopAsync()` | スタックの最上部の画面を削除 |
-| **Insert** | `InsertNavigation.InsertScreenBeforeAsync<TBefore, TInsert>()` | 指定した画面の前に画面を挿入 |
+| **Insert** | `InsertNavigation.InsertScreenBeforeAsync<TBeforeScreen, TInsertionScreen>()` | 指定した画面の前に画面を挿入 |
 | **Remove** | `RemoveNavigation.RemoveAsync<T>()` | スタック内の特定の画面を削除 |
 | **BackTo** | `BackToNavigation.BackToAsync<T>()` | 指定した画面が最上部になるまで画面をPop |
 
-各ナビゲーションビルダーはメソッドチェーンをサポートします：
+各ナビゲーションビルダーはメソッドチェーンをサポートし、`Async`（`Task` を返す）と `Forget`（fire-and-forget）の 2 種類の終端メソッドを提供します:
 
 ```csharp
-// パラメータ付きでクロスフェードアニメーションのPush
-PushNavigation
-    .NextScreenParameter(new MyParam { Id = 42 })
-    .IsCrossFade(true)
-    .PushAsync<DetailScreen>();
+// await する
+await PushNavigation.PushAsync<NextScreen>();
 
-// アニメーションスキップのPop
-PopNavigation
-    .SkipAnimation(true)
-    .PopAsync();
-
-// Fire-and-forget（非同期を待たない）バリアント
+// Fire-and-forget
 PushNavigation.PushForget<NextScreen>();
 PopNavigation.PopForget();
 ```
 
+各ビルダーは固有の連結オプション（パラメータ・クロスフェード・SkipAnimation・`OnlyWhen` など）と、任意のキー/値を画面間で受け渡す `CustomFeature(key, value)` の仕組みを持ちます。全ビルダーの一覧と値渡しの詳細は [Navigation Builder のオプション](#navigation-builder-のオプション) と [`CustomFeature` による値渡し](#customfeature-による値渡し) を参照してください。
+
 ### 画面ライフサイクル
 
 ```
-Push                                              Pop
- │                                                 │
- ▼                                                 ▼
-ScreenWillStart ──> ScreenDidStart          ScreenWillDestroy ──> ScreenDidDestroy
-                         │                         ▲
-                         ▼                         │
-                    ScreenWillPause ─────> ScreenWillResume
-                    ScreenDidPause         ScreenDidResume
-                         │                         ▲
-                    (別のPush)                (そのPop)
+Push されたばかりの画面
+   ScreenWillStart ─► ScreenDidStart
+              │
+              │ (この画面の上にさらに別の画面が Push される)
+              ▼
+   ScreenWillPause ─► ScreenDidPause
+              │
+              │ (上に積まれていた画面が Pop される)
+              ▼
+   ScreenWillResume ─► ScreenDidResume
+              │
+              │ (この画面が Pop される)
+              ▼
+   ScreenWillDestroy ─► ScreenDidDestroy
 ```
 
-**アニメーションイベント**は遷移の前後に発火されます：
+`Will*` / `Did*` ペアは 1 フェーズを挟み込みます。`Will*` がフェーズ開始直前、`Did*` がフェーズ終了直後に発火します。
 
-| イベント | タイミング |
-|-------|--------|
-| `ViewWillOpen` | 表示アニメーション開始前 |
-| `ViewDidOpen` | 表示アニメーション完了後 |
-| `ViewWillClose` | 非表示アニメーション開始前 |
-| `ViewDidClose` | 非表示アニメーション完了後 |
+`Insert` / `Remove` は対象となる画面に対して限定された一部のライフサイクルイベントだけを発火させ、現在表示中のトップ画面の Pause/Resume は起こしません。遷移の前後では `ScreenUI` が `ViewWillOpen` / `ViewDidOpen` (Push, Insert) と `ViewWillClose` / `ViewDidClose` (Pop, Remove) も発火させます。各ライフサイクルフックは `StackNavigationContext` を受け取るオーバーロードも持っています — 発火の正確な順序とコンテキストの受け取り方は [ライフサイクルコールバックで `StackNavigationContext` を受け取る](#ライフサイクルコールバックで-stacknavigationcontext-を受け取る) を参照してください。
 
 ### DI連携
 
@@ -360,6 +371,14 @@ public class LogInScreen : MVPScreen<LogInModel>
 #### データバインディングを持つPresenter
 
 ```csharp
+using System;
+using System.Collections.Generic;
+using Meek.MVP;
+using TMPro;
+using UniRx;
+using UnityEngine;
+using UnityEngine.UI;
+
 public class LogInPresenter : Presenter<LogInModel>
 {
     [SerializeField] private TMP_InputField _emailInputField;
@@ -405,7 +424,8 @@ public class ReviewScreen : MVPScreen<ReviewModel, ReviewScreenParameter>
 // パラメータ付きでPush（別の画面から）
 PushNavigation
     .NextScreenParameter(new ReviewScreenParameter { ProductId = 42 })
-    .PushAsync<ReviewScreen>();
+    .PushAsync<ReviewScreen>()
+    .Forget();
 ```
 
 ### 画面間通信 (Dispatch)
@@ -439,15 +459,24 @@ eventHolder.SubscribeDispatchEvent<ReviewEventArgs>(args =>
 
 Meekは4種類のアニメーションをサポートしています：**Open**、**Close**、**Show**、**Hide**
 
+| 操作 | 前面の画面 (遷移先) | 背面の画面 (遷移元) |
+|------|---------------------|---------------------|
+| **Push** | `Open` | `Hide` (裏に隠れる) |
+| **Pop**  | `Show` (再アクティブ化) | `Close` (Popされる画面) |
+
+`IsCrossFade(true)` を指定すると前面・背面のアニメーションは並列実行され、それ以外では順次実行されます。`ViewWillOpen/DidOpen` と `ViewWillClose/DidClose` のイベントは `Open` / `Close` の前後でのみ発火します（`Show` / `Hide` 側に対応する `View*` イベントは存在しません — [ライフサイクルイベント発火マトリクス](#ライフサイクルイベント発火マトリクス) を参照）。
+
 ナビゲーションごとにアニメーション動作を制御できます：
 
 ```csharp
 // クロスフェード：旧画面と新画面が同時にアニメーション
-PushNavigation.IsCrossFade(true).PushAsync<NextScreen>();
+PushNavigation.IsCrossFade(true).PushAsync<NextScreen>().Forget();
 
 // アニメーションを完全にスキップ
-PushNavigation.SkipAnimation(true).PushAsync<NextScreen>();
+PushNavigation.SkipAnimation(true).PushAsync<NextScreen>().Forget();
 ```
+
+Presenter プレハブにクリップを配置する方法、`IsCrossFade` / `SkipAnimation` の内部挙動については [アニメーションシステムの仕組み](#アニメーションシステムの仕組み) を参照してください。
 
 #### モーダル / 透過画面
 
@@ -463,11 +492,252 @@ public class ReviewScreen : MVPScreen<ReviewModel, ReviewScreenParameter>
 
 ---
 
+## 詳細仕様
+
+このセクションでは Meek の内部挙動を踏み込んで解説します。「基本コンセプト」と「使い方」までで実装は一通り進められるはずで、以下は拡張・デバッグ・チューニングのための参照資料です。続く 9 つのサブセクションは順に、`MVPScreen` から使える全メンバ、Model と Presenter のバインディング自動破棄、Builder ごとのナビゲーションオプション、`CustomFeature` による値渡し、ライフサイクルイベント発火マトリクス、ライフサイクルコールバックでの `StackNavigationContext` 取得、アニメーションパイプライン、クラス構成図、`StackNavigationService` による実行中スタックの参照 — を扱います。
+
+### MVPScreen で使えるメンバー
+
+`MVPScreen<TModel>`（および `MVPScreen<TModel, TParam>`）を継承した自前の Screen クラスからは、`StackScreen` から継承された以下のメンバーが `CreateModelAsync` / `RegisterEvents` / ライフサイクルコールバック内で利用できます。
+
+| メンバー | 役割 |
+|----------|------|
+| `Model` | `CreateModelAsync()` の戻り値（`ScreenWillStart` 直前に自動代入される）。 |
+| `AppServices` | このナビゲーター用の `IServiceProvider`。任意のDIサービスを解決可能。 |
+| `UI` | 紐付いている `ScreenUI`（表示/非表示、入力ロック、ViewHandlerリストを管理）。 |
+| `NavigationService` | スタック内の参照やイベント購読に使う `StackNavigationService`。 |
+| `PushNavigation` / `PopNavigation` / `InsertNavigation` / `RemoveNavigation` / `BackToNavigation` | この画面を `Sender` として事前タグ付け済みのナビゲーションビルダー。 |
+| `Dispatch<T>(arg)` / `DispatchAsync<T>(arg)` | `protected virtual` ヘルパー。`StackNavigationService.Dispatch` / `DispatchAsync` に転送し、スタック上の全画面にイベントをブロードキャストする（受信側は `EventHolder.SubscribeDispatchEvent` で購読）。 |
+| `TryGetScreen<TScreen>()` | スタック内に同じ型の画面が存在するか型で検索（無ければ `null`）。 |
+| `Disposables` / `AsyncDisposables` | 追加した `IDisposable` / `IAsyncDisposable` は画面破棄時に自動で `Dispose` される。 |
+| `LoadPresenterAsync<TPresenter>(param?)` | `protected` 利便ヘルパー。DI に登録された `IPresenterViewProvider` を介して Presenter プレハブを生成し、`LoadAsync` → `Setup` → `Bind` を走らせ、`UI` に ViewHandler を登録する。明示的に `IPrefabViewProvider` を渡す `public virtual` オーバーロードもあり、その場限りのプロバイダにも対応可能。複数回呼び出して 1 画面に複数 Presenter を載せることも可能。 |
+| `ScreenUIType` (override) | デフォルトは `FullScreen`。モーダル/オーバーレイ等で下の画面を残したい場合は `WindowOrTransparent` に上書き。 |
+| `ForceUnlockInteractable()` / `AutoDisposeLockerOnDestroy` | 入力ロックの手動制御。`AutoDisposeLockerOnDestroy = true` で `ScreenDidDestroy` 時に自動解放（アニメ中に入力が一瞬有効化されるリスクと引換え）。 |
+
+### Model / Presenter の自動破棄
+
+Meek は破棄処理の定型コードを Navigator パイプラインに組み込み、利用者の手書きを大幅に減らします。
+
+- **Model** — Modelが `IDisposable` / `IAsyncDisposable` を実装していれば、`MVPScreen` が `ScreenWillStart` 中に自動的に `Disposables` / `AsyncDisposables` に登録します。画面がスタックから外れる（Pop / Remove / BackTo）と、`MvpNavigator` が `IAsyncDisposable.DisposeAsync()` を await した後 `IDisposable.Dispose()` を呼び、その流れで Model も破棄されます。
+- **Presenter** — `Presenter<TModel>` は `MonoBehaviour, IAsyncDisposable` です。`Bind(TModel)` が `yield return` した `IDisposable` はすべて内部リストに保存され、Presenterの `OnDestroy()` で一括 Dispose されます。プレハブの GameObject 自体は、所属する `ScreenUI` が ViewHandler を破棄したタイミングで破棄されます。
+- **Presenter の仮想フック** — `Presenter<TModel>` で上書きできるメソッド一覧:
+
+  | フック | 呼ばれるタイミング |
+  |--------|--------------------|
+  | `OnInit()` | Unity `Awake()`（まだ Model は割り当てられていない）。 |
+  | `LoadAsync(TModel model)` | Modelが割り当てられた直後、`Setup` の前。非同期リソースの準備に使う。 |
+  | `OnSetup(TModel model)` | `Bind` の直前に走る同期セットアップ。 |
+  | `Bind(TModel model)` | 購読を `IEnumerable<IDisposable>` で返す。OnDestroy で自動破棄される。 |
+  | `OnDeinit(TModel model)` | Unity `OnDestroy()` の中、購読破棄の後で走る。 |
+  | `DisposeAsync()` | ViewHandlerが Presenter を非同期破棄するときに呼ばれる。 |
+
+- **横断的な観察用フック** — Presenter プレハブ内に `IPresenterEventHandler` を実装したコンポーネントを置くと、`PresenterDidInit` / `PresenterDidSetup` / `PresenterDidBind` / `PresenterDidDeinit` をサブクラス化せずに受け取れます。
+
+### Navigation Builder のオプション
+
+各ビルダーは `Async`（`Task` / `Task<T>` を返す）と `Forget`（`void` を返す）の 2 形態の終端メソッド、加えて複数の連結可能なオプションを提供します。下表はビルダー固有の機能のみで、すべてのビルダーは `CustomFeature(string key, object value)`（次節を参照）と `SetSender(object)` にも対応しています。
+
+| Builder | 連結可能なオプション | 終端メソッド | 補足 |
+|---------|----------------------|-------------|------|
+| `PushNavigation` | `NextScreenParameter(object)` / `IsCrossFade(bool)` / `SkipAnimation(bool)` | `PushAsync<T>()` → `Task<T>` / `PushForget<T>()` | デフォルト: `SkipAnimation = false`, `IsCrossFade = false`。 |
+| `PopNavigation`  | `OnlyWhen(IScreen)` / `IsCrossFade(bool)` / `SkipAnimation(bool)` | `PopAsync()` → `Task` / `PopForget()` | `OnlyWhen` は指定 Screen がトップにいる時のみ Pop が走り、それ以外では no-op になる（ダブルタップ防止）。Builder ではなく `StackNavigationService.PopAsync(PopContext)` を直接呼ぶと `ValueTask<bool>` が返り、実際に Pop が走ったかを判別できる（Builder 側ではこの結果は捨てられる）。 |
+| `InsertNavigation` | `NextScreenParameter(object)` / `IsCrossFade(bool)` / `SkipAnimation(bool)` | `InsertScreenBeforeAsync<TBefore, TInsert>()` → `Task<IScreen>` / `InsertScreenBeforeForget<TBefore, TInsert>()` | `SkipAnimation` のデフォルトは `true`。指定した before スクリーンがすでにトップにいる場合は通常の Push に自動格上げされる。 |
+| `RemoveNavigation` | `IsCrossFade(bool)` / `SkipAnimation(bool)` | `RemoveAsync<T>()` / `RemoveAsync(IScreen)` / `RemoveAsync(Type)` → `Task` / `RemoveForget<T>()` | `SkipAnimation` のデフォルトは `true`。対象がトップ画面の場合は自動的に Pop へ格上げ。 |
+| `BackToNavigation` | `IsCrossFade(bool)` / `SetSkipAnimation(bool)` / `SetRemoveScreenSkipAnimation(bool)` | `BackToAsync<T>()` → `Task` / `BackToForget<T>()` | スタックを目的画面まで巻き戻す。中間 Screen は既定で `SkipAnimation = true` で Remove（`SetRemoveScreenSkipAnimation` で変更可能）、最終遷移は通常の Pop。目的画面がすでにトップなら no-op。 |
+
+### `CustomFeature` による値渡し
+
+`NextScreenParameter(value)`（Push / Insert 限定）は遷移先 Screen に **1 つの型付き引数** を渡す正攻法です。それ以外の用途（フラグ、由来トラッキング、解析タグ、複数値）には、すべてのビルダーで使える `CustomFeature(key, value)` を利用します。値は `StackNavigationContext.Features` に格納されます。
+
+```csharp
+PushNavigation
+    .NextScreenParameter(new DetailParam { Id = 42 })
+    .CustomFeature("entry-point", "search")
+    .CustomFeature("triggered-at", DateTime.UtcNow)
+    .PushForget<DetailScreen>();
+
+// 遷移先 Screen
+eventHolder.ScreenWillStart(ctx =>
+{
+    var param = ctx.GetNextScreenParameter<DetailParam>();
+    var entry = ctx.GetFeatureNullableValue<string>("entry-point");   // 無い/型違いの場合は null
+    var when  = ctx.GetFeatureValue<DateTime>("triggered-at");        // 無い/型違いの場合は例外
+});
+```
+
+| 仕組み | 適した用途 | 取得方法 |
+|--------|-----------|----------|
+| `NextScreenParameter(value)` | 遷移先 Screen が必要とする型安全な 1 引数 | `ctx.GetNextScreenParameter<T>()` |
+| `CustomFeature(key, value)` | 任意のメタデータ。Push/Pop/Insert/Remove/BackTo すべてで利用可 | `ctx.GetFeatureValue<T>(key)` / `ctx.GetFeatureNullableValue<T>(key)` / `ctx.Features[key]` |
+
+### ライフサイクルイベント発火マトリクス
+
+`Will*` は対応する処理が始まる直前、`Did*` はその処理が完了した直後に発火します。ナビゲーション種別ごとの正確な発火対象は以下の通り:
+
+| イベント | Push | Pop | Insert | Remove |
+|----------|------|-----|--------|--------|
+| `ScreenWillStart` / `ScreenDidStart` | 新しいトップ画面で発火 | — | 挿入された（中段）画面で発火 | — |
+| `ScreenWillPause` | 直前のトップ画面で発火 | — | **発火しない** | — |
+| `ScreenDidPause` | 直前のトップ画面で発火 | — | 挿入された画面で発火（中段に置かれるため） | — |
+| `ScreenWillResume` / `ScreenDidResume` | — | 再びトップに戻る画面で発火 | — | — |
+| `ScreenWillDestroy` | — | Pop される画面で発火 | — | **発火しない** |
+| `ScreenDidDestroy` | — | Pop される画面で発火 | — | 削除される中段画面で発火 |
+| `ViewWillOpen` / `ViewDidOpen` | 新しいトップ画面で発火 | — | 既存トップ画面の `ScreenEventInvoker` を経由して発火（Insert は `ToScreen` を現トップに設定するため） | — |
+| `ViewWillClose` / `ViewDidClose` | — | Pop される画面で発火（`ScreenDidDestroy` の後、close アニメーションの前後で発火） | — | 削除される画面で発火 |
+
+Insert では、挿入された画面が 1 回のナビゲーション中に `ScreenWillStart` → `ScreenDidPause` → `ScreenDidStart` の順で発火します（Start 直後にトップから外れて `ScreenDidPause` が走り、ナビゲーションパイプライン完了後に最後の `ScreenDidStart` が発火する）。
+
+`Show` / `Hide` を再生する側の画面は遷移中もマウントされ続けます — その画面自身はスタックに追加も削除もされないため、`View*` イベントは発火しません。一方、実際にスタックに追加・削除される側の画面は、対応する `Open` / `Close` の前後で `View*` イベントを受け取ります。
+
+### ライフサイクルコールバックで `StackNavigationContext` を受け取る
+
+`EventHolder` の各ライフサイクル拡張メソッドはオーバーロード済みで、現在の `StackNavigationContext` を受け取る形にも書けます:
+
+```csharp
+protected override void RegisterEvents(EventHolder eventHolder, DetailModel model)
+{
+    // 引数なし
+    eventHolder.ScreenWillStart(() => Debug.Log("will start"));
+
+    // async 版
+    eventHolder.ScreenWillStart(async () => await Warmup());
+
+    // Context 版 — FromScreen やパラメータ・カスタム値を参照
+    eventHolder.ScreenWillStart(ctx =>
+    {
+        var param  = ctx.GetNextScreenParameter<DetailParam>();
+        var source = ctx.GetFeatureNullableValue<string>("entry-point");
+        var fromHome = ctx.FromScreen is HomeScreen;
+    });
+
+    // async + Context
+    eventHolder.ScreenWillStart(async ctx =>
+    {
+        await FetchDetail(ctx.GetNextScreenParameter<DetailParam>().Id);
+    });
+
+    // エラー購読 — この遷移中のみ有効
+    eventHolder.ScreenWillStart(ctx =>
+    {
+        ctx.OnError += ex => Debug.LogError($"Navigation failed: {ex}");
+    });
+}
+```
+
+4 種のオーバーロード形（`Action` / `Action<StackNavigationContext>` / `Func<Task>` / `Func<StackNavigationContext, Task>`）は `ScreenWillStart` / `ScreenWillResume` / `ScreenDidPause` / `ScreenDidDestroy` で利用可能です。それ以外のライフサイクルイベントは同期形（`Action` / `Action<StackNavigationContext>`）のみです。
+
+`StackNavigationContext` で特に有用なメンバ:
+
+| メンバ | 説明 |
+|--------|------|
+| `FromScreen` / `ToScreen` | 遷移前後の Screen。Pop でスタックが空になる時は `ToScreen` が `null` になることがある。 |
+| `NavigatingSourceType` | `Push` / `Pop` / `Insert` / `Remove`。どの遷移種別かで分岐に使える。 |
+| `IsCrossFade` / `SkipAnimation` | ナビゲーションビルダーで指定したフラグの値。 |
+| `AppServices` | 現在のナビゲーターの `IServiceProvider`。 |
+| `Features` / `GetFeatureValue<T>` / `GetFeatureNullableValue<T>` | `CustomFeature(key, value)` で渡された値の取得。 |
+| `GetNextScreenParameter<T>()` | `NextScreenParameter(...)` の取得用ショートカット。 |
+| `GetInsertionScreen()` / `GetInsertionBeforeScreen()` | Insert 時に、挿入された画面と挿入位置の前画面を取得。 |
+| `GetRemoveScreen()` / `GetRemoveBeforeScreen()` / `GetRemoveAfterScreen()` | Remove 時に、削除画面とその前後を取得。 |
+| `OnError` | この遷移パイプライン中に例外が発生した時に発火するイベント。遷移単位のクリーンアップに使う。 |
+
+### アニメーションシステムの仕組み
+
+アニメーションは Presenter プレハブ側に組み込みます。プレハブのどこか（通常はルート）に以下のコンポーネントを並べます。
+
+- **`NavigatorAnimationPlayer`**（Meek.UGUI）— `Awake` 時に配下の `INavigatorAnimation` 群を取得し、`ScreenUI` から再生指示があったときに適切な実装に振り分けます。
+- **`NavigatorAnimationByAnimationClip`**（Meek.UGUI）— `INavigatorAnimation` の標準実装。Inspector で `NavigatorAnimationType`（`Open` / `Close` / `Show` / `Hide`）、`FromScreenName` / `ToScreenName` のフィルタ、`AnimationClip` を設定します。
+- **`SimpleAnimationPlayer`** — `NavigatorAnimationByAnimationClip` の `RequireComponent` 先。Unity の `PlayableGraph` API でクリップを再生します。
+
+`ScreenUI` は再生時に以下の優先順位で最も一致度の高いクリップを選びます: (1) `FromScreenName` と `ToScreenName` が両方一致、(2) `FromScreenName` のみ一致、(3) `ToScreenName` のみ一致、(4) 両方未指定（フォールバック）。最初に該当した非 null クリップが採用されるため、限定的なクリップを先に並べてください。
+
+複数の `NavigatorAnimationByAnimationClip` を 1 つのプレハブに置けば、遷移元/遷移先ごとに細かく動きを差し替えられます（コードを書かずに済みます）。
+
+`IsCrossFade(true)` は前面の `Open` / `Close` クリップと背面の `Hide` / `Show` クリップを `StartParallelCoroutine` で並列実行します。デフォルトは順次実行です。
+
+`SkipAnimation(true)` は内部でアニメーションを「飛ばす」のではなく、`ScreenUI` が `EvaluateNavigateAnimation(context, type, t = 1.0f)` を各 ViewHandler に呼んでクリップの最終フレームに即時スナップさせます。半端に止まった UI を残さずに「アニメ完了済み」の状態を作れるため、初期ブートやディープリンクで便利です。
+
+Insert / Remove 用の Strategy（`InsertNavigatorAnimationStrategy` / `RemoveNavigatorAnimationStrategy`）はスタック中段に対する操作専用で、デフォルトで `SkipAnimation = true` です。明示的に許可しない限り `Open` / `Close` は再生されません。
+
+### クラス構成: Screen, ScreenUI, IViewHandler, Presenter
+
+Meekは「スタック上の存在（Screen）」と「画面上の表示（Presenter）」を、薄い View 取り扱い型のチェーンで切り分けています。1 Screen が複数 Presenter を持つ構成や、自前の View バックエンドを差し込みたい場合に把握しておくと役立ちます。
+
+```
+StackScreen : IScreen, IDisposable, IAsyncDisposable
+   │
+   ├─ ちょうど 1 個保持 ──────────────► ScreenUI
+   │                                       │
+   │                                       └─ 複数保持 ─────────► IViewHandler
+   │                                                                ▲
+   │                                                                │
+   │                                                  IPrefabViewHandler : IViewHandler
+   │                                                                ▲
+   │                                                                │
+   │                                                  IPresenterViewHandler : IPrefabViewHandler
+   │                                                                ▲
+   │                                                                │
+   │                                                  DynamicPresenterViewHandler
+   │                                                  : DynamicPrefabViewHandler, IPresenterViewHandler
+   │
+   ▼
+MVPScreen<TModel> : StackScreen
+   └─ LoadPresenterAsync ─► プレハブ生成 ─► Presenter<TModel> (MonoBehaviour)
+```
+
+押さえておきたい不変条件:
+
+- **1 Screen に 1 `ScreenUI`**。`ScreenUI` は Screen 初期化時（`StackScreen.Initialize`）に DI で解決されます。
+- **1 `ScreenUI` に複数 `IViewHandler`**。`LoadPresenterAsync<TPresenter>()` を呼ぶたびに `DynamicPresenterViewHandler` が作られ、`ScreenUI.AddViewHandler` で登録されます。タブのように 4 つの子 Navigator を持たせるデモの `TabPresenter` も同じ仕組みです。
+- **`ScreenUI` の通信相手は `IViewHandler`**。`Setup`、`SetInteractable`、`SetVisibility`、`EvaluateNavigateAnimation`、`PlayNavigateAnimationRoutine` を公開しており、Presenter は `GetPresenter<TPresenter>()` で取り出します。
+- **破棄は連鎖する**。Screen がスタックから外れると、`StackScreen.DisposeAsync` が `UI.DisposeAsync()` を待ち、`ScreenUI` が各 ViewHandler を順に破棄し、ViewHandler が生成した GameObject の `OnDestroy` → Presenter の `OnDeinit` → 購読破棄が走ります。
+
+### StackNavigationService によるスタック情報の取得
+
+`StackNavigationService` はランタイム中の「読み取り・フック」用入口です:
+
+```csharp
+var nav = AppServices.GetService<StackNavigationService>();
+
+// スタックの参照 — Screens はトップから順に列挙される
+foreach (var screen in nav.ScreenContainer.Screens) { /* トップが最初 */ }
+var top      = nav.ScreenContainer.GetPeekScreen();           // 空なら null
+var detail   = nav.ScreenContainer.GetScreen<DetailScreen>();  // 見つからない場合は例外
+var beforeIt = nav.ScreenContainer.GetScreenBefore(detail);
+var afterIt  = nav.ScreenContainer.GetScreenAfter(detail);
+bool onTop   = nav.IsActiveScreen(detail);
+
+// 画面間イベント
+nav.Dispatch(new ToastEvent("保存しました"));                  // 同期ブロードキャスト
+bool handled = await nav.DispatchAsync(new SyncRequest());     // 最初に true を返した購読で停止
+
+// グローバルフック（解析・ログ等）
+nav.OnWillNavigate += ctx => { /* 各遷移の前 */ return new ValueTask(); };
+nav.OnDidNavigate  += ctx => { /* 各遷移の後 */ return new ValueTask(); };
+```
+
+Screen 内部からは `this.NavigationService` と `this.TryGetScreen<TScreen>()` が同じ情報への近道として使えます。
+
+---
+
 ## 応用的な使い方
 
 ### ネストナビゲーション (タブ)
 
-個別の `VContainerServiceCollection` インスタンスを作成することで、各タブに独立したナビゲーターを構築できます。親の `IServiceProvider` を渡すことで、シングルトン（`GlobalStore` など）を子ナビゲーター間で共有します：
+個別の `VContainerServiceCollection` インスタンスを作成することで、各タブに独立したナビゲーターを構築できます。親の `IServiceProvider` を渡すことで、シングルトン（`GlobalStore` など）を子ナビゲーター間で共有します。
+
+下のサンプルでは `TabModel` が親の `IServiceProvider` を公開している前提で、Presenter から子ナビゲーターを構築しています。`TabModel` は以下のような形で定義してください:
+
+```csharp
+public class TabModel
+{
+    public IServiceProvider AppServices { get; }
+    public TabModel(IServiceProvider appServices) => AppServices = appServices;
+}
+```
+
+> Demo の `TabModel` には `GlobalStore` などの追加依存も含まれます。上のサンプルは「ネストナビゲーターを動かすために最低限必要な形」だけ抜き出したものです。
+
+Presenter 側:
 
 ```csharp
 // PresenterのLoadAsync()メソッド内
@@ -481,9 +751,12 @@ protected override async Task LoadAsync(TabModel model)
         })
         .BuildAndRunMeekMvpAsync<HomeScreen>();
 
-    // このPresenterが破棄されたときに子ナビゲーターをDispose
-    if (homeServices is IDisposable disposable)
-        disposable.AddTo(this); // UniRxのAddTo拡張メソッド
+    // BuildAndRunMeekMvpAsync は IDisposable も実装した IServiceProvider を返します。
+    // この Presenter が破棄されるタイミングで Dispose することで、
+    // 子ナビゲーターのスタック・画面・DIスコープがまとめて破棄されます。
+    // ここで使っている `.AddTo(this)` は Demo 側に用意した IServiceProvider 用ヘルパです。
+    // 持っていない場合は `((IDisposable)homeServices).AddTo(this);` と書けば同等です。
+    homeServices.AddTo(this);
 }
 ```
 
@@ -491,9 +764,17 @@ protected override async Task LoadAsync(TabModel model)
 
 ### Addressablesによるプレハブ読み込み
 
-デフォルトでは、Presenterプレハブは `PresenterViewProviderFromResources` を通じて `Resources/UI/` からロードされます。Addressablesからロードするには、`IPresenterViewProvider`（`IPrefabViewProvider` を拡張）を実装します：
+デフォルトでは、Presenterプレハブは `PresenterViewProviderFromResources` を通じて `Resources/UI/` からロードされます。Addressablesからロードするには、`IPresenterViewProvider`（`IPrefabViewProvider` を拡張）を実装します。`IPresenterViewProvider` は `void SetPrefabName(string)` の実装を要求し、継承元の `IPrefabViewProvider` は `ValueTask<GameObject> ProvideAsync(IScreen, object)` の実装を要求します：
 
 ```csharp
+using System;
+using System.Threading.Tasks;
+using Meek;
+using Meek.MVP;
+using UnityEngine;
+using UnityEngine.AddressableAssets;
+using UnityEngine.ResourceManagement.AsyncOperations;
+
 public class PresenterLoaderProviderFromAddressable : IPresenterViewProvider, IDisposable
 {
     private string _prefabName;
@@ -522,12 +803,20 @@ public class PresenterLoaderProviderFromAddressable : IPresenterViewProvider, ID
 }
 ```
 
-デフォルトプロバイダーの代わりに登録します：
+デフォルトのプロバイダを差し替える場合は、`AddMeekMvp` 内で登録された ServiceDescriptor を削除してから自分の実装を登録します。`AddTransient` を再度呼び出すだけでは前の登録は削除されず、`ServiceCollection` に重複した登録が残ってしまうため期待通りの動作になりません：
 
 ```csharp
-appContainer.ServiceCollection.AddTransient<IPresenterViewProvider, PresenterLoaderProviderFromAddressable>();
+using System.Linq;
+
+// AddMeekMvp が登録したデフォルト IPresenterViewProvider を削除
+var existing = container.ServiceCollection
+    .First(d => d.ServiceType == typeof(IPresenterViewProvider));
+container.ServiceCollection.Remove(existing);
+
+// Addressables 用プロバイダを登録
+container.ServiceCollection
+    .AddTransient<IPresenterViewProvider, PresenterLoaderProviderFromAddressable>();
 ```
-同じインターフェースに対してAddTransientを2回呼び出すと、最後の登録が上書きされることに注意してください。
 
 ### 複数ナビゲーター
 
@@ -537,12 +826,12 @@ Meekは静的クラスを使用しないため、複数の独立したナビゲ�
 // ナビゲーターA
 var containerA = new VContainerServiceCollection()
     .AddMeekMvp(optionsA);
-containerA.BuildAndRunMeekMvpAsync<ScreenA>();
+containerA.BuildAndRunMeekMvpAsync<ScreenA>().Forget();
 
 // ナビゲーターB（完全に独立）
 var containerB = new VContainerServiceCollection()
     .AddMeekMvp(optionsB);
-containerB.BuildAndRunMeekMvpAsync<ScreenB>();
+containerB.BuildAndRunMeekMvpAsync<ScreenB>().Forget();
 ```
 
 ### ナビゲーションイベントのフック
@@ -550,18 +839,23 @@ containerB.BuildAndRunMeekMvpAsync<ScreenB>();
 アナリティクス、ログ、カスタムロジックのためにナビゲーションイベントを購読できます：
 
 ```csharp
+using System.Threading.Tasks;
+using Meek;
+using Meek.NavigationStack;
+using UnityEngine;
+
 var navigationService = appServices.GetService<StackNavigationService>();
 
 navigationService.OnWillNavigate += context =>
 {
     Debug.Log($"ナビゲーション中: {context.NavigatingSourceType}");
-    return ValueTask.CompletedTask;
+    return new ValueTask();
 };
 
 navigationService.OnDidNavigate += context =>
 {
     Debug.Log($"ナビゲーション完了");
-    return ValueTask.CompletedTask;
+    return new ValueTask();
 };
 ```
 
@@ -624,12 +918,14 @@ public class ZenjectServiceCollection : IContainerBuilder
 
 ### ライフサイクルイベント
 
+操作種別ごとの正確な発火表は [ライフサイクルイベント発火マトリクス](#ライフサイクルイベント発火マトリクス) を参照してください。
+
 | イベント | トリガー |
 |-------|---------|
-| `ScreenWillStart` / `ScreenDidStart` | 画面の初期化（Push時） |
-| `ScreenWillPause` / `ScreenDidPause` | 画面の非アクティブ化（上に別の画面がPush時） |
-| `ScreenWillResume` / `ScreenDidResume` | 画面の再アクティブ化（上の画面がPop時） |
-| `ScreenWillDestroy` / `ScreenDidDestroy` | 画面の破棄（Pop / Remove時） |
+| `ScreenWillStart` / `ScreenDidStart` | 画面の初期化（Push / Insert） |
+| `ScreenWillPause` / `ScreenDidPause` | 画面がトップから外れる（Push で上に被さる側 / Insert で挿入される側） |
+| `ScreenWillResume` / `ScreenDidResume` | 上の画面が Pop されて再アクティブ化される時 |
+| `ScreenWillDestroy` / `ScreenDidDestroy` | 画面破棄（Pop / Remove） |
 | `ViewWillOpen` / `ViewDidOpen` | 表示アニメーションの開始 / 終了 |
 | `ViewWillClose` / `ViewDidClose` | 非表示アニメーションの開始 / 終了 |
 
