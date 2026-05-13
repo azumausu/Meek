@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using UnityEngine.Pool;
 using UnityEngine.Scripting;
@@ -32,13 +33,14 @@ namespace Meek.NavigationStack
 
         protected virtual IEnumerator PushTransition(StackNavigationContext context)
         {
-            var toScreen = context.ToScreen as StackScreen;
+            var toScreen = context.ToScreen as StackScreen
+                           ?? throw new InvalidOperationException("ToScreen must be StackScreen.");
             var fromScreen = context.FromScreen as StackScreen;
             var skipAnimation = context.SkipAnimation;
             var isCrossFade = context.IsCrossFade;
 
             // Noneの場合はイベントだけ発行して終了
-            if (toScreen!.ScreenUIType == ScreenUIType.None) yield break;
+            if (toScreen.ScreenUIType == ScreenUIType.None) yield break;
 
             if (isCrossFade)
             {
@@ -46,7 +48,7 @@ namespace Meek.NavigationStack
                 using var disposable = ListPool<IEnumerator>.Get(out var coroutines);
 
                 // 次ScreenのVisibleをONにしておく
-                toScreen!.UI.SetVisible(true);
+                toScreen.UI.SetVisible(true);
                 if (fromScreen != null)
                 {
                     coroutines.Add(fromScreen.UI.HideRoutine(context, skipAnimation));
@@ -62,7 +64,7 @@ namespace Meek.NavigationStack
                     yield return fromScreen.UI.HideRoutine(context, skipAnimation);
                 }
 
-                toScreen!.UI.SetVisible(true);
+                toScreen.UI.SetVisible(true);
                 yield return toScreen.UI.OpenRoutine(context, skipAnimation);
             }
 

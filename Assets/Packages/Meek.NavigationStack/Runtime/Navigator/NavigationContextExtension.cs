@@ -6,7 +6,9 @@ namespace Meek.NavigationStack
     {
         public static StackNavigationContext ToStackNavigationContext(this NavigationContext context)
         {
-            return context as StackNavigationContext ?? throw new InvalidOperationException();
+            return context as StackNavigationContext
+                   ?? throw new InvalidOperationException(
+                       $"Expected StackNavigationContext but got {context?.GetType().FullName ?? "null"}.");
         }
     }
 }

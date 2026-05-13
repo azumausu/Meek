@@ -39,7 +39,6 @@ namespace Meek.NavigationStack
             return self.GetScreen(target);
         }
 
-        [CanBeNull]
         public static IScreen GetScreen(this IScreenContainer self, Type targetScreenType)
         {
             foreach (var screen in self.Screens)
@@ -47,7 +46,7 @@ namespace Meek.NavigationStack
                 if (screen.GetType() == targetScreenType) return screen;
             }
 
-            throw new Exception($"Can't find screen type of {targetScreenType.Name}");
+            throw new InvalidOperationException($"Can't find screen type of {targetScreenType.Name}");
         }
 
         [CanBeNull]

@@ -7,7 +7,7 @@ using VContainer;
 public class VContainerServiceProvider : IServiceProvider, IDisposable
 {
     public readonly IObjectResolver ObjectResolver;
-    private bool _isDisposable = false;
+    private bool _isDisposed = false;
         
     public VContainerServiceProvider(IObjectResolver objectResolver)
     {
@@ -16,7 +16,7 @@ public class VContainerServiceProvider : IServiceProvider, IDisposable
     
     public T GetService<T>()
     {
-        if (_isDisposable)
+        if (_isDisposed)
             throw new InvalidOperationException("This instance is already disposed.");
         
         return ObjectResolver.Resolve<T>();
@@ -24,7 +24,7 @@ public class VContainerServiceProvider : IServiceProvider, IDisposable
 
     public object GetService(Type type)
     {
-        if (_isDisposable)
+        if (_isDisposed)
             throw new InvalidOperationException("This instance is already disposed.");
         
         return ObjectResolver.Resolve(type);
@@ -32,9 +32,9 @@ public class VContainerServiceProvider : IServiceProvider, IDisposable
     
     public void Dispose()
     {
-        if (_isDisposable) return;
+        if (_isDisposed) return;
         
-        _isDisposable = true;
+        _isDisposed = true;
         ObjectResolver?.Dispose();
     }
 }
