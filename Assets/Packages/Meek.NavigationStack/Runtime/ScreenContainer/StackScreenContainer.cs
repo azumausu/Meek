@@ -61,6 +61,11 @@ namespace Meek.NavigationStack
 
         public void Dispose()
         {
+            // NOTE: This sync Dispose path is used when the DI container tears down
+            // the container (e.g. scene unload). Screens that also implement
+            // IAsyncDisposable will not have their async-only resources released
+            // here. Wiring StackScreenContainer to IAsyncDisposable is out of scope
+            // for the dispose-unification change and is tracked separately.
             foreach (var screen in _screenStack.OfType<IDisposable>()) screen.Dispose();
             _screenStack.Clear();
         }

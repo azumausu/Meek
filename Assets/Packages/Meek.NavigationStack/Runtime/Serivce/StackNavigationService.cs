@@ -84,16 +84,16 @@ namespace Meek.NavigationStack
                 context.InvokeOnError(e);
                 try
                 {
-                    if (toScreen is IDisposable disposable) disposable.Dispose();
-                }
-                catch (Exception ex)
-                {
-                    Debug.LogException(ex);
-                }
-
-                try
-                {
-                    if (toScreen is IAsyncDisposable asyncDisposable) await asyncDisposable.DisposeAsync();
+                    // Prefer IAsyncDisposable so screens that implement both interfaces
+                    // (e.g. StackScreen) are not disposed twice.
+                    if (toScreen is IAsyncDisposable asyncDisposable)
+                    {
+                        await asyncDisposable.DisposeAsync();
+                    }
+                    else if (toScreen is IDisposable disposable)
+                    {
+                        disposable.Dispose();
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -242,16 +242,16 @@ namespace Meek.NavigationStack
                 context.InvokeOnError(e);
                 try
                 {
-                    if (insertionScreen is IDisposable disposable) disposable.Dispose();
-                }
-                catch (Exception ex)
-                {
-                    Debug.LogException(ex);
-                }
-
-                try
-                {
-                    if (insertionScreen is IAsyncDisposable asyncDisposable) await asyncDisposable.DisposeAsync();
+                    // Prefer IAsyncDisposable so screens that implement both interfaces
+                    // (e.g. StackScreen) are not disposed twice.
+                    if (insertionScreen is IAsyncDisposable asyncDisposable)
+                    {
+                        await asyncDisposable.DisposeAsync();
+                    }
+                    else if (insertionScreen is IDisposable disposable)
+                    {
+                        disposable.Dispose();
+                    }
                 }
                 catch (Exception ex)
                 {

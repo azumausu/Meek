@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using UnityEngine;
 using UnityEngine.Pool;
 
 namespace Meek.NavigationStack
@@ -129,9 +130,36 @@ namespace Meek.NavigationStack
 
         public async ValueTask DisposeAsync()
         {
-            await _viewHandlers.DisposeAllAsync();
-            _viewHandlers.DisposeAll();
-            _viewHandlers.Clear();
+            // Prefer IAsyncDisposable so handlers that implement both interfaces are
+            // not disposed twice. The async path now performs the work that the
+            // sync path used to do. The loop is hand-rolled (instead of using
+            // IDisposableExtension.DisposeAllAsync + DisposeAll) so we can branch
+            // per item without disposing twice.
+            try
+            {
+                foreach (var viewHandler in _viewHandlers)
+                {
+                    try
+                    {
+                        if (viewHandler is IAsyncDisposable asyncDisposable)
+                        {
+                            await asyncDisposable.DisposeAsync();
+                        }
+                        else
+                        {
+                            viewHandler.Dispose();
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.LogError(e);
+                    }
+                }
+            }
+            finally
+            {
+                _viewHandlers.Clear();
+            }
         }
     }
 }

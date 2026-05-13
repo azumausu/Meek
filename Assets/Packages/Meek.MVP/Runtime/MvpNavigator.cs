@@ -150,7 +150,6 @@ namespace Meek.MVP
         {
             var fromScreen = context.FromScreen as StackScreen ?? throw new InvalidOperationException();
 
-
             // === Screen Lifecycle Event ===
             // Destroy From Screen
             if (context.FromScreen is IScreenLifecycleEventHandler fromScreenEventHandler)
@@ -178,13 +177,16 @@ namespace Meek.MVP
 
             // === ScreenUIMiddleware ===
             // Prefer IAsyncDisposable when both are implemented to avoid double-dispose.
-            if (context.FromScreen is IAsyncDisposable asyncDisposable)
+            try
             {
-                await asyncDisposable.DisposeAsync();
+                if (fromScreen is IAsyncDisposable asyncDisposable)
+                {
+                    await asyncDisposable.DisposeAsync();
+                }
             }
-            else if (context.FromScreen is IDisposable disposable)
+            catch (Exception e)
             {
-                disposable.Dispose();
+                UnityEngine.Debug.LogException(e);
             }
         }
 
@@ -214,13 +216,16 @@ namespace Meek.MVP
 
             // === ScreenUIMiddleware ===
             // Prefer IAsyncDisposable when both are implemented to avoid double-dispose.
-            if (removeScreen is IAsyncDisposable asyncDisposable)
+            try
             {
-                await asyncDisposable.DisposeAsync();
+                if (removeScreen is IAsyncDisposable asyncDisposable)
+                {
+                    await asyncDisposable.DisposeAsync();
+                }
             }
-            else if (removeScreen is IDisposable disposable)
+            catch (Exception e)
             {
-                disposable.Dispose();
+                UnityEngine.Debug.LogException(e);
             }
         }
 

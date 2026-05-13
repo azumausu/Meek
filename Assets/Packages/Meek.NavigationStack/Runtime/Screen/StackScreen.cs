@@ -5,10 +5,11 @@ using JetBrains.Annotations;
 
 namespace Meek.NavigationStack
 {
-    public abstract class StackScreen : IScreen, IDisposable, IAsyncDisposable, IScreenLifecycleEventHandler, IScreenNavigatorEventHandler
+    public abstract class StackScreen : IScreen, IAsyncDisposable, IScreenLifecycleEventHandler, IScreenNavigatorEventHandler
     {
         private readonly Stack<IDisposable> _interactableLocks = new Stack<IDisposable>();
         private ICoroutineRunner _coroutineRunner;
+        private bool _disposed;
 
         public readonly List<IDisposable> Disposables = new List<IDisposable>();
         public readonly List<IAsyncDisposable> AsyncDisposables = new List<IAsyncDisposable>();
@@ -268,17 +269,22 @@ namespace Meek.NavigationStack
             }
         }
 
-        public virtual void Dispose()
+        async ValueTask IAsyncDisposable.DisposeAsync()
         {
-            Disposables.DisposeAll();
-            Disposables.Clear();
-        }
+            if (_disposed) return;
 
-        public virtual async ValueTask DisposeAsync()
-        {
-            await UI.DisposeAsync();
-            await AsyncDisposables.DisposeAllAsync();
-            AsyncDisposables.Clear();
+            try
+            {
+                if (UI != null) await UI.DisposeAsync();
+                await AsyncDisposables.DisposeAllAsync();
+                AsyncDisposables.Clear();
+                Disposables.DisposeAll();
+                Disposables.Clear();
+            }
+            finally
+            {
+                _disposed = true;
+            }
         }
     }
 }

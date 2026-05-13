@@ -14,6 +14,7 @@ namespace Meek.UGUI
     public class DynamicPrefabViewHandler : IPrefabViewHandler
     {
         private IPrefabViewProvider _prefabViewProvider;
+        private bool _disposed;
         protected readonly IPrefabViewManager PrefabViewManager;
 
         protected RectTransform RectTransform;
@@ -147,62 +148,120 @@ namespace Meek.UGUI
 
         public virtual void Dispose()
         {
-            var disposable = Instance.GetComponent<IDisposable>();
-            if (disposable != null)
+            if (_disposed) return;
+
+            try
             {
-                try
+                if (Instance != null)
                 {
-                    disposable.Dispose();
+                    var disposable = Instance.GetComponent<IDisposable>();
+                    if (disposable != null)
+                    {
+                        try
+                        {
+                            disposable.Dispose();
+                        }
+                        catch (Exception e)
+                        {
+                            Debug.LogError(e);
+                        }
+                    }
                 }
-                catch (Exception e)
+
+                if (_prefabViewProvider is IDisposable disposableProvider)
                 {
-                    Debug.LogError(e);
+                    try
+                    {
+                        disposableProvider.Dispose();
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.LogError(e);
+                    }
+                }
+
+                if (RootNode != null && RootNode.gameObject != null)
+                {
+                    Object.Destroy(RootNode.gameObject);
                 }
             }
-
-            if (_prefabViewProvider is IDisposable disposableProvider)
+            finally
             {
-                try
-                {
-                    disposableProvider.Dispose();
-                }
-                catch (Exception e)
-                {
-                    Debug.LogError(e);
-                }
-            }
-
-            if (RootNode != null && RootNode.gameObject != null)
-            {
-                Object.Destroy(RootNode.gameObject);
+                _disposed = true;
             }
         }
 
         public virtual async ValueTask DisposeAsync()
         {
-            var asyncDisposable = Instance.GetComponent<IAsyncDisposable>();
-            if (asyncDisposable != null)
+            if (_disposed) return;
+
+            try
             {
-                try
+                if (Instance != null)
                 {
-                    await asyncDisposable.DisposeAsync();
+                    var asyncDisposable = Instance.GetComponent<IAsyncDisposable>();
+                    if (asyncDisposable != null)
+                    {
+                        try
+                        {
+                            await asyncDisposable.DisposeAsync();
+                        }
+                        catch (Exception e)
+                        {
+                            Debug.LogError(e);
+                        }
+                    }
+                    else
+                    {
+                        // Fall back to IDisposable if the component does not implement IAsyncDisposable.
+                        var disposable = Instance.GetComponent<IDisposable>();
+                        if (disposable != null)
+                        {
+                            try
+                            {
+                                disposable.Dispose();
+                            }
+                            catch (Exception e)
+                            {
+                                Debug.LogError(e);
+                            }
+                        }
+                    }
                 }
-                catch (Exception e)
+
+                if (_prefabViewProvider is IAsyncDisposable asyncDisposableProvider)
                 {
-                    Debug.LogError(e);
+                    try
+                    {
+                        await asyncDisposableProvider.DisposeAsync();
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.LogError(e);
+                    }
+                }
+                else if (_prefabViewProvider is IDisposable disposableProvider)
+                {
+                    try
+                    {
+                        disposableProvider.Dispose();
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.LogError(e);
+                    }
+                }
+
+                // GameObject teardown is performed here too so callers that only invoke
+                // DisposeAsync still destroy the instance.
+                if (RootNode != null && RootNode.gameObject != null)
+                {
+                    Object.Destroy(RootNode.gameObject);
                 }
             }
-
-            if (_prefabViewProvider is IAsyncDisposable asyncDisposableProvider)
+            finally
             {
-                try
-                {
-                    await asyncDisposableProvider.DisposeAsync();
-                }
-                catch (Exception e)
-                {
-                    Debug.LogError(e);
-                }
+                _disposed = true;
             }
         }
 
