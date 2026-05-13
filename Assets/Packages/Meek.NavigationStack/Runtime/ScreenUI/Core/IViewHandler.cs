@@ -3,7 +3,7 @@ using System.Collections;
 
 namespace Meek.NavigationStack
 {
-    public interface IViewHandler : IDisposable, IAsyncDisposable
+    public interface IViewHandler
     {
         void Setup(StackNavigationContext context);
 

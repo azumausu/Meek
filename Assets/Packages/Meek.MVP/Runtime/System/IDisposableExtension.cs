@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 
 namespace Meek.MVP
@@ -8,18 +9,35 @@ namespace Meek.MVP
     {
         #region Methods
 
-        public static void DisposeAll(this IEnumerable<IDisposable> disposables)
+        public static void SafeDisposeAll(this IEnumerable<IDisposable> disposables)
         {
             foreach (var disposable in disposables)
             {
-                try
-                {
-                    disposable.Dispose();
-                }
-                catch (Exception e)
-                {
-                    Debug.LogError(e);
-                }
+                disposable.SafeDispose();
+            }
+        }
+
+        public static void SafeDispose(this IDisposable disposable)
+        {
+            try
+            {
+                disposable.Dispose();
+            }
+            catch (Exception e)
+            {
+                Debug.LogError(e);
+            }
+        }
+
+        public static async ValueTask SafeDisposeAsync(this IAsyncDisposable disposable)
+        {
+            try
+            {
+                await disposable.DisposeAsync();
+            }
+            catch (Exception e)
+            {
+                Debug.LogError(e);
             }
         }
 

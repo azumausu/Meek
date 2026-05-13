@@ -1,19 +1,36 @@
 #if MEEK_ENABLE_UGUI
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using UnityEngine;
 
 namespace Meek.UGUI
 {
     internal static class IDisposableExtension
     {
-        #region Methods
-
-        public static void DisposeAll(this IEnumerable<IDisposable> disposables)
+        public static void SafeDispose(this IDisposable disposable)
         {
-            foreach (var disposable in disposables) disposable.Dispose();
+            try
+            {
+                disposable.Dispose();
+            }
+            catch (Exception e)
+            {
+                Debug.LogError(e);
+            }
         }
 
-        #endregion
+        public static async ValueTask SafeDisposeAsync(this IAsyncDisposable disposable)
+        {
+            try
+            {
+                await disposable.DisposeAsync();
+            }
+            catch (Exception e)
+            {
+                Debug.LogError(e);
+            }
+        }
     }
 }
 #endif

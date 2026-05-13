@@ -8,8 +8,9 @@ namespace Meek.NavigationStack
     public abstract class StackScreen : IScreen, IAsyncDisposable, IScreenLifecycleEventHandler, IScreenNavigatorEventHandler
     {
         private readonly Stack<IDisposable> _interactableLocks = new Stack<IDisposable>();
-        private ICoroutineRunner _coroutineRunner;
+
         private bool _disposed;
+        private ICoroutineRunner _coroutineRunner;
 
         public readonly List<IDisposable> Disposables = new List<IDisposable>();
         public readonly List<IAsyncDisposable> AsyncDisposables = new List<IAsyncDisposable>();
@@ -273,18 +274,12 @@ namespace Meek.NavigationStack
         {
             if (_disposed) return;
 
-            try
-            {
-                if (UI != null) await UI.DisposeAsync();
-                await AsyncDisposables.DisposeAllAsync();
-                AsyncDisposables.Clear();
-                Disposables.DisposeAll();
-                Disposables.Clear();
-            }
-            finally
-            {
-                _disposed = true;
-            }
+            _disposed = true;
+            if (UI != null) await UI.DisposeAsync();
+            await AsyncDisposables.SafeDisposeAllAsync();
+            AsyncDisposables.Clear();
+            Disposables.SafeDisposeAll();
+            Disposables.Clear();
         }
     }
 }

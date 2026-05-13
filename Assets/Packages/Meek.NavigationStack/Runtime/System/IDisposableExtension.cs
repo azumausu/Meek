@@ -9,33 +9,43 @@ namespace Meek.NavigationStack
     {
         #region Methods
 
-        public static void DisposeAll(this IEnumerable<IDisposable> disposables)
+        public static void SafeDisposeAll(this IEnumerable<IDisposable> disposables)
         {
             foreach (var disposable in disposables)
             {
-                try
-                {
-                    disposable.Dispose();
-                }
-                catch (Exception e)
-                {
-                    Debug.LogError(e);
-                }
+                disposable.SafeDispose();
             }
         }
 
-        public static async ValueTask DisposeAllAsync(this IEnumerable<IAsyncDisposable> disposables)
+        public static async ValueTask SafeDisposeAllAsync(this IEnumerable<IAsyncDisposable> disposables)
         {
             foreach (var disposable in disposables)
             {
-                try
-                {
-                    await disposable.DisposeAsync();
-                }
-                catch (Exception e)
-                {
-                    Debug.LogError(e);
-                }
+                await disposable.SafeDisposeAsync();
+            }
+        }
+
+        public static void SafeDispose(this IDisposable disposable)
+        {
+            try
+            {
+                disposable.Dispose();
+            }
+            catch (Exception e)
+            {
+                Debug.LogError(e);
+            }
+        }
+
+        public static async ValueTask SafeDisposeAsync(this IAsyncDisposable disposable)
+        {
+            try
+            {
+                await disposable.DisposeAsync();
+            }
+            catch (Exception e)
+            {
+                Debug.LogError(e);
             }
         }
 

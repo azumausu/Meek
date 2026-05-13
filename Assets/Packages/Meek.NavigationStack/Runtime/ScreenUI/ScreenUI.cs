@@ -37,11 +37,18 @@ namespace Meek.NavigationStack
             _viewHandlers.Add(viewHandler);
         }
 
-        public void DisposeViewHandler(IViewHandler viewHandler)
+        public async ValueTask DisposeViewHandlerAsync(IViewHandler viewHandler)
         {
             if (!_viewHandlers.Remove(viewHandler)) return;
 
-            viewHandler.Dispose();
+            if (viewHandler is IAsyncDisposable asyncDisposable)
+            {
+                await asyncDisposable.DisposeAsync();
+            }
+            else if (viewHandler is IDisposable disposable)
+            {
+                disposable.Dispose();
+            }
         }
 
         /// <summary>
@@ -130,36 +137,19 @@ namespace Meek.NavigationStack
 
         public async ValueTask DisposeAsync()
         {
-            // Prefer IAsyncDisposable so handlers that implement both interfaces are
-            // not disposed twice. The async path now performs the work that the
-            // sync path used to do. The loop is hand-rolled (instead of using
-            // IDisposableExtension.DisposeAllAsync + DisposeAll) so we can branch
-            // per item without disposing twice.
-            try
+            foreach (var viewHandler in _viewHandlers)
             {
-                foreach (var viewHandler in _viewHandlers)
+                if (viewHandler is IAsyncDisposable asyncDisposable)
                 {
-                    try
-                    {
-                        if (viewHandler is IAsyncDisposable asyncDisposable)
-                        {
-                            await asyncDisposable.DisposeAsync();
-                        }
-                        else
-                        {
-                            viewHandler.Dispose();
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        Debug.LogError(e);
-                    }
+                    await asyncDisposable.SafeDisposeAsync();
+                }
+                else if (viewHandler is IDisposable disposable)
+                {
+                    disposable.SafeDispose();
                 }
             }
-            finally
-            {
-                _viewHandlers.Clear();
-            }
+
+            _viewHandlers.Clear();
         }
     }
 }

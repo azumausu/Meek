@@ -52,7 +52,7 @@ namespace Meek.MVP
             }
             finally
             {
-                _disposables?.DisposeAll();
+                _disposables?.SafeDisposeAll();
             }
         }
 

@@ -177,16 +177,9 @@ namespace Meek.MVP
 
             // === ScreenUIMiddleware ===
             // Prefer IAsyncDisposable when both are implemented to avoid double-dispose.
-            try
+            if (fromScreen is IAsyncDisposable asyncDisposable)
             {
-                if (fromScreen is IAsyncDisposable asyncDisposable)
-                {
-                    await asyncDisposable.DisposeAsync();
-                }
-            }
-            catch (Exception e)
-            {
-                UnityEngine.Debug.LogException(e);
+                await asyncDisposable.SafeDisposeAsync();
             }
         }
 
@@ -216,16 +209,9 @@ namespace Meek.MVP
 
             // === ScreenUIMiddleware ===
             // Prefer IAsyncDisposable when both are implemented to avoid double-dispose.
-            try
+            if (removeScreen is IAsyncDisposable asyncDisposable)
             {
-                if (removeScreen is IAsyncDisposable asyncDisposable)
-                {
-                    await asyncDisposable.DisposeAsync();
-                }
-            }
-            catch (Exception e)
-            {
-                UnityEngine.Debug.LogException(e);
+                await asyncDisposable.SafeDisposeAsync();
             }
         }
 

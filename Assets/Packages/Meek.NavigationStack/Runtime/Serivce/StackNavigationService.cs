@@ -82,22 +82,13 @@ namespace Meek.NavigationStack
             {
                 Debug.LogException(e);
                 context.InvokeOnError(e);
-                try
+                if (toScreen is IAsyncDisposable asyncDisposable)
                 {
-                    // Prefer IAsyncDisposable so screens that implement both interfaces
-                    // (e.g. StackScreen) are not disposed twice.
-                    if (toScreen is IAsyncDisposable asyncDisposable)
-                    {
-                        await asyncDisposable.DisposeAsync();
-                    }
-                    else if (toScreen is IDisposable disposable)
-                    {
-                        disposable.Dispose();
-                    }
+                    await asyncDisposable.SafeDisposeAsync();
                 }
-                catch (Exception ex)
+                else if (toScreen is IDisposable disposable)
                 {
-                    Debug.LogException(ex);
+                    disposable.SafeDispose();
                 }
 
                 throw;
@@ -240,22 +231,13 @@ namespace Meek.NavigationStack
             {
                 Debug.LogException(e);
                 context.InvokeOnError(e);
-                try
+                if (insertionScreen is IAsyncDisposable asyncDisposable)
                 {
-                    // Prefer IAsyncDisposable so screens that implement both interfaces
-                    // (e.g. StackScreen) are not disposed twice.
-                    if (insertionScreen is IAsyncDisposable asyncDisposable)
-                    {
-                        await asyncDisposable.DisposeAsync();
-                    }
-                    else if (insertionScreen is IDisposable disposable)
-                    {
-                        disposable.Dispose();
-                    }
+                    await asyncDisposable.SafeDisposeAsync();
                 }
-                catch (Exception ex)
+                else if (insertionScreen is IDisposable disposable)
                 {
-                    Debug.LogException(ex);
+                    disposable.SafeDispose();
                 }
 
                 throw;
