@@ -2,7 +2,7 @@ using Meek.NavigationStack.Debugs;
 
 namespace Meek.NavigationStack
 {
-    public static class IServiceCollectionExntensions
+    public static class IServiceCollectionExtensions
     {
         public static IServiceCollection AddStackNavigationService(this IServiceCollection self, IInputLocker inputLocker)
         {
