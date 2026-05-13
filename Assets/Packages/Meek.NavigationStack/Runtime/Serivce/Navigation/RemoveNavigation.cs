@@ -37,7 +37,15 @@ namespace Meek.NavigationStack
 
         public virtual async Task RemoveAsync(IScreen screen)
         {
-            await StackNavigationService.RemoveAsync(screen, RemoveContext);
+            await SharedSemaphore.NavigationSemaphore.WaitAsync();
+            try
+            {
+                await StackNavigationService.RemoveAsync(screen, RemoveContext);
+            }
+            finally
+            {
+                SharedSemaphore.NavigationSemaphore.Release();
+            }
         }
 
         public virtual async Task RemoveAsync(Type screenClassType)
