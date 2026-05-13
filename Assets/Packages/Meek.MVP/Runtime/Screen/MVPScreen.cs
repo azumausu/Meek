@@ -53,8 +53,10 @@ namespace Meek.MVP
         {
             Model = await CreateModelAsync();
 
+            // Prefer IAsyncDisposable so a model that implements both interfaces is
+            // not released twice during StackScreen.DisposeAsync.
             if (Model is IAsyncDisposable asyncDisposable) AsyncDisposables.Add(asyncDisposable);
-            if (Model is IDisposable disposable) Disposables.Add(disposable);
+            else if (Model is IDisposable disposable) Disposables.Add(disposable);
 
             await base.StartingImplAsync(context);
         }

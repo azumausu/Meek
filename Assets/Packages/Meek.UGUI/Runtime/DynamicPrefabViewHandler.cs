@@ -11,11 +11,12 @@ using Object = UnityEngine.Object;
 
 namespace Meek.UGUI
 {
-    public class DynamicPrefabViewHandler : IPrefabViewHandler
+    public class DynamicPrefabViewHandler : IPrefabViewHandler, IAsyncDisposable
     {
         private IPrefabViewProvider _prefabViewProvider;
         protected readonly IPrefabViewManager PrefabViewManager;
 
+        protected bool Disposed;
         protected RectTransform RectTransform;
         protected CanvasGroup CanvasGroup;
         protected Canvas Canvas;
@@ -143,33 +144,36 @@ namespace Meek.UGUI
             };
         }
 
-        #region IDisposable
-
-        public virtual void Dispose()
+        public virtual async ValueTask DisposeAsync()
         {
-            var disposable = Instance.GetComponent<IDisposable>();
-            if (disposable != null)
+            if (Disposed) return;
+
+            Disposed = true;
+            if (Instance != null)
             {
-                try
+                var asyncDisposable = Instance.GetComponent<IAsyncDisposable>();
+                if (asyncDisposable != null)
                 {
-                    disposable.Dispose();
+                    await asyncDisposable.SafeDisposeAsync();
                 }
-                catch (Exception e)
+                else
                 {
-                    Debug.LogError(e);
+                    // Fall back to IDisposable if the component does not implement IAsyncDisposable.
+                    var disposable = Instance.GetComponent<IDisposable>();
+                    if (disposable != null)
+                    {
+                        disposable.SafeDispose();
+                    }
                 }
             }
 
-            if (_prefabViewProvider is IDisposable disposableProvider)
+            if (_prefabViewProvider is IAsyncDisposable asyncDisposableProvider)
             {
-                try
-                {
-                    disposableProvider.Dispose();
-                }
-                catch (Exception e)
-                {
-                    Debug.LogError(e);
-                }
+                await asyncDisposableProvider.SafeDisposeAsync();
+            }
+            else if (_prefabViewProvider is IDisposable disposableProvider)
+            {
+                disposableProvider.SafeDispose();
             }
 
             if (RootNode != null && RootNode.gameObject != null)
@@ -177,36 +181,6 @@ namespace Meek.UGUI
                 Object.Destroy(RootNode.gameObject);
             }
         }
-
-        public virtual async ValueTask DisposeAsync()
-        {
-            var asyncDisposable = Instance.GetComponent<IAsyncDisposable>();
-            if (asyncDisposable != null)
-            {
-                try
-                {
-                    await asyncDisposable.DisposeAsync();
-                }
-                catch (Exception e)
-                {
-                    Debug.LogError(e);
-                }
-            }
-
-            if (_prefabViewProvider is IAsyncDisposable asyncDisposableProvider)
-            {
-                try
-                {
-                    await asyncDisposableProvider.DisposeAsync();
-                }
-                catch (Exception e)
-                {
-                    Debug.LogError(e);
-                }
-            }
-        }
-
-        #endregion
     }
 }
 #endif

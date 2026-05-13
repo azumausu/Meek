@@ -82,22 +82,13 @@ namespace Meek.NavigationStack
             {
                 Debug.LogException(e);
                 context.InvokeOnError(e);
-                try
+                if (toScreen is IAsyncDisposable asyncDisposable)
                 {
-                    if (toScreen is IDisposable disposable) disposable.Dispose();
+                    await asyncDisposable.SafeDisposeAsync();
                 }
-                catch (Exception ex)
+                else if (toScreen is IDisposable disposable)
                 {
-                    Debug.LogException(ex);
-                }
-
-                try
-                {
-                    if (toScreen is IAsyncDisposable asyncDisposable) await asyncDisposable.DisposeAsync();
-                }
-                catch (Exception ex)
-                {
-                    Debug.LogException(ex);
+                    disposable.SafeDispose();
                 }
 
                 throw;
@@ -240,22 +231,13 @@ namespace Meek.NavigationStack
             {
                 Debug.LogException(e);
                 context.InvokeOnError(e);
-                try
+                if (insertionScreen is IAsyncDisposable asyncDisposable)
                 {
-                    if (insertionScreen is IDisposable disposable) disposable.Dispose();
+                    await asyncDisposable.SafeDisposeAsync();
                 }
-                catch (Exception ex)
+                else if (insertionScreen is IDisposable disposable)
                 {
-                    Debug.LogException(ex);
-                }
-
-                try
-                {
-                    if (insertionScreen is IAsyncDisposable asyncDisposable) await asyncDisposable.DisposeAsync();
-                }
-                catch (Exception ex)
-                {
-                    Debug.LogException(ex);
+                    disposable.SafeDispose();
                 }
 
                 throw;

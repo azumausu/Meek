@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using UnityEngine;
 using UnityEngine.Pool;
 
 namespace Meek.NavigationStack
@@ -36,11 +37,18 @@ namespace Meek.NavigationStack
             _viewHandlers.Add(viewHandler);
         }
 
-        public void DisposeViewHandler(IViewHandler viewHandler)
+        public async ValueTask DisposeViewHandlerAsync(IViewHandler viewHandler)
         {
             if (!_viewHandlers.Remove(viewHandler)) return;
 
-            viewHandler.Dispose();
+            if (viewHandler is IAsyncDisposable asyncDisposable)
+            {
+                await asyncDisposable.DisposeAsync();
+            }
+            else if (viewHandler is IDisposable disposable)
+            {
+                disposable.Dispose();
+            }
         }
 
         /// <summary>
@@ -129,8 +137,18 @@ namespace Meek.NavigationStack
 
         public async ValueTask DisposeAsync()
         {
-            await _viewHandlers.DisposeAllAsync();
-            _viewHandlers.DisposeAll();
+            foreach (var viewHandler in _viewHandlers)
+            {
+                if (viewHandler is IAsyncDisposable asyncDisposable)
+                {
+                    await asyncDisposable.SafeDisposeAsync();
+                }
+                else if (viewHandler is IDisposable disposable)
+                {
+                    disposable.SafeDispose();
+                }
+            }
+
             _viewHandlers.Clear();
         }
     }

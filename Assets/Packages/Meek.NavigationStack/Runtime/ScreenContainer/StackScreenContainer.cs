@@ -1,15 +1,15 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using UnityEngine.Pool;
 
 namespace Meek.NavigationStack
 {
-    public class StackScreenContainer : IScreenContainer, IDisposable
+    public class StackScreenContainer : IScreenContainer, IDisposable, IAsyncDisposable
     {
         private readonly Stack<IScreen> _screenStack = new Stack<IScreen>(32);
         private readonly Stack<IScreen> _insertOrRemoveCacheStack = new(16);
+
+        private bool _disposed;
 
         public IReadOnlyCollection<IScreen> Screens => _screenStack;
 
@@ -61,8 +61,53 @@ namespace Meek.NavigationStack
 
         public void Dispose()
         {
-            foreach (var screen in _screenStack.OfType<IDisposable>()) screen.Dispose();
-            _screenStack.Clear();
+            if (_disposed) return;
+
+            try
+            {
+                foreach (var screen in _screenStack)
+                {
+                    if (screen is IAsyncDisposable asyncDisposable)
+                    {
+                        _ = asyncDisposable.SafeDisposeAsync();
+                    }
+                    else if (screen is IDisposable disposable)
+                    {
+                        disposable.SafeDispose();
+                    }
+                }
+
+                _screenStack.Clear();
+            }
+            finally
+            {
+                _disposed = true;
+            }
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            if (_disposed) return;
+            try
+            {
+                foreach (var screen in _screenStack)
+                {
+                    if (screen is IAsyncDisposable asyncDisposable)
+                    {
+                        await asyncDisposable.SafeDisposeAsync();
+                    }
+                    else if (screen is IDisposable disposable)
+                    {
+                        disposable.SafeDispose();
+                    }
+                }
+
+                _screenStack.Clear();
+            }
+            finally
+            {
+                _disposed = true;
+            }
         }
     }
 }
