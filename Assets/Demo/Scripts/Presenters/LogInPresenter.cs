@@ -32,12 +32,10 @@ namespace Demo
         protected override async Task DisposeAsync()
         {
             await base.DisposeAsync();
-            Debug.LogError("DisposeAsync LogInPresenter");
         }
 
         public void Dispose()
         {
-            Debug.LogError("Dispose LogInPresenter");
         }
     }
 }

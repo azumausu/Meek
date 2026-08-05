@@ -199,7 +199,18 @@ namespace Meek.UGUI
         private IEnumerator PlayAnimation(List<INavigatorAnimation> handlers)
         {
             var count = handlers.Count;
-            foreach (var handler in handlers) handler.Play(() => count--);
+            foreach (var handler in handlers)
+            {
+                // Guard against handlers that invoke onEnd more than once — duplicate
+                // invocations must not drive count negative or starve later decrements.
+                var called = false;
+                handler.Play(() =>
+                {
+                    if (called) return;
+                    called = true;
+                    count--;
+                });
+            }
 
             while (count != 0)
             {
