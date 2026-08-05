@@ -12,6 +12,5 @@ namespace Meek.NavigationStack
         ScreenDidPause,
         
         ScreenWillDestroy,
-        ScreenDidDestroy,
     }
 }

@@ -38,12 +38,12 @@
 <text x="602" y="538" font-family="Menlo, "SF Mono", "DejaVu Sans Mono", monospace" font-size="22" font-weight="500" fill="#EDE7FF">OnWillNavigate</text>
 <text x="602" y="570" font-family=""Helvetica Neue", Helvetica, Arial, sans-serif" font-size="16" fill="#B7ACD9">StackNavigationService global hook</text>
 <rect x="988" y="597" width="532" height="87" rx="14" fill="#1E9C63" stroke="#3FC286" stroke-width="0"/>
-<text x="1008" y="637" font-family="Menlo, "SF Mono", "DejaVu Sans Mono", monospace" font-size="27" font-weight="700" fill="#FFFFFF">ScreenDidDestroy</text>
+<text x="1008" y="637" font-family="Menlo, "SF Mono", "DejaVu Sans Mono", monospace" font-size="27" font-weight="700" fill="#FFFFFF">ScreenWillDestroy</text>
 <text x="1008" y="674" font-family=""Helvetica Neue", Helvetica, Arial, sans-serif" font-size="17" fill="#C7EEDA">Model and Presenter are still alive here</text>
 <rect x="1375" y="611" width="125" height="26" rx="13" fill="rgba(0,0,0,0.26)"/><text x="1437.5" y="629" text-anchor="middle" font-family=""Helvetica Neue", Helvetica, Arial, sans-serif" font-size="15" fill="rgba(255,255,255,0.8)">sync → async</text>
 <rect x="86" y="697" width="1434" height="58" rx="14" fill="#38301F" stroke="#7E6526" stroke-width="1"/>
 <text x="106" y="732.5" font-family=""Helvetica Neue", Helvetica, Arial, sans-serif" font-size="19" font-weight="700" fill="#E9B84A">★</text>
-<text x="136" y="732.5" font-family=""Helvetica Neue", Helvetica, Arial, sans-serif" font-size="19" fill="#E9B84A">ScreenWillDestroy never fires on Remove — only ScreenDidDestroy does.</text>
+<text x="136" y="732.5" font-family=""Helvetica Neue", Helvetica, Arial, sans-serif" font-size="19" fill="#E9B84A">ScreenWillDestroy fires here exactly as it does on Pop — before the disposal.</text>
 <rect x="988" y="768" width="532" height="68" rx="9" fill="#2C3037" stroke="#3C424B" stroke-width="1"/>
 <text x="1004" y="795" font-family="Menlo, "SF Mono", "DejaVu Sans Mono", monospace" font-size="18" font-weight="500" fill="#7E8794">_interactableLocks.Clear()</text>
 <text x="1004" y="823" font-family=""Helvetica Neue", Helvetica, Arial, sans-serif" font-size="15" fill="#666E7A">force-unlocked when AutoDisposeLockerOnDestroy is true</text>

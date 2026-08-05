@@ -69,8 +69,8 @@ namespace Meek.NavigationStack
 
         protected virtual async ValueTask DestroyingImplAsync(StackNavigationContext context)
         {
-            ScreenEventInvoker.Invoke(ScreenLifecycleEvent.ScreenDidDestroy, context);
-            await ScreenEventInvoker.InvokeAsync(ScreenLifecycleEvent.ScreenDidDestroy, context);
+            ScreenEventInvoker.Invoke(ScreenLifecycleEvent.ScreenWillDestroy, context);
+            await ScreenEventInvoker.InvokeAsync(ScreenLifecycleEvent.ScreenWillDestroy, context);
 
             if (AutoDisposeLockerOnDestroy)
             {
@@ -120,11 +120,8 @@ namespace Meek.NavigationStack
 
             void Pop()
             {
-                // Prepare If PreActive
-                if (context.FromScreen == this)
-                {
-                    ScreenEventInvoker.Invoke(ScreenLifecycleEvent.ScreenWillDestroy, context);
-                }
+                // ScreenWillDestroy is fired from DestroyingImplAsync so that it also
+                // covers Remove, which never reaches this branch.
             }
 
             void Insert()

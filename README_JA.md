@@ -4,7 +4,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE.md)
 [![Unity](https://img.shields.io/badge/Unity-6000.0%2B-blue.svg)](https://unity.com/)
-[![Version](https://img.shields.io/badge/version-1.6.5-green.svg)](https://github.com/azumausu/Meek/releases)
+[![Version](https://img.shields.io/badge/version-1.7.0-green.svg)](https://github.com/azumausu/Meek/releases)
 
 Unity向けのDIベース画面管理フレームワーク。スタックナビゲーションとMVPアーキテクチャをサポートしています。
 
@@ -56,7 +56,7 @@ Unity向けのDIベース画面管理フレームワーク。スタックナビ�
 - **スタックベースナビゲーション** — Push、Pop、Insert、Remove、BackToなどの画面遷移機能
 - **DIコンテナ連携** — 全てのベース機能がDIコンテナに登録されているため、オーバーライドすることで容易に追加・拡張が可能
 - **遷移アニメーション** — Open/Close/Show/Hideなどを簡単に設定可能。Strategyパターンによる拡張性
-- **画面ライフサイクルイベント** — 豊富なライフサイクルフック（WillStart、DidStart、WillPause、DidPause、WillResume、DidResume、WillDestroy、DidDestroy）
+- **画面ライフサイクルイベント** — 豊富なライフサイクルフック（WillStart、DidStart、WillPause、DidPause、WillResume、DidResume、WillDestroy）
 - **入力ロック** — 遷移中の自動入力ブロックでダブルタップ問題を防止
 - **静的クラス不使用** — インスタンスベース設計により、複数の独立したナビゲーターが共存可能
 - **画面間通信** — 密結合なしにスタック内の画面間でDispatchイベントを送信
@@ -288,8 +288,8 @@ PushNavigation.PushForget<NextScreen>();
 
 ![Pop のイベント実行順](Docs/Assets/PopEventOrder.png)
 
-- **`ScreenDidDestroy` はクローズアニメーションよりも前** に発火します。この時点では Model も Presenter もまだ生きているため、破棄前の値の保存などはここで行えます。
-- 実際の破棄（プレハブ破棄 → `Presenter.OnDeinit` → Model / `Disposables` の破棄）はアニメーション完了後です。
+- **`ScreenWillDestroy` はクローズアニメーションよりも前** に発火します。この時点では Model も Presenter もまだ生きているため、破棄前の値の保存などはここで行えます。
+- 実際の破棄（プレハブ破棄 → `Presenter.OnDeinit` → Model / `Disposables` の破棄）はアニメーション完了後の `DisposeAsync()` が担います。
 
 <details>
 <summary>Insert / Remove のイベント実行順</summary>
@@ -306,7 +306,7 @@ PushNavigation.PushForget<NextScreen>();
 
 ![Remove のイベント実行順](Docs/Assets/RemoveEventOrder.png)
 
-- **`ScreenWillDestroy` は発火せず**、`ScreenDidDestroy` のみが発火します。
+- `ScreenWillDestroy` は Pop と同じく破棄処理の直前に発火します。
 - 現在のトップ画面にはライフサイクルイベントも遷移アニメーションも一切発生しません。
 - 削除対象が現在のトップ画面だった場合は、警告ログを出して Pop にフォールバックします。
 
@@ -625,7 +625,7 @@ protected override void RegisterEvents(EventHolder eventHolder, DetailModel mode
 }
 ```
 
-非同期オーバーロードは `ScreenWillStart` / `ScreenWillResume` / `ScreenDidPause` / `ScreenDidDestroy` で利用可能です。  
+非同期オーバーロードは `ScreenWillStart` / `ScreenWillResume` / `ScreenDidPause` / `ScreenWillDestroy` で利用可能です。  
 それ以外のライフサイクルイベントは同期形（`Action` / `Action<StackNavigationContext>`）のみです。
 
 `StackNavigationContext` で特に有用なメンバ:
@@ -924,7 +924,7 @@ public class ZenjectServiceCollection : IContainerBuilder
 | `ScreenWillStart` / `ScreenDidStart` | 画面の初期化（Push / Insert） |
 | `ScreenWillPause` / `ScreenDidPause` | 画面がトップから外れる（Push で上に被さる側）。Insert で挿入される側は `ScreenDidPause` のみ発火 |
 | `ScreenWillResume` / `ScreenDidResume` | 上の画面が Pop されて再アクティブ化される時 |
-| `ScreenWillDestroy` / `ScreenDidDestroy` | 画面破棄（Pop）。Remove では `ScreenDidDestroy` のみ発火 |
+| `ScreenWillDestroy` | 画面破棄の直前（Pop / Remove）。破棄そのものは `DisposeAsync()` が担う |
 | `ViewWillOpen` / `ViewDidOpen` | 表示アニメーションの開始 / 終了 |
 | `ViewWillClose` / `ViewDidClose` | 非表示アニメーションの開始 / 終了 |
 

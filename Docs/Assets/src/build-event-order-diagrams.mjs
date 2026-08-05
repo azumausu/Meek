@@ -379,9 +379,8 @@ const diagrams = {
     steps: [
       { lane: 'core', tier: 'internal', title: 'IInputLocker.LockInput()', note: 'blocks input for the whole navigation' },
       { lane: 'core', tier: 'know', title: 'OnWillNavigate', note: 'StackNavigationService global hook' },
-      { lane: 'b', tier: 'life', title: 'ScreenWillDestroy', sync: 'sync' },
-      { lane: 'b', tier: 'life', title: 'ScreenDidDestroy', sync: 'sync → async', note: 'Model and Presenter are still alive here' },
-      { lane: 'full', tier: 'callout', title: 'ScreenDidDestroy fires before the close animation and before DisposeAsync().' },
+      { lane: 'b', tier: 'life', title: 'ScreenWillDestroy', sync: 'sync → async', note: 'Model and Presenter are still alive here' },
+      { lane: 'full', tier: 'callout', title: 'ScreenWillDestroy fires before the close animation and before DisposeAsync().' },
       { lane: 'b', tier: 'internal', title: '_interactableLocks.Clear()', note: 'force-unlocked when AutoDisposeLockerOnDestroy is true' },
       { lane: 'a', tier: 'life', title: 'ScreenWillResume', sync: 'sync → async' },
       { lane: 'core', tier: 'internal', title: 'ScreenContainer.NavigateAsync()', note: 'pops B off the stack' },
@@ -439,8 +438,8 @@ const diagrams = {
     steps: [
       { lane: 'core', tier: 'internal', title: 'IInputLocker.LockInput()', note: 'blocks input for the whole navigation' },
       { lane: 'core', tier: 'know', title: 'OnWillNavigate', note: 'StackNavigationService global hook' },
-      { lane: 'b', tier: 'life', title: 'ScreenDidDestroy', sync: 'sync → async', note: 'Model and Presenter are still alive here' },
-      { lane: 'full', tier: 'callout', title: 'ScreenWillDestroy never fires on Remove — only ScreenDidDestroy does.' },
+      { lane: 'b', tier: 'life', title: 'ScreenWillDestroy', sync: 'sync → async', note: 'Model and Presenter are still alive here' },
+      { lane: 'full', tier: 'callout', title: 'ScreenWillDestroy fires here exactly as it does on Pop — before the disposal.' },
       { lane: 'b', tier: 'internal', title: '_interactableLocks.Clear()', note: 'force-unlocked when AutoDisposeLockerOnDestroy is true' },
       { lane: 'core', tier: 'internal', title: 'ScreenContainer.NavigateAsync()', note: 'splices X out of the stack' },
       { lane: 'b', tier: 'know', title: 'ViewWillClose', sync: 'sync → async' },
