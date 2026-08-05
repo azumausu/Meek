@@ -8,8 +8,8 @@ namespace Meek
         private readonly List<Func<NavigationDelegate, NavigationDelegate>> _components = new();
         private readonly IContainerBuilder _containerBuilder;
 
-        private Action<IServiceCollection> _configureServices;
-        private Action<INavigatorBuilder> _configure;
+        private Action<IServiceCollection> _configureServices = _ => { };
+        private Action<INavigatorBuilder> _configure = _ => { };
 
         public IServiceProvider ServiceProvider { get; private set; }
 

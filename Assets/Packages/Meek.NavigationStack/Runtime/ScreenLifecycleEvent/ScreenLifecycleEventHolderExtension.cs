@@ -141,31 +141,19 @@ namespace Meek.NavigationStack
         );
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ScreenDidDestroy(this EventHolder self, Action action) => self.RegisterActionEvent(
-            nameof(ScreenLifecycleEvent.ScreenDidDestroy),
-            action
-        );
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ScreenDidDestroy(this EventHolder self, Action<StackNavigationContext> action) => self.RegisterActionEvent(
-            nameof(ScreenLifecycleEvent.ScreenDidDestroy),
-            action
-        );
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ScreenDidDestroy(this EventHolder self, Func<global::System.Threading.Tasks.Task> function) =>
+        public static void ScreenWillDestroy(this EventHolder self, Func<global::System.Threading.Tasks.Task> function) =>
             self.RegisterTaskEvent(
-                nameof(ScreenLifecycleEvent.ScreenDidDestroy),
+                nameof(ScreenLifecycleEvent.ScreenWillDestroy),
                 function
             );
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ScreenDidDestroy(
+        public static void ScreenWillDestroy(
             this EventHolder self,
             Func<StackNavigationContext, global::System.Threading.Tasks.Task> function
         ) =>
             self.RegisterTaskEvent(
-                nameof(ScreenLifecycleEvent.ScreenDidDestroy),
+                nameof(ScreenLifecycleEvent.ScreenWillDestroy),
                 function
             );
     }

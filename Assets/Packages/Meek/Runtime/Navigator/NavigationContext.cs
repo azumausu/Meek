@@ -6,7 +6,7 @@ namespace Meek
 {
     public class NavigationContext
     {
-        public IDictionary<string, object> Features;
+        public IDictionary<string, object> Features = new Dictionary<string, object>();
 
         /// <summary>
         /// The screen that was active before navigation.

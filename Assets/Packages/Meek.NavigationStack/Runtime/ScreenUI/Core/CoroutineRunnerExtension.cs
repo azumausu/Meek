@@ -11,11 +11,15 @@ namespace Meek.NavigationStack
     {
         public static Task StartCoroutineAsTask(this ICoroutineRunner self, IEnumerator action, CancellationToken ct = default)
         {
-            if (ct.IsCancellationRequested) return Task.CompletedTask;
+            if (ct.IsCancellationRequested) return Task.FromCanceled(ct);
 
             var tcs = new TaskCompletionSource<bool>();
-            ct.Register(() => tcs.SetCanceled());
-            self.StartCoroutine(CoroutineWithCallbackInternal(action, () => tcs.SetResult(true)));
+            var registration = ct.Register(() => tcs.TrySetCanceled(ct));
+            self.StartCoroutine(CoroutineWithCallbackInternal(action, () =>
+            {
+                registration.Dispose();
+                tcs.TrySetResult(true);
+            }));
 
             return tcs.Task;
         }
@@ -47,8 +51,14 @@ namespace Meek.NavigationStack
 
         private static IEnumerator CoroutineWithCallbackInternal(IEnumerator action, Action onComplete)
         {
-            yield return action;
-            onComplete.Invoke();
+            try
+            {
+                yield return action;
+            }
+            finally
+            {
+                onComplete?.Invoke();
+            }
         }
     }
 }

@@ -51,6 +51,8 @@ namespace Meek
         /// </summary>
         public void Unlock()
         {
+            if (_lockCount <= 0) return;
+
             _lockCount--;
             if (_lockCount == 0)
             {

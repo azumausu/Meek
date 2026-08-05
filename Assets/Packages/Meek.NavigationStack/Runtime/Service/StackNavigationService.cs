@@ -48,7 +48,8 @@ namespace Meek.NavigationStack
             var features = new Dictionary<string, object>();
 
             var fromScreen = _stackNavigator.ScreenContainer.Screens.FirstOrDefault() as StackScreen;
-            var toScreen = _serviceProvider.GetService(screenClassType) as StackScreen;
+            var toScreen = _serviceProvider.GetService(screenClassType) as StackScreen
+                           ?? throw new InvalidOperationException($"Service for {screenClassType} is not a StackScreen.");
 
             var context = new StackNavigationContext()
             {
@@ -285,8 +286,8 @@ namespace Meek.NavigationStack
             var context = new StackNavigationContext()
             {
                 NavigatingSourceType = StackNavigationSourceType.Remove,
-                IsCrossFade = false,
-                SkipAnimation = false,
+                IsCrossFade = removeContext.IsCrossFade,
+                SkipAnimation = removeContext.SkipAnimation,
                 Features = features,
                 FromScreen = fromScreen,
                 ToScreen = fromScreen,

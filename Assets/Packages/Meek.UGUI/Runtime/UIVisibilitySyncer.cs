@@ -1,11 +1,12 @@
 #if MEEK_ENABLE_UGUI
+using System;
 using UnityEngine;
 
 namespace Meek.UGUI
 {
     public class UIVisibilitySyncer : MonoBehaviour, IVisibilitySwitcher
     {
-        private IVisibilitySwitcher[] _visibilitySwitchers;
+        private IVisibilitySwitcher[] _visibilitySwitchers = Array.Empty<IVisibilitySwitcher>();
         
         public void SyncVisibility(params IVisibilitySwitcher[] visibilitySwitchers)
         {
