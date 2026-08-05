@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1560" height="1650" viewBox="0 0 1560 1650">
+<rect width="1560" height="1650" fill="#22252A"/>
+<text x="46" y="70" font-family=""Helvetica Neue", Helvetica, Arial, sans-serif" font-size="40" font-weight="700" fill="#F2F5F8">Remove — event order</text>
+<text x="46" y="106" font-family=""Helvetica Neue", Helvetica, Arial, sans-serif" font-size="20" fill="#8B95A3">RemoveNavigation.RemoveAsync&lt;ScreenX&gt;()  ·  X is spliced out from below the top screen</text>
+<rect x="1024" y="34" width="490" height="242" rx="12" fill="#282C32" stroke="#343941"/>
+<rect x="1044" y="58" width="24" height="17" rx="5" fill="#1F6FEB" stroke="#4A90F5"/><text x="1080" y="73" font-family=""Helvetica Neue", Helvetica, Arial, sans-serif" font-size="17" fill="#A9B2BE">You implement this</text>
+<rect x="1044" y="89" width="24" height="17" rx="5" fill="#1E9C63" stroke="#3FC286"/><text x="1080" y="104" font-family=""Helvetica Neue", Helvetica, Arial, sans-serif" font-size="17" fill="#A9B2BE">Lifecycle event you hook</text>
+<rect x="1044" y="120" width="24" height="17" rx="5" fill="#584A8C" stroke="#7A69B8"/><text x="1080" y="135" font-family=""Helvetica Neue", Helvetica, Arial, sans-serif" font-size="17" fill="#A9B2BE">Good to know</text>
+<rect x="1044" y="151" width="24" height="17" rx="5" fill="#31363E" stroke="#474D57"/><text x="1080" y="166" font-family=""Helvetica Neue", Helvetica, Arial, sans-serif" font-size="17" fill="#A9B2BE">Meek internals (FYI)</text>
+<line x1="1044" y1="186" x2="1494" y2="186" stroke="#343941"/>
+<text x="1044" y="210" font-family=""Helvetica Neue", Helvetica, Arial, sans-serif" font-size="15" fill="#727B87">sync — Action handlers only</text>
+<text x="1044" y="232" font-family=""Helvetica Neue", Helvetica, Arial, sans-serif" font-size="15" fill="#727B87">sync → async — every Action handler runs, then each</text>
+<text x="1044" y="254" font-family=""Helvetica Neue", Helvetica, Arial, sans-serif" font-size="15" fill="#727B87">Func&lt;Task&gt; handler is awaited in registration order</text>
+<text x="86" y="332" font-family=""Helvetica Neue", Helvetica, Arial, sans-serif" font-size="21" font-weight="700" fill="#8B95A3">Screen C</text>
+<text x="86" y="356" font-family=""Helvetica Neue", Helvetica, Arial, sans-serif" font-size="16" fill="#5E6773">the current top screen — no events at all</text>
+<text x="582" y="332" font-family=""Helvetica Neue", Helvetica, Arial, sans-serif" font-size="21" font-weight="700" fill="#8B95A3">Meek core</text>
+<text x="582" y="356" font-family=""Helvetica Neue", Helvetica, Arial, sans-serif" font-size="16" fill="#5E6773">navigator / service</text>
+<text x="988" y="332" font-family=""Helvetica Neue", Helvetica, Arial, sans-serif" font-size="21" font-weight="700" fill="#8B95A3">Screen X</text>
+<text x="988" y="356" font-family=""Helvetica Neue", Helvetica, Arial, sans-serif" font-size="16" fill="#5E6773">the screen being removed</text>
+<line x1="564" y1="334" x2="564" y2="1533" stroke="#31353D" stroke-width="1"/>
+<line x1="970" y1="334" x2="970" y2="1533" stroke="#31353D" stroke-width="1"/>
+<line x1="46" y1="456" x2="46" y2="1420" stroke="#343941" stroke-width="2"/>
+<line x1="61" y1="456" x2="576" y2="456" stroke="#343941" stroke-width="1.5" stroke-dasharray="3 5"/><circle cx="46" cy="456" r="15" fill="#343941" stroke="#464C56"/><text x="46" y="462" text-anchor="middle" font-family=""Helvetica Neue", Helvetica, Arial, sans-serif" font-size="16" font-weight="700" fill="#B7C0CC">1</text>
+<line x1="61" y1="543.5" x2="576" y2="543.5" stroke="#343941" stroke-width="1.5" stroke-dasharray="3 5"/><circle cx="46" cy="543.5" r="15" fill="#343941" stroke="#464C56"/><text x="46" y="549.5" text-anchor="middle" font-family=""Helvetica Neue", Helvetica, Arial, sans-serif" font-size="16" font-weight="700" fill="#B7C0CC">2</text>
+<line x1="61" y1="640.5" x2="982" y2="640.5" stroke="#343941" stroke-width="1.5" stroke-dasharray="3 5"/><circle cx="46" cy="640.5" r="15" fill="#343941" stroke="#464C56"/><text x="46" y="646.5" text-anchor="middle" font-family=""Helvetica Neue", Helvetica, Arial, sans-serif" font-size="16" font-weight="700" fill="#B7C0CC">3</text>
+<line x1="61" y1="802" x2="982" y2="802" stroke="#343941" stroke-width="1.5" stroke-dasharray="3 5"/><circle cx="46" cy="802" r="15" fill="#343941" stroke="#464C56"/><text x="46" y="808" text-anchor="middle" font-family=""Helvetica Neue", Helvetica, Arial, sans-serif" font-size="16" font-weight="700" fill="#B7C0CC">4</text>
+<line x1="61" y1="883" x2="576" y2="883" stroke="#343941" stroke-width="1.5" stroke-dasharray="3 5"/><circle cx="46" cy="883" r="15" fill="#343941" stroke="#464C56"/><text x="46" y="889" text-anchor="middle" font-family=""Helvetica Neue", Helvetica, Arial, sans-serif" font-size="16" font-weight="700" fill="#B7C0CC">5</text>
+<line x1="61" y1="962" x2="982" y2="962" stroke="#343941" stroke-width="1.5" stroke-dasharray="3 5"/><circle cx="46" cy="962" r="15" fill="#343941" stroke="#464C56"/><text x="46" y="968" text-anchor="middle" font-family=""Helvetica Neue", Helvetica, Arial, sans-serif" font-size="16" font-weight="700" fill="#B7C0CC">6</text>
+<line x1="61" y1="1055.5" x2="576" y2="1055.5" stroke="#343941" stroke-width="1.5" stroke-dasharray="3 5"/><circle cx="46" cy="1055.5" r="15" fill="#343941" stroke="#464C56"/><text x="46" y="1061.5" text-anchor="middle" font-family=""Helvetica Neue", Helvetica, Arial, sans-serif" font-size="16" font-weight="700" fill="#B7C0CC">7</text>
+<line x1="61" y1="1149" x2="982" y2="1149" stroke="#343941" stroke-width="1.5" stroke-dasharray="3 5"/><circle cx="46" cy="1149" r="15" fill="#343941" stroke="#464C56"/><text x="46" y="1155" text-anchor="middle" font-family=""Helvetica Neue", Helvetica, Arial, sans-serif" font-size="16" font-weight="700" fill="#B7C0CC">8</text>
+<line x1="61" y1="1245" x2="982" y2="1245" stroke="#343941" stroke-width="1.5" stroke-dasharray="3 5"/><circle cx="46" cy="1245" r="15" fill="#343941" stroke="#464C56"/><text x="46" y="1251" text-anchor="middle" font-family=""Helvetica Neue", Helvetica, Arial, sans-serif" font-size="16" font-weight="700" fill="#B7C0CC">9</text>
+<line x1="61" y1="1341" x2="576" y2="1341" stroke="#343941" stroke-width="1.5" stroke-dasharray="3 5"/><circle cx="46" cy="1341" r="15" fill="#343941" stroke="#464C56"/><text x="46" y="1347" text-anchor="middle" font-family=""Helvetica Neue", Helvetica, Arial, sans-serif" font-size="16" font-weight="700" fill="#B7C0CC">10</text>
+<line x1="61" y1="1420" x2="576" y2="1420" stroke="#343941" stroke-width="1.5" stroke-dasharray="3 5"/><circle cx="46" cy="1420" r="15" fill="#343941" stroke="#464C56"/><text x="46" y="1426" text-anchor="middle" font-family=""Helvetica Neue", Helvetica, Arial, sans-serif" font-size="16" font-weight="700" fill="#B7C0CC">11</text>
+<rect x="582" y="422" width="386" height="68" rx="9" fill="#2C3037" stroke="#3C424B" stroke-width="1"/>
+<text x="598" y="449" font-family="Menlo, "SF Mono", "DejaVu Sans Mono", monospace" font-size="18" font-weight="500" fill="#7E8794">IInputLocker.LockInput()</text>
+<text x="598" y="477" font-family=""Helvetica Neue", Helvetica, Arial, sans-serif" font-size="15" fill="#666E7A">blocks input for the whole navigation</text>
+<rect x="582" y="503" width="386" height="81" rx="12" fill="#584A8C" stroke="#7A69B8" stroke-width="0"/>
+<text x="602" y="538" font-family="Menlo, "SF Mono", "DejaVu Sans Mono", monospace" font-size="22" font-weight="500" fill="#EDE7FF">OnWillNavigate</text>
+<text x="602" y="570" font-family=""Helvetica Neue", Helvetica, Arial, sans-serif" font-size="16" fill="#B7ACD9">StackNavigationService global hook</text>
+<rect x="988" y="597" width="532" height="87" rx="14" fill="#1E9C63" stroke="#3FC286" stroke-width="0"/>
+<text x="1008" y="637" font-family="Menlo, "SF Mono", "DejaVu Sans Mono", monospace" font-size="27" font-weight="700" fill="#FFFFFF">ScreenDidDestroy</text>
+<text x="1008" y="674" font-family=""Helvetica Neue", Helvetica, Arial, sans-serif" font-size="17" fill="#C7EEDA">Model and Presenter are still alive here</text>
+<rect x="1375" y="611" width="125" height="26" rx="13" fill="rgba(0,0,0,0.26)"/><text x="1437.5" y="629" text-anchor="middle" font-family=""Helvetica Neue", Helvetica, Arial, sans-serif" font-size="15" fill="rgba(255,255,255,0.8)">sync → async</text>
+<rect x="86" y="697" width="1434" height="58" rx="14" fill="#38301F" stroke="#7E6526" stroke-width="1"/>
+<text x="106" y="732.5" font-family=""Helvetica Neue", Helvetica, Arial, sans-serif" font-size="19" font-weight="700" fill="#E9B84A">★</text>
+<text x="136" y="732.5" font-family=""Helvetica Neue", Helvetica, Arial, sans-serif" font-size="19" fill="#E9B84A">ScreenWillDestroy never fires on Remove — only ScreenDidDestroy does.</text>
+<rect x="988" y="768" width="532" height="68" rx="9" fill="#2C3037" stroke="#3C424B" stroke-width="1"/>
+<text x="1004" y="795" font-family="Menlo, "SF Mono", "DejaVu Sans Mono", monospace" font-size="18" font-weight="500" fill="#7E8794">_interactableLocks.Clear()</text>
+<text x="1004" y="823" font-family=""Helvetica Neue", Helvetica, Arial, sans-serif" font-size="15" fill="#666E7A">force-unlocked when AutoDisposeLockerOnDestroy is true</text>
+<rect x="582" y="849" width="386" height="68" rx="9" fill="#2C3037" stroke="#3C424B" stroke-width="1"/>
+<text x="598" y="876" font-family="Menlo, "SF Mono", "DejaVu Sans Mono", monospace" font-size="18" font-weight="500" fill="#7E8794">ScreenContainer.NavigateAsync()</text>
+<text x="598" y="904" font-family=""Helvetica Neue", Helvetica, Arial, sans-serif" font-size="15" fill="#666E7A">splices X out of the stack</text>
+<rect x="988" y="930" width="532" height="64" rx="12" fill="#584A8C" stroke="#7A69B8" stroke-width="0"/>
+<text x="1008" y="970" font-family="Menlo, "SF Mono", "DejaVu Sans Mono", monospace" font-size="22" font-weight="500" fill="#EDE7FF">ViewWillClose</text>
+<rect x="1375" y="944" width="125" height="26" rx="13" fill="rgba(0,0,0,0.26)"/><text x="1437.5" y="962" text-anchor="middle" font-family=""Helvetica Neue", Helvetica, Arial, sans-serif" font-size="15" fill="rgba(255,255,255,0.8)">sync → async</text>
+<rect x="582" y="1007" width="386" height="97" rx="12" fill="#584A8C" stroke="#7A69B8" stroke-width="0"/>
+<text x="602" y="1037" font-family="Menlo, "SF Mono", "DejaVu Sans Mono", monospace" font-size="17" font-weight="500" fill="#EDE7FF">RemoveNavigatorAnimationStrategy</text>
+<text x="602" y="1064" font-family=""Helvetica Neue", Helvetica, Arial, sans-serif" font-size="16" fill="#B7ACD9">visibility fix-up only — no animation</text>
+<text x="602" y="1085" font-family=""Helvetica Neue", Helvetica, Arial, sans-serif" font-size="16" fill="#B7ACD9">is played</text>
+<rect x="988" y="1117" width="532" height="64" rx="12" fill="#584A8C" stroke="#7A69B8" stroke-width="0"/>
+<text x="1008" y="1157" font-family="Menlo, "SF Mono", "DejaVu Sans Mono", monospace" font-size="22" font-weight="500" fill="#EDE7FF">ViewDidClose</text>
+<rect x="1375" y="1131" width="125" height="26" rx="13" fill="rgba(0,0,0,0.26)"/><text x="1437.5" y="1149" text-anchor="middle" font-family=""Helvetica Neue", Helvetica, Arial, sans-serif" font-size="15" fill="rgba(255,255,255,0.8)">sync → async</text>
+<rect x="988" y="1194" width="532" height="102" rx="12" fill="#584A8C" stroke="#7A69B8" stroke-width="0"/>
+<text x="1008" y="1229" font-family="Menlo, "SF Mono", "DejaVu Sans Mono", monospace" font-size="22" font-weight="500" fill="#EDE7FF">DisposeAsync()</text>
+<text x="1008" y="1261" font-family=""Helvetica Neue", Helvetica, Arial, sans-serif" font-size="16" fill="#B7ACD9">destroys the prefab → Presenter.OnDeinit → disposes</text>
+<text x="1008" y="1282" font-family=""Helvetica Neue", Helvetica, Arial, sans-serif" font-size="16" fill="#B7ACD9">Model and Disposables</text>
+<rect x="582" y="1309" width="386" height="64" rx="12" fill="#584A8C" stroke="#7A69B8" stroke-width="0"/>
+<text x="602" y="1349" font-family="Menlo, "SF Mono", "DejaVu Sans Mono", monospace" font-size="22" font-weight="500" fill="#EDE7FF">OnDidNavigate</text>
+<rect x="582" y="1386" width="386" height="68" rx="9" fill="#2C3037" stroke="#3C424B" stroke-width="1"/>
+<text x="598" y="1413" font-family="Menlo, "SF Mono", "DejaVu Sans Mono", monospace" font-size="18" font-weight="500" fill="#7E8794">locker.Dispose()</text>
+<text x="598" y="1441" font-family=""Helvetica Neue", Helvetica, Arial, sans-serif" font-size="15" fill="#666E7A">input unlocked</text>
+<rect x="86" y="1467" width="1434" height="58" rx="14" fill="#38301F" stroke="#7E6526" stroke-width="1"/>
+<text x="106" y="1502.5" font-family=""Helvetica Neue", Helvetica, Arial, sans-serif" font-size="19" font-weight="700" fill="#E9B84A">★</text>
+<text x="136" y="1502.5" font-family=""Helvetica Neue", Helvetica, Arial, sans-serif" font-size="19" fill="#E9B84A">The top screen C receives no lifecycle event and no animation during a Remove.</text>
+<rect x="86" y="1559" width="1434" height="51" rx="10" fill="#282C32" stroke="#343941"/><text x="106" y="1591" font-family=""Helvetica Neue", Helvetica, Arial, sans-serif" font-size="18" fill="#98A2AF">Removing the current top screen logs a warning and falls back to a full Pop.</text>
+</svg>

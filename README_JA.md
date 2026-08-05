@@ -24,7 +24,7 @@ Unity向けのDIベース画面管理フレームワーク。スタックナビ�
 - [基本コンセプト](#基本コンセプト)
   - [Screen (MVPパターン)](#screen-mvpパターン)
   - [ナビゲーション](#ナビゲーション)
-  - [画面ライフサイクル](#画面ライフサイクル)
+  - [各ナビゲーションのイベント実行順](#各ナビゲーションのイベント実行順)
   - [DI連携](#di連携)
 - [使い方](#使い方)
   - [画面の作成](#画面の作成)
@@ -265,34 +265,56 @@ PushNavigation.PushForget<NextScreen>();
 
 各ビルダーは固有の連結オプション（パラメータ・クロスフェード・SkipAnimation・`OnlyWhen` など）と、任意のキー/値を画面間で受け渡す `CustomFeature(key, value)` の仕組みを持ちます。全ビルダーの一覧と値渡しの詳細は [Navigation Builder のオプション](#navigation-builder-のオプション) と [`CustomFeature` による値渡し](#customfeature-による値渡し) を参照してください。
 
-### 画面ライフサイクル
+### 各ナビゲーションのイベント実行順
 
-```
-Push されたばかりの画面
-   ScreenWillStart ─► ScreenDidStart
-              │
-              │ (この画面の上にさらに別の画面が Push される)
-              ▼
-   ScreenWillPause ─► ScreenDidPause
-              │
-              │ (上に積まれていた画面が Pop される)
-              ▼
-   ScreenWillResume ─► ScreenDidResume
-              │
-              │ (この画面が Pop される)
-              ▼
-   ScreenWillDestroy ─► ScreenDidDestroy
-```
+図は上から下へ時系列で読みます。色は「実装するときにどれだけ触るか」の優先度を表しています。
 
-`Will*` / `Did*` ペアは 1 フェーズを挟み込みます。`Will*` がフェーズ開始直前、`Did*` がフェーズ終了直後に発火します。
+- **青** — 実装が必須（`CreateModelAsync` / `RegisterEvents`）
+- **緑** — よく使うライフサイクルイベント
+- **紫** — 知っておくと良いイベント（View イベント / 遷移アニメーション / ナビゲーションフック）
+- **グレー** — フレームワーク内部の処理（参考）
 
-補足挙動:
+各イベントに付いている `sync` / `sync → async` バッジは、そのイベントで呼べるハンドラの種類を表します。`sync` は `Action` 系のみ、`sync → async` は `Action` 系をすべて実行したあとに `Func<Task>` 系を登録順に await します。
 
-- **Insert / Remove** — 対象となる画面に対して限定された一部のライフサイクルイベントだけを発火させ、現在表示中のトップ画面の Pause/Resume は起こしません。
-- **`ScreenUI` の View イベント** — 遷移の前後で、Push と Insert では `ViewWillOpen` / `ViewDidOpen` が、Pop と Remove では `ViewWillClose` / `ViewDidClose` が発火します。
-- **Context 受け取りフック** — 各ライフサイクルフックは `StackNavigationContext` を受け取るオーバーロードも持っています。
+#### Push
 
-コンテキストの受け取り方は [ライフサイクルコールバックで `StackNavigationContext` を受け取る](#ライフサイクルコールバックで-stacknavigationcontext-を受け取る) を参照してください。
+![Push のイベント実行順](Docs/Assets/PushEventOrder.png)
+
+- **`ScreenWillStart` が Presenter をロードする場所です。** ここで `LoadPresenterAsync<T>()` を await すると、続く `UI.Setup()` で `Presenter.OnSetup` / `Bind` が走ります。
+- 遷移元の `ScreenDidPause` は、遷移先の `CreateModelAsync()` よりも **前** に発火します。遷移元の後処理を遷移先の生成より先に済ませたい場合はここに書けます。
+- 遷移元の入力ロックは Push 完了後も保持され、Pop で復帰するまで解除されません。
+
+#### Pop
+
+![Pop のイベント実行順](Docs/Assets/PopEventOrder.png)
+
+- **`ScreenDidDestroy` はクローズアニメーションよりも前** に発火します。この時点では Model も Presenter もまだ生きているため、破棄前の値の保存などはここで行えます。
+- 実際の破棄（プレハブ破棄 → `Presenter.OnDeinit` → Model / `Disposables` の破棄）はアニメーション完了後です。
+
+<details>
+<summary>Insert / Remove のイベント実行順</summary>
+
+#### Insert
+
+![Insert のイベント実行順](Docs/Assets/InsertEventOrder.png)
+
+- 挿入される画面は `ScreenWillStart` → `ScreenDidPause` → `ScreenDidStart` の順に発火し、**`ScreenWillPause` は発火しません**。
+- `ViewWillOpen` / `ViewDidOpen` は挿入される画面ではなく **現在のトップ画面** に対して発火します。また遷移アニメーションは再生されません。
+- 挿入先が現在のトップ画面だった場合は、警告ログを出して Push にフォールバックします。
+
+#### Remove
+
+![Remove のイベント実行順](Docs/Assets/RemoveEventOrder.png)
+
+- **`ScreenWillDestroy` は発火せず**、`ScreenDidDestroy` のみが発火します。
+- 現在のトップ画面にはライフサイクルイベントも遷移アニメーションも一切発生しません。
+- 削除対象が現在のトップ画面だった場合は、警告ログを出して Pop にフォールバックします。
+
+</details>
+
+※ **BackTo** は単独の遷移ではなく、上記の合成操作です。トップ画面より下の中間画面を順に Remove（既定で `SkipAnimation` が有効）してから、最後にトップ画面を 1 回 Pop します（対象の 1 つ上まで戻る場合は Pop のみ）。各サブ操作がそれぞれ入力ロックと `OnWillNavigate` / `OnDidNavigate` を発火します。
+
+各ライフサイクルフックは `StackNavigationContext` を受け取るオーバーロードも持っています。受け取り方は [ライフサイクルコールバックで `StackNavigationContext` を受け取る](#ライフサイクルコールバックで-stacknavigationcontext-を受け取る) を参照してください。
 
 ### DI連携
 
@@ -465,7 +487,7 @@ Meekは4種類のアニメーションをサポートしています：**Open**�
 | **Pop**  | `Show` (再アクティブ化) | `Close` (Popされる画面) |
 
 - **クロスフェード vs 順次実行** — `IsCrossFade(true)` を指定すると前面・背面のアニメーションは並列実行され、それ以外では順次実行されます。
-- **View イベント** — `ViewWillOpen` / `ViewDidOpen` と `ViewWillClose` / `ViewDidClose` は `Open` / `Close` の前後でのみ発火します。
+- **View イベント** — `ViewWillOpen` / `ViewDidOpen` と `ViewWillClose` / `ViewDidClose` は `Open` / `Close` の前後でのみ発火します。`Show` / `Hide` 側には View イベントがありません。発火位置は [各ナビゲーションのイベント実行順](#各ナビゲーションのイベント実行順) を参照してください。
 
 ナビゲーションごとにアニメーション動作を制御できます：
 
@@ -900,11 +922,13 @@ public class ZenjectServiceCollection : IContainerBuilder
 | イベント | トリガー |
 |-------|---------|
 | `ScreenWillStart` / `ScreenDidStart` | 画面の初期化（Push / Insert） |
-| `ScreenWillPause` / `ScreenDidPause` | 画面がトップから外れる（Push で上に被さる側 / Insert で挿入される側） |
+| `ScreenWillPause` / `ScreenDidPause` | 画面がトップから外れる（Push で上に被さる側）。Insert で挿入される側は `ScreenDidPause` のみ発火 |
 | `ScreenWillResume` / `ScreenDidResume` | 上の画面が Pop されて再アクティブ化される時 |
-| `ScreenWillDestroy` / `ScreenDidDestroy` | 画面破棄（Pop / Remove） |
+| `ScreenWillDestroy` / `ScreenDidDestroy` | 画面破棄（Pop）。Remove では `ScreenDidDestroy` のみ発火 |
 | `ViewWillOpen` / `ViewDidOpen` | 表示アニメーションの開始 / 終了 |
 | `ViewWillClose` / `ViewDidClose` | 非表示アニメーションの開始 / 終了 |
+
+発火順の詳細は [各ナビゲーションのイベント実行順](#各ナビゲーションのイベント実行順) を参照してください。
 
 ---
 
